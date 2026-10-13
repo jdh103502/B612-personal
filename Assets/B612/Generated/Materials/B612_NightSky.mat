@@ -1,0 +1,66 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!21 &2100000
+Material:
+  serializedVersion: 8
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: B612_NightSky
+  m_Shader: {fileID: 4800000, guid: 5d68a3f50e673ef47b72366370ce1792, type: 3}
+  m_Parent: {fileID: 0}
+  m_ModifiedSerializedProperties: 0
+  m_ValidKeywords: []
+  m_InvalidKeywords: []
+  m_LightmapFlags: 4
+  m_EnableInstancingVariants: 0
+  m_DoubleSidedGI: 0
+  m_CustomRenderQueue: -1
+  stringTagMap: {}
+  disabledShaderPasses: []
+  m_LockedProperties: 
+  m_SavedProperties:
+    serializedVersion: 3
+    m_TexEnvs:
+    - _Noise3D:
+        m_Texture: {fileID: 11700000, guid: eb1e0e9bf099c5948944476eeb400887, type: 2}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    m_Ints: []
+    m_Floats:
+    - _DustStrength: 0.8
+    - _GlowStrength: 0.22
+    - _MeteorIntensity: 5
+    - _MilkyIntensity: 0.5
+    - _MilkyWidth: 0.055
+    - _MoonHalo: 0.8
+    - _MoonIntensity: 3
+    - _MoonPhase: 0.68
+    - _MoonSize: 0.042
+    - _NebulaIntensity: 0.12
+    - _SkyRotation: 0.05
+    - _StarBrightness: 6
+    - _StarDensity: 1
+    - _TwinkleAmount: 0.55
+    - _TwinkleSpeed: 2.5
+    m_Colors:
+    - _GlowColor: {r: 0.9, g: 0.41999996, b: 0.39999998, a: 1}
+    - _GlowDir: {r: -0.5623938, g: -0.46744162, b: -0.6820641, a: 0}
+    - _HorizonColor: {r: 0.059999965, g: 0.049999982, b: 0.16999996, a: 1}
+    - _MeteorColor: {r: 0.8, g: 0.9, b: 1, a: 1}
+    - _MidColor: {r: 0.022, g: 0.034, b: 0.11999995, a: 1}
+    - _MilkyArmColor: {r: 0.41999996, g: 0.52, b: 1, a: 1}
+    - _MilkyCore: {r: -0.5057308, g: -0.14423633, b: -0.85054815, a: 0}
+    - _MilkyCoreColor: {r: 1, g: 0.76, b: 0.58, a: 1}
+    - _MilkyNormal: {r: 0.33032086, g: 0.8746869, b: -0.35469836, a: 0}
+    - _MoonColor: {r: 1, g: 0.94, b: 0.8, a: 1}
+    - _MoonDir: {r: -0.07230089, g: -0.11142224, b: -0.99113953, a: 0}
+    - _NadirColor: {r: 0.008, g: 0.012, b: 0.04, a: 1}
+    - _NebulaA: {r: 0.85, g: 0.24999997, b: 0.62, a: 1}
+    - _NebulaB: {r: 0.11999995, g: 0.52, b: 0.85, a: 1}
+    - _PoleDir: {r: -0.5057308, g: -0.14423633, b: -0.85054815, a: 0}
+    - _SkyUp: {r: -0.19009705, g: 0.82766485, b: -0.5280474, a: 0}
+    - _ZenithColor: {r: 0.01, g: 0.016, b: 0.059999965, a: 1}
+  m_BuildTextureStacks: []
+  m_AllowLocking: 1
