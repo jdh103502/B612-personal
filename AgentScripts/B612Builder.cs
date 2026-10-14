@@ -649,7 +649,7 @@ public static class B612Builder
             smr.updateWhenOffscreen = true;
             smr.quality = SkinQuality.Bone4;
         }
-        Debug.Log("B612 " + RigScarf(model));
+        Debug.Log("B612 " + RigScarf(model, mat));
         idleClip.SampleAnimation(model, 0f);
 
         // wrapper (squash and lean at runtime) > pivot (facing, size, feet on the ground) > model (the Animator)
@@ -714,10 +714,15 @@ public static class B612Builder
         return prefab;
     }
 
-    // Adds three bones down the loose tail of the prince's scarf and re-skins those vertices onto them, so the
-    // scarf can flutter. Scarf vertices are found by colour (red in the base texture, above the red waist sash)
-    // and by standing out away from the neck; the weights blend smoothly from the original ones near the neck.
-    static string RigScarf(GameObject model)
+    const int ScarfBones = 5;
+    const float ScarfStretch = 1.75f;     // how much longer the loose end of the scarf gets
+    const float ScarfRadialIn = 0.2f, ScarfRadialOut = 0.3f;
+
+    // Lengthens the loose tail of the prince's scarf, gives it a chain of bones (Scarf.1..N plus a Scarf.End
+    // marker) and re-skins it so it can swing, and repaints the scarf yellow in a copy of the base texture.
+    // Scarf vertices are found by colour (red in the texture, above the red waist sash, not skinned to a limb);
+    // the loose tail is the part standing out away from the neck.
+    static string RigScarf(GameObject model, Material mat)
     {
         var smr = model.GetComponentInChildren<SkinnedMeshRenderer>();
         var src = smr.sharedMesh;
@@ -731,49 +736,107 @@ public static class B612Builder
         var up = (top - hips).normalized;
         float H = Vector3.Dot(top - hips, up);
 
-        var tex = new Texture2D(2, 2);
-        tex.LoadImage(System.IO.File.ReadAllBytes(Application.dataPath + "/B612/Models/Meshy/Prince_BaseColor.png"));
+        var texPath = Application.dataPath + "/B612/Models/Meshy/Prince_BaseColor.png";
+        var tex = new Texture2D(2, 2, TextureFormat.RGBA32, false);
+        tex.LoadImage(System.IO.File.ReadAllBytes(texPath));
         var verts = src.vertices; var uv = src.uv; var bw = src.boneWeights;
+        var scarf = new HashSet<int>();
         var radial = new float[verts.Length];
         var blend = new float[verts.Length];
         var tail = new List<int>();
+        // a vertex may belong to the scarf if it is not on a limb and not where the waist sash is (low, close to the body)
+        var allowed = new bool[verts.Length];
+        var sash = new HashSet<int>();
+        Func<Color, bool> isRed = col => { float hu, sa, va; Color.RGBToHSV(col, out hu, out sa, out va); return (hu < 0.045f || hu > 0.955f) && sa > 0.45f && va > 0.15f; };
         for (int i = 0; i < verts.Length; i++)
         {
-            var c = tex.GetPixelBilinear(uv[i].x, uv[i].y);
-            if (!(c.r > 0.45f && c.g < 0.35f && c.b < 0.32f && c.r - c.g > 0.25f)) continue;
-            if (Vector3.Dot(verts[i] - hips, up) < 0.3f * H) continue;
+            var dn = verts[i] - neck;
+            float hh = Vector3.Dot(verts[i] - hips, up), rr = (dn - up * Vector3.Dot(dn, up)).magnitude;
+            bool lowClose = hh < 0.25f * H && rr < 0.24f * H;      // where the waist sash sits
             // texture bleeding at atlas seams can paint a few arm vertices red: skip anything mostly skinned to a limb
             int main = bw[i].weight0 >= bw[i].weight1 ? bw[i].boneIndex0 : bw[i].boneIndex1;
             string mainName = bones[main] ? bones[main].name : "";
-            if (mainName.Contains("Arm") || mainName.Contains("Hand") || mainName.Contains("Leg") || mainName.Contains("Foot")) continue;
-            var d = verts[i] - neck;
-            float r = (d - up * Vector3.Dot(d, up)).magnitude;
-            float f = Mathf.SmoothStep(0f, 1f, Mathf.InverseLerp(0.13f * H, 0.22f * H, r));
+            if (mainName.Contains("Arm") || mainName.Contains("Hand") || mainName.Contains("Leg") || mainName.Contains("Foot") || mainName.Contains("Toe")) continue;
+            if (mainName.StartsWith("Head") || mainName.StartsWith("head")) continue;   // lips and cheeks are red too
+            var c = tex.GetPixelBilinear(uv[i].x, uv[i].y);
+            if (lowClose) { if (isRed(c)) sash.Add(i); continue; }   // the sash only gets recoloured, not rigged
+            allowed[i] = true;
+            if (isRed(c)) scarf.Add(i);
+        }
+        // grow into neighbouring vertices (shadowed folds, the frayed end) so no stray vertex is left behind
+        var tri = src.triangles;
+        for (int pass = 0; pass < 3; pass++)
+        {
+            var add = new List<int>();
+            for (int k = 0; k < tri.Length; k += 3)
+            {
+                int a = tri[k], b = tri[k + 1], c = tri[k + 2];
+                if (!(scarf.Contains(a) || scarf.Contains(b) || scarf.Contains(c))) continue;
+                foreach (int q in new[] { a, b, c }) if (allowed[q] && !scarf.Contains(q)) add.Add(q);
+            }
+            foreach (int q in add) scarf.Add(q);
+        }
+        // vertices split along UV seams share a position: they must all move together
+        float cell = H * 1e-4f;
+        Func<Vector3, Vector3Int> key = v => new Vector3Int(Mathf.RoundToInt(v.x / cell), Mathf.RoundToInt(v.y / cell), Mathf.RoundToInt(v.z / cell));
+        var scarfKeys = new HashSet<Vector3Int>(scarf.Select(i => key(verts[i])));
+        for (int i = 0; i < verts.Length; i++) if (!scarf.Contains(i) && scarfKeys.Contains(key(verts[i]))) scarf.Add(i);
+        foreach (int i in scarf)
+        {
+            // the loose tail goes out from the knot and then hangs down, so order it by distance from the neck
+            float r = (verts[i] - neck).magnitude;
+            float f = Mathf.SmoothStep(0f, 1f, Mathf.InverseLerp(ScarfRadialIn * H, ScarfRadialOut * H, r));
             if (f <= 0f) continue;
             radial[i] = r; blend[i] = f; tail.Add(i);
         }
+        var paint = new HashSet<int>(scarf);
+        paint.UnionWith(sash);
+        string colour = PaintScarfYellow(tex, uv, src.triangles, paint, mat);
         UnityEngine.Object.DestroyImmediate(tex);
         if (tail.Count < 30) return "scarf: only " + tail.Count + " tail vertices";
 
-        // joints: centroids of four slices of the tail, ordered by distance from the neck
+        // the tail's centre line: centroids of slices ordered by distance from the neck
+        int nj = ScarfBones + 1;
         float rMin = tail.Min(i => radial[i]), rMax = tail.Max(i => radial[i]);
-        var joints = new Vector3[4];
-        for (int k = 0; k < 4; k++)
+        var joints = new Vector3[nj];
+        for (int k = 0; k < nj; k++)
         {
-            float lo = Mathf.Lerp(rMin, rMax, k / 4f), hi = Mathf.Lerp(rMin, rMax, (k + 1) / 4f);
+            float lo = Mathf.Lerp(rMin, rMax, k / (float)nj), hi = Mathf.Lerp(rMin, rMax, (k + 1) / (float)nj);
             var slice = tail.Where(i => radial[i] >= lo && radial[i] <= hi).ToList();
-            joints[k] = slice.Count > 0 ? slice.Aggregate(Vector3.zero, (s, i) => s + verts[i]) / slice.Count : Vector3.Lerp(neck, verts[tail[0]], k / 3f);
+            joints[k] = slice.Count > 0 ? slice.Aggregate(Vector3.zero, (s, i) => s + verts[i]) / slice.Count : (k > 0 ? joints[k - 1] : neck);
+        }
+        // stretched centre line: same bends, every segment longer
+        var stretched = new Vector3[nj];
+        stretched[0] = joints[0];
+        for (int k = 1; k < nj; k++) stretched[k] = stretched[k - 1] + (joints[k] - joints[k - 1]) * ScarfStretch;
+
+        // move each tail vertex to the same place relative to the longer centre line, and note where it sits on it
+        var along = new float[verts.Length];
+        foreach (int i in tail)
+        {
+            int seg = 0; float segT = 0f, best = float.MaxValue;
+            for (int k = 0; k < nj - 1; k++)
+            {
+                var a = joints[k]; var ab = joints[k + 1] - a;
+                float tt = ab.sqrMagnitude > 1e-12f ? Mathf.Clamp01(Vector3.Dot(verts[i] - a, ab) / ab.sqrMagnitude) : 0f;
+                float dd = (a + ab * tt - verts[i]).sqrMagnitude;
+                if (dd < best) { best = dd; seg = k; segT = tt; }
+            }
+            var onLine = Vector3.Lerp(joints[seg], joints[seg + 1], segT);
+            var onLong = Vector3.Lerp(stretched[seg], stretched[seg + 1], segT);
+            verts[i] = Vector3.Lerp(verts[i], onLong + (verts[i] - onLine), blend[i]);
+            along[i] = seg + segT;
         }
 
-        // three bones from joint 0 to joint 3, parented under the neck
-        var newBones = new Transform[3];
-        var newBind = new Matrix4x4[3];
+        // bones along the stretched line, parented under the neck, plus an end marker for the simulation
+        var newBones = new Transform[ScarfBones];
+        var newBind = new Matrix4x4[ScarfBones];
         var parentMesh = bind[iNeck].inverse;
         var parentT = bones[iNeck];
-        for (int k = 0; k < 3; k++)
+        for (int k = 0; k < ScarfBones; k++)
         {
-            var dir = joints[k + 1] - joints[k];
-            var w = Matrix4x4.TRS(joints[k], Quaternion.FromToRotation(Vector3.up, dir.sqrMagnitude > 1e-10f ? dir.normalized : up), Vector3.one);
+            var dir = stretched[k + 1] - stretched[k];
+            var w = Matrix4x4.TRS(stretched[k], Quaternion.FromToRotation(Vector3.up, dir.sqrMagnitude > 1e-10f ? dir.normalized : up), Vector3.one);
             var local = parentMesh.inverse * w;
             var t = new GameObject("Scarf." + (k + 1)).transform;
             t.SetParent(parentT, false);
@@ -783,21 +846,24 @@ public static class B612Builder
             newBones[k] = t; newBind[k] = w.inverse;
             parentMesh = w; parentT = t;
         }
+        var end = new GameObject("Scarf.End").transform;
+        end.SetParent(parentT, false);
+        end.localPosition = parentMesh.inverse.MultiplyPoint3x4(stretched[nj - 1]);
 
-        // re-skin: along the tail, weight flows down the three new bones; near the neck the old weights stay
+        // re-skin: weight follows the bones along the tail; near the neck the old weights stay
         int baseCount = bones.Length;
-        for (int n = 0; n < tail.Count; n++)
+        foreach (int i in tail)
         {
-            int i = tail[n];
-            float s = Mathf.InverseLerp(rMin, rMax, radial[i]) * 2f;
-            int j = Mathf.Min((int)s, 1);
-            float tt = Mathf.SmoothStep(0f, 1f, s - j);
             var w = new Dictionary<int, float>();
             Action<int, float> add = (b, v) => { if (v <= 0f) return; float o; w.TryGetValue(b, out o); w[b] = o + v; };
             float f = blend[i];
             add(bw[i].boneIndex0, bw[i].weight0 * (1f - f)); add(bw[i].boneIndex1, bw[i].weight1 * (1f - f));
             add(bw[i].boneIndex2, bw[i].weight2 * (1f - f)); add(bw[i].boneIndex3, bw[i].weight3 * (1f - f));
-            add(baseCount + j, (1f - tt) * f); add(baseCount + j + 1, tt * f);
+            float hatSum = 0f;
+            var hats = new float[ScarfBones];
+            for (int b = 0; b < ScarfBones; b++) { hats[b] = Mathf.Max(0f, 1f - Mathf.Abs(along[i] - (b + 0.5f))); hatSum += hats[b]; }
+            if (hatSum < 1e-5f) { hats[Mathf.Clamp((int)along[i], 0, ScarfBones - 1)] = 1f; hatSum = 1f; }
+            for (int b = 0; b < ScarfBones; b++) add(baseCount + b, hats[b] / hatSum * f);
             var top4 = w.OrderByDescending(kv => kv.Value).Take(4).ToList();
             float sum = top4.Sum(kv => kv.Value);
             var nw = new BoneWeight();
@@ -814,14 +880,78 @@ public static class B612Builder
 
         var mesh = UnityEngine.Object.Instantiate(src);
         mesh.name = "Prince_ScarfRig";
+        mesh.vertices = verts;
         mesh.boneWeights = bw;
         mesh.bindposes = bind.Concat(newBind).ToArray();
+        mesh.RecalculateBounds();
         AssetDatabase.CreateAsset(mesh, Gen + "/Prince_ScarfRig.asset");
         smr.bones = bones.Concat(newBones).ToArray();
         smr.sharedMesh = mesh;
-        return "scarf: " + tail.Count + " vertices on 3 bones, tail length " + (Vector3.Distance(joints[0], joints[3]) / H).ToString("F2") + " body heights";
+        return "scarf: " + tail.Count + " tail vertices on " + ScarfBones + " bones, tail " + (Vector3.Distance(joints[0], joints[nj - 1]) / H).ToString("F2")
+               + " -> " + (Vector3.Distance(stretched[0], stretched[nj - 1]) / H).ToString("F2") + " body heights; " + colour;
     }
 
+    // Repaints only the scarf's area of the texture (the UV triangles of scarf faces, grown by a couple of pixels)
+    // from red to warm yellow, keeping the painted shading, and points the material at the copy.
+    static string PaintScarfYellow(Texture2D tex, Vector2[] uv, int[] tris, HashSet<int> scarf, Material mat)
+    {
+        int W = tex.width, Hh = tex.height;
+        var mask = new bool[W * Hh];
+        int faces = 0;
+        for (int i = 0; i < tris.Length; i += 3)
+        {
+            int a = tris[i], b = tris[i + 1], c = tris[i + 2];
+            int inScarf = (scarf.Contains(a) ? 1 : 0) + (scarf.Contains(b) ? 1 : 0) + (scarf.Contains(c) ? 1 : 0);
+            if (inScarf < 2) continue;
+            faces++;
+            Vector2 p0 = new Vector2(uv[a].x * W, uv[a].y * Hh), p1 = new Vector2(uv[b].x * W, uv[b].y * Hh), p2 = new Vector2(uv[c].x * W, uv[c].y * Hh);
+            int x0 = Mathf.Max(0, (int)Mathf.Min(p0.x, Mathf.Min(p1.x, p2.x)) - 1), x1 = Mathf.Min(W - 1, (int)Mathf.Max(p0.x, Mathf.Max(p1.x, p2.x)) + 1);
+            int y0 = Mathf.Max(0, (int)Mathf.Min(p0.y, Mathf.Min(p1.y, p2.y)) - 1), y1 = Mathf.Min(Hh - 1, (int)Mathf.Max(p0.y, Mathf.Max(p1.y, p2.y)) + 1);
+            float area = (p1.x - p0.x) * (p2.y - p0.y) - (p2.x - p0.x) * (p1.y - p0.y);
+            if (Mathf.Abs(area) < 1e-6f) continue;
+            for (int y = y0; y <= y1; y++)
+                for (int x = x0; x <= x1; x++)
+                {
+                    float px = x + 0.5f, py = y + 0.5f;
+                    float w0 = ((p1.x - px) * (p2.y - py) - (p2.x - px) * (p1.y - py)) / area;
+                    float w1 = ((p2.x - px) * (p0.y - py) - (p0.x - px) * (p2.y - py)) / area;
+                    float w2 = 1f - w0 - w1;
+                    if (w0 >= -0.02f && w1 >= -0.02f && w2 >= -0.02f) mask[x + y * W] = true;
+                }
+        }
+        // grow the mask by two pixels so filtering at island edges doesn't show red fringes
+        for (int pass = 0; pass < 2; pass++)
+        {
+            var grown = (bool[])mask.Clone();
+            for (int y = 1; y < Hh - 1; y++)
+                for (int x = 1; x < W - 1; x++)
+                    if (!mask[x + y * W] && (mask[x - 1 + y * W] || mask[x + 1 + y * W] || mask[x + (y - 1) * W] || mask[x + (y + 1) * W])) grown[x + y * W] = true;
+            mask = grown;
+        }
+        var px32 = tex.GetPixels32();
+        int painted = 0;
+        for (int i = 0; i < px32.Length; i++)
+        {
+            if (!mask[i]) continue;
+            float h, s, v;
+            Color.RGBToHSV(px32[i], out h, out s, out v);
+            if (!((h < 0.08f || h > 0.92f) && s > 0.25f)) continue;
+            float dh = h > 0.5f ? h - 1f : h;                 // keep the small hue variations of the painting
+            var col = Color.HSVToRGB(Mathf.Repeat(0.125f + dh * 0.4f, 1f), Mathf.Clamp01(s * 0.82f), Mathf.Clamp01(v * 1.1f + 0.06f));
+            px32[i] = new Color32((byte)(col.r * 255f), (byte)(col.g * 255f), (byte)(col.b * 255f), px32[i].a);
+            painted++;
+        }
+        tex.SetPixels32(px32);
+        tex.Apply();
+        string outPath = MeshyDir + "/Prince_BaseColor_YellowScarf.png";
+        System.IO.File.WriteAllBytes(outPath, tex.EncodeToPNG());
+        AssetDatabase.ImportAsset(outPath);
+        var ti = (TextureImporter)AssetImporter.GetAtPath(outPath);
+        ti.maxTextureSize = 2048; ti.anisoLevel = 2;
+        ti.SaveAndReimport();
+        mat.SetTexture("_BaseMap", AssetDatabase.LoadAssetAtPath<Texture2D>(outPath));
+        return "yellow scarf: " + faces + " faces, " + painted + " texels repainted";
+    }
     static void ConfigureMeshy(string path, string clipName, Avatar source)
     {
         var imp = (ModelImporter)AssetImporter.GetAtPath(path);

@@ -21,8 +21,23 @@ namespace B612
         static readonly int GroundedId = Animator.StringToHash("Grounded");
 
         Transform spine, chest, head;
+        [Header("Scarf")]
+        [Tooltip("Pull back toward the scarf's sculpted shape, at the knot and at the tip.")]
+        public float scarfStiffnessRoot = 70f, scarfStiffnessTip = 9f;
+        public float scarfGravity = 1.6f;
+        [Tooltip("How strongly moving through the air drags the scarf backwards.")]
+        public float scarfDrag = 2.4f;
+        public float scarfWind = 1.4f;
+        [Range(0.8f, 1f)] public float scarfDamping = 0.93f;
+
         Transform[] scarf;
         Quaternion[] scarfRest;
+        Transform scarfEnd;
+        Vector3[] sp, spPrev;
+        float[] segLen;
+        Vector3 lastRoot;
+        float simAccum;
+        bool simReady;
         Transform fox;
         Vector3 baseScale;
         Quaternion baseRotation;
@@ -37,9 +52,15 @@ namespace B612
             spine = FindDeep(visual, "Spine01");
             chest = FindDeep(visual, "Spine");
             head = FindDeep(visual, "Head");
-            scarf = new[] { FindDeep(visual, "Scarf.1"), FindDeep(visual, "Scarf.2"), FindDeep(visual, "Scarf.3") };
-            if (scarf[0] && scarf[1] && scarf[2]) scarfRest = new[] { scarf[0].localRotation, scarf[1].localRotation, scarf[2].localRotation };
-            else scarf = null;
+            var chain = new System.Collections.Generic.List<Transform>();
+            for (int i = 1; ; i++) { var b = FindDeep(visual, "Scarf." + i); if (!b) break; chain.Add(b); }
+            scarfEnd = FindDeep(visual, "Scarf.End");
+            if (chain.Count > 0 && scarfEnd)
+            {
+                scarf = chain.ToArray();
+                scarfRest = new Quaternion[scarf.Length];
+                for (int i = 0; i < scarf.Length; i++) scarfRest[i] = scarf[i].localRotation;
+            }
             var f = GameObject.Find("Fox");
             if (f) fox = f.transform;
         }
@@ -97,21 +118,7 @@ namespace B612
             headYaw = Mathf.Lerp(headYaw, wantYaw * idle, 1f - Mathf.Exp(-3f * dt));
             if (head) head.rotation = Quaternion.AngleAxis(headYaw, up) * Quaternion.AngleAxis(-breath * 1.5f, right) * head.rotation;
 
-            // the scarf tail flutters: a travelling wave that grows with speed and in the air
-            if (scarf != null)
-            {
-                float sp01 = Mathf.Clamp01(speed / Mathf.Max(runSpeed, 0.01f));
-                float gust = 0.6f + 0.4f * Mathf.Sin(t * 0.9f) * Mathf.Sin(t * 1.7f + 1f);
-                float amp = (5f + 15f * sp01 + (walker.Grounded ? 0f : 10f)) * gust;
-                float freq = 5f + 7f * sp01;
-                for (int j = 0; j < scarf.Length; j++)
-                {
-                    scarf[j].localRotation = scarfRest[j];
-                    float a1 = Mathf.Sin(t * freq - j * 1.3f) * amp * (0.6f + 0.35f * j);
-                    float a2 = Mathf.Sin(t * freq * 0.7f - j * 0.9f + 2f) * amp * 0.5f;
-                    scarf[j].rotation = Quaternion.AngleAxis(a1, up) * Quaternion.AngleAxis(a2, right) * scarf[j].rotation;
-                }
-            }
+            if (scarf != null) SimulateScarf(dt, t, speed);
 
             // lean into turns while running
             float yaw = transform.eulerAngles.y;
@@ -125,6 +132,73 @@ namespace B612
             if (!walker.Grounded && walker.VerticalSpeed > 0f) squash = Mathf.Max(squash, 0.04f * Mathf.Clamp01(walker.VerticalSpeed / 3f));
             visual.localScale = new Vector3(baseScale.x * (1f - squash * 0.5f), baseScale.y * (1f + squash), baseScale.z * (1f - squash * 0.5f));
             visual.localRotation = baseRotation * Quaternion.Euler(0f, 0f, lean);
+        }
+
+        // The scarf tail is a little chain of points (one per bone, plus the end) moved with Verlet integration:
+        // springs pull it back toward its sculpted shape, weak gravity tugs it down, moving through the air drags it
+        // back, and a drifting wind makes it ripple. The bones are then turned to follow the points.
+        void SimulateScarf(float dt, float t, float speed)
+        {
+            int n = scarf.Length;
+            for (int j = 0; j < n; j++) scarf[j].localRotation = scarfRest[j];
+            System.Func<int, Vector3> rest = k => k < n ? scarf[k].position : scarfEnd.position;
+
+            var root = rest(0);
+            if (!simReady || (root - lastRoot).sqrMagnitude > 1f)
+            {
+                sp = new Vector3[n + 1]; spPrev = new Vector3[n + 1]; segLen = new float[n];
+                for (int k = 0; k <= n; k++) sp[k] = spPrev[k] = rest(k);
+                for (int k = 0; k < n; k++) segLen[k] = Vector3.Distance(rest(k), rest(k + 1));
+                lastRoot = root;
+                simReady = true;
+            }
+            var bodyVel = (root - lastRoot) / Mathf.Max(dt, 1e-4f);
+            lastRoot = root;
+
+            var restPts = new Vector3[n + 1];
+            for (int k = 0; k <= n; k++) restPts[k] = rest(k);
+            var up = walker.Up;
+            var right = transform.right;
+            var fwd = transform.forward;
+            float sp01 = Mathf.Clamp01(speed / Mathf.Max(runSpeed, 0.01f));
+            const float h = 1f / 60f;
+            simAccum = Mathf.Min(simAccum + dt, 4f * h);
+            while (simAccum >= h)
+            {
+                simAccum -= h;
+                sp[0] = restPts[0];
+                for (int k = 1; k <= n; k++)
+                {
+                    float along = (k - 1f) / Mathf.Max(n - 1, 1);
+                    float stiff = Mathf.Lerp(scarfStiffnessRoot, scarfStiffnessTip, along);
+                    // wind: slow drifting gusts that travel down the scarf, plus a quick flap toward the tip at speed
+                    float ph = t * 0.8f - k * 0.18f;
+                    var wind = (right * (Mathf.PerlinNoise(ph, 1.3f) - 0.5f) + up * (Mathf.PerlinNoise(ph, 7.7f) - 0.5f) * 0.6f
+                                + fwd * (Mathf.PerlinNoise(ph, 4.2f) - 0.5f) * 0.5f) * (2f * scarfWind)
+                               + right * Mathf.Sin(t * 13f - k * 1.1f) * (0.4f + 1.6f * sp01) * along;
+                    var acc = -up * scarfGravity + wind - bodyVel * scarfDrag * along + (restPts[k] - sp[k]) * stiff;
+                    var vel = (sp[k] - spPrev[k]) * scarfDamping;
+                    spPrev[k] = sp[k];
+                    sp[k] += vel + acc * (h * h);
+                }
+                // keep every segment its own length
+                for (int it = 0; it < 3; it++)
+                    for (int k = 1; k <= n; k++)
+                    {
+                        var d = sp[k] - sp[k - 1];
+                        float len = d.magnitude;
+                        if (len > 1e-6f) sp[k] = sp[k - 1] + d * (segLen[k - 1] / len);
+                    }
+            }
+
+            // turn each bone so its child lands on the simulated point
+            for (int k = 0; k < n; k++)
+            {
+                var cur = (k + 1 < n ? scarf[k + 1].position : scarfEnd.position) - scarf[k].position;
+                var want = sp[k + 1] - scarf[k].position;
+                if (cur.sqrMagnitude > 1e-10f && want.sqrMagnitude > 1e-10f)
+                    scarf[k].rotation = Quaternion.FromToRotation(cur, want) * scarf[k].rotation;
+            }
         }
 
         static Transform FindDeep(Transform t, string name)

@@ -146,6 +146,76 @@ public static class NightProbe
         return "foxes posed";
     }
 
+    // Red vertices of the prince: histogram of height above the hips vs distance from the neck axis (in body heights).
+    public static string ScarfStats()
+    {
+        var go = (GameObject)PrefabUtility.InstantiatePrefab(AssetDatabase.LoadAssetAtPath<GameObject>("Assets/B612/Models/Meshy/Prince_Walk.fbx"));
+        var smr = go.GetComponentInChildren<SkinnedMeshRenderer>();
+        var m = smr.sharedMesh; var bones = smr.bones; var bind = m.bindposes;
+        System.Func<string, int> idx = n => System.Array.FindIndex(bones, b => b && b.name == n);
+        System.Func<int, Vector3> at = i => bind[i].inverse.MultiplyPoint3x4(Vector3.zero);
+        Vector3 hips = at(idx("Hips")), neck = at(idx("neck")), top = at(idx("head_end"));
+        var up = (top - hips).normalized; float H = Vector3.Dot(top - hips, up);
+        var tex = new Texture2D(2, 2); tex.LoadImage(System.IO.File.ReadAllBytes(Application.dataPath + "/B612/Models/Meshy/Prince_BaseColor.png"));
+        var v = m.vertices; var uv = m.uv;
+        var grid = new int[12, 8];
+        for (int i = 0; i < v.Length; i++)
+        {
+            var c = tex.GetPixelBilinear(uv[i].x, uv[i].y);
+            if (!(c.r > 0.45f && c.g < 0.35f && c.b < 0.32f && c.r - c.g > 0.25f)) continue;
+            float h = Vector3.Dot(v[i] - hips, up) / H;
+            var d = v[i] - neck; float r = (d - up * Vector3.Dot(d, up)).magnitude / H;
+            int hi = Mathf.Clamp(Mathf.FloorToInt((h + 0.2f) * 10f), 0, 11), ri = Mathf.Clamp(Mathf.FloorToInt(r * 20f), 0, 7);
+            grid[hi, ri]++;
+        }
+        Object.DestroyImmediate(tex); Object.DestroyImmediate(go);
+        var sb = new System.Text.StringBuilder("rows: height above hips in H, from -0.2 up by 0.1 | cols: radial 0..0.4 by 0.05\n");
+        for (int hi = 11; hi >= 0; hi--)
+        {
+            sb.Append((hi * 0.1f - 0.2f).ToString("F1").PadLeft(5)).Append(": ");
+            for (int ri = 0; ri < 8; ri++) sb.Append(grid[hi, ri].ToString().PadLeft(6));
+            sb.Append("\n");
+        }
+        return sb.ToString();
+    }
+
+    // Play mode: park the camera close beside the prince (turns the orbit camera off; side = 1 right, -1 left, 0 behind).
+    public static string CloseUp() { return Close(1f); }
+    public static string CloseUpBack() { return Close(0f); }
+    static string Close(float side)
+    {
+        var p = GameObject.Find("Player").transform;
+        var w = p.GetComponent<B612.GravityWalker>();
+        var cam = Camera.main;
+        var oc = cam.GetComponent<B612.OrbitCamera>();
+        if (oc) oc.enabled = false;
+        var focus = p.position + w.Up * 0.45f;
+        var dir = (p.right * side - p.forward * (1f - Mathf.Abs(side)) + w.Up * 0.35f).normalized;
+        cam.fieldOfView = 40f;
+        cam.transform.position = focus + dir * 1.8f;
+        cam.transform.rotation = Quaternion.LookRotation(focus - cam.transform.position, w.Up);
+        return "close-up";
+    }
+
+    public static string SkyState()
+    {
+        var scene = UnityEngine.SceneManagement.SceneManager.GetActiveScene();
+        var sky = RenderSettings.skybox;
+        var cam = Camera.main;
+        return "scene=" + scene.path + " skybox=" + (sky ? sky.name + " shader=" + sky.shader.name + " noise=" + (sky.GetTexture("_Noise3D") ? "ok" : "MISSING") : "none")
+               + " cam.clear=" + (cam ? cam.clearFlags.ToString() : "no camera");
+    }
+
+    // Point Unity's external script editor at VS Code and regenerate the .sln/.csproj files it reads.
+    public static string UseVSCode()
+    {
+        string code = System.Environment.GetFolderPath(System.Environment.SpecialFolder.LocalApplicationData) + "\\Programs\\Microsoft VS Code\\Code.exe";
+        if (!System.IO.File.Exists(code)) return "Code.exe not found";
+        Unity.CodeEditor.CodeEditor.SetExternalScriptEditor(code);
+        Unity.CodeEditor.CodeEditor.CurrentEditor.SyncAll();
+        return "editor=" + Unity.CodeEditor.CodeEditor.CurrentEditorInstallation + " | sln exists=" + System.IO.File.Exists("B612.sln");
+    }
+
     public static string Background()
     {
         Application.runInBackground = true;
