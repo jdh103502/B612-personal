@@ -43,6 +43,9 @@ namespace B612
         [Min(.05f)] public float collisionRadius = .2f;
         [Min(0f)] public float occlusionDelay = .2f;
         public LayerMask collisionMask = ~0;
+        [Header("Near-obstacle orbit")]
+        [Min(.1f)] public float obstacleComfortDistance = 2.2f;
+        [Min(.01f)] public float obstacleOrbitSmoothTime = .18f;
         public static int IgnoreMask;
 
         public enum FollowState { Grounded, Airborne, Transfer }
@@ -69,6 +72,10 @@ namespace B612
         SphereCollider collisionProbe;
         readonly RaycastHit[] castHits = new RaycastHit[64];
         readonly Collider[] overlaps = new Collider[64];
+        Vector3 collisionOrigin, lastCollisionDirection;
+        float orbitYaw, orbitPitch, orbitYawSpeed, orbitPitchSpeed, orbitTargetYaw, orbitTargetPitch, orbitClearTime, nextOrbitChoice;
+        static readonly float[] orbitYaws = { 0f, -15f, 15f, -30f, 30f, -45f, 45f, -60f, 60f, -90f, 90f, -120f, 120f, -150f, 150f, 180f };
+        static readonly float[] orbitPitches = { 0f, 12f, 24f, 36f };
 
         void Start()
         {
@@ -172,6 +179,8 @@ namespace B612
                 camUp = StableUp(); flatForward = Tangent(target.transform.forward, camUp);
                 velocity = ahead = Vector3.zero; lift = blockedTime = lowerClear = farClear = turnSpeed = 0f;
                 curDistance = wantDistance = userDistance; intro = 1f;
+                lastCollisionDirection = Vector3.zero;
+                orbitYaw = orbitPitch = orbitYawSpeed = orbitPitchSpeed = orbitTargetYaw = orbitTargetPitch = orbitClearTime = nextOrbitChoice = 0f;
             }
             UpdateSource(dt);
             Vector3 upGoal = State == FollowState.Transfer && target.Suspended ? target.Up : StableUp();
@@ -181,6 +190,7 @@ namespace B612
             var transport = Quaternion.FromToRotation(camUp, newUp);
             flatForward = Tangent(transport * flatForward, newUp);
             ahead = transport * ahead; velocity = transport * velocity; camUp = newUp;
+            lastCollisionDirection = transport * lastCollisionDirection;
             groundPoint = SampleGround();
             var groundStep = teleported ? Vector3.zero : groundPoint - lastGroundPoint;
             lastGroundPoint = groundPoint;
@@ -257,10 +267,10 @@ namespace B612
             return collider && !collider.isTrigger && collider.attachedRigidbody == null
                 && !collider.transform.IsChildOf(target.transform) && !collider.transform.IsChildOf(transform);
         }
-        float SafeDistance(Vector3 direction, float requested)
+        float SafeDistance(Vector3 direction, float requested, float padding = 0f)
         {
             float safe = requested;
-            int count = Physics.SphereCastNonAlloc(focus, collisionRadius, direction, castHits, requested, collisionMask & ~IgnoreMask, QueryTriggerInteraction.Ignore);
+            int count = Physics.SphereCastNonAlloc(collisionOrigin, collisionRadius + padding, direction, castHits, requested, collisionMask & ~IgnoreMask, QueryTriggerInteraction.Ignore);
             for (int i = 0; i < count; i++)
                 if (Obstacle(castHits[i].collider)) safe = Mathf.Min(safe, Mathf.Max(0f, castHits[i].distance - .04f));
             return safe;
@@ -281,11 +291,67 @@ namespace B612
         {
             return Quaternion.AngleAxis(angle, Vector3.Cross(camUp, flatForward).normalized) * -flatForward;
         }
+        Vector3 OrbitDirection(float yaw, float extraPitch)
+        {
+            return Quaternion.AngleAxis(yaw, camUp) * Direction(Mathf.Min(userPitch + lift + extraPitch, 85f));
+        }
+        Vector3 ResolveObstacleOrbit(Vector3 requested, float dt)
+        {
+            float comfort = Mathf.Min(wantDistance, Mathf.Max(minDistance, obstacleComfortDistance));
+            float primarySafe = SafeDistance(requested, wantDistance, .1f);
+            bool nearWall = primarySafe < comfort + .15f;
+            orbitClearTime = nearWall ? 0f : orbitClearTime + dt;
+            if (nearWall && Time.time >= nextOrbitChoice)
+            {
+                nextOrbitChoice = Time.time + .06f;
+                float bestScore = float.PositiveInfinity;
+                float previousYaw = orbitTargetYaw, previousPitch = orbitTargetPitch;
+                foreach (float yaw in orbitYaws)
+                    foreach (float extraPitch in orbitPitches)
+                    {
+                        if (userPitch + lift + extraPitch > 80f) continue;
+                        var candidate = OrbitDirection(yaw, extraPitch);
+                        float available = SafeDistance(candidate, wantDistance, .08f);
+                        float shortage = Mathf.Max(0f, comfort - available);
+                        float score = shortage * 300f + Mathf.Max(0f, wantDistance - available) * 18f
+                            + Mathf.Abs(yaw) * .6f + extraPitch * .85f
+                            + Mathf.Abs(Mathf.DeltaAngle(previousYaw, yaw)) * .15f + Mathf.Abs(previousPitch - extraPitch) * .15f;
+                        if (score < bestScore) { bestScore = score; orbitTargetYaw = yaw; orbitTargetPitch = extraPitch; }
+                    }
+            }
+            else if (orbitClearTime > .25f) { orbitTargetYaw = orbitTargetPitch = 0f; }
+            orbitYaw = Mathf.SmoothDampAngle(orbitYaw, orbitTargetYaw, ref orbitYawSpeed, obstacleOrbitSmoothTime, 160f, dt);
+            orbitPitch = Mathf.SmoothDamp(orbitPitch, orbitTargetPitch, ref orbitPitchSpeed, obstacleOrbitSmoothTime, 100f, dt);
+            var proposed = OrbitDirection(orbitYaw, orbitPitch);
+            bool avoiding = nearWall || Mathf.Abs(orbitYaw) > .05f || orbitPitch > .05f;
+            if (avoiding && lastCollisionDirection.sqrMagnitude > .5f)
+            {
+                proposed = Vector3.RotateTowards(lastCollisionDirection, proposed, 180f * Mathf.Deg2Rad * dt, 0f).normalized;
+                // While orbiting, stay at the last safe edge instead of diving through the prince.
+                float keepDistance = Mathf.Min(wantDistance, Mathf.Max(comfort, curDistance - 4f * dt));
+                if (SafeDistance(proposed, keepDistance) < keepDistance && SafeDistance(lastCollisionDirection, keepDistance) >= keepDistance)
+                {
+                    float low = 0f, high = 1f;
+                    for (int i = 0; i < 8; i++)
+                    {
+                        float middle = (low + high) * .5f;
+                        if (SafeDistance(Vector3.Slerp(lastCollisionDirection, proposed, middle), keepDistance) >= keepDistance) low = middle;
+                        else high = middle;
+                    }
+                    proposed = Vector3.Slerp(lastCollisionDirection, proposed, low).normalized;
+                }
+            }
+            lastCollisionDirection = proposed;
+            return proposed;
+        }
         void Place(float dt, bool travelling)
         {
+            // A look-ahead focus can lie inside a rock beside the player. Start sweeps outside it.
+            collisionOrigin = Depenetrate(focus);
             Vector3 direction = Direction(userPitch + lift);
-            float safe = SafeDistance(direction, wantDistance);
-            bool obstructed = ViewBlocked(focus + direction * Mathf.Min(curDistance, safe));
+            var visibleDirection = lastCollisionDirection.sqrMagnitude > .5f ? lastCollisionDirection : direction;
+            float safe = SafeDistance(visibleDirection, wantDistance);
+            bool obstructed = ViewBlocked(collisionOrigin + visibleDirection * Mathf.Min(curDistance, safe));
             blockedTime = obstructed ? blockedTime + dt : 0f;
             float wantedLift = lift;
             if (blockedTime >= occlusionDelay)
@@ -297,7 +363,7 @@ namespace B612
                     if (userPitch + extra > 80f) break;
                     var candidate = Direction(userPitch + extra);
                     float candidateDistance = SafeDistance(candidate, wantDistance);
-                    if (candidateDistance >= minDistance && !ViewBlocked(focus + candidate * candidateDistance)) { wantedLift = extra; break; }
+                    if (candidateDistance >= minDistance && !ViewBlocked(collisionOrigin + candidate * candidateDistance)) { wantedLift = extra; break; }
                 }
                 lowerClear = 0f;
             }
@@ -308,6 +374,7 @@ namespace B612
             }
             lift = Mathf.MoveTowards(lift, wantedLift, (wantedLift > lift ? 12f : 5f) * dt);
             direction = Direction(Mathf.Min(userPitch + lift, 85f));
+            direction = ResolveObstacleOrbit(direction, dt);
             safe = SafeDistance(direction, wantDistance);
             // Comfort distance never overrides physical safety. Pull in immediately; return slowly.
             if (safe < curDistance) { curDistance = safe; farClear = 0f; }
@@ -316,7 +383,7 @@ namespace B612
                 farClear += dt;
                 if (farClear > .5f) curDistance = Mathf.Lerp(curDistance, safe, 1f - Mathf.Exp(-2f * dt));
             }
-            var position = focus + direction * curDistance;
+            var position = collisionOrigin + direction * curDistance;
             var rotation = Quaternion.LookRotation((focus - position).sqrMagnitude > .0001f ? focus - position : -direction, camUp);
             float fov = fieldOfView + (travelling ? 6f : 0f);
             if (intro < 1f)
@@ -326,9 +393,9 @@ namespace B612
                 position = Vector3.Lerp(introPos, position, eased); rotation = Quaternion.Slerp(introRot, rotation, eased);
                 fov = Mathf.Lerp(introFov, fov, eased);
             }
-            var offset = position - focus;
+            var offset = position - collisionOrigin;
             if (offset.sqrMagnitude > .0001f)
-                position = focus + offset.normalized * Mathf.Min(offset.magnitude, SafeDistance(offset.normalized, offset.magnitude));
+                position = collisionOrigin + offset.normalized * Mathf.Min(offset.magnitude, SafeDistance(offset.normalized, offset.magnitude));
             position = Depenetrate(position);
             if (intro >= 1f && (focus - position).sqrMagnitude > .0001f) rotation = Quaternion.LookRotation(focus - position, camUp);
             transform.SetPositionAndRotation(position, rotation);
