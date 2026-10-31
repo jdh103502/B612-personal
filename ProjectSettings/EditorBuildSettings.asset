@@ -11,6 +11,9 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/B612/Scenes/B612_Diorama.unity
     guid: 6c33fc60e67c2a3439f6b6369d961377
+  - enabled: 1
+    path: Assets/B612/Scenes/B612_EmptyPlanet.unity
+    guid: 47167d636945cb34dab7b1062a1d3876
   m_configObjects:
     com.unity.input.settings.actions: {fileID: -944628639613478452, guid: 052faaac586de48259a63d0c4782560b, type: 3}
   m_UseUCBPForAssetBundles: 0

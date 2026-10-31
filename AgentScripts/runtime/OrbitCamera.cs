@@ -31,6 +31,8 @@ namespace B612
         public float mouseSensitivity = 0.2f;
         public float stickSensitivity = 140f;
         public float keyTurnSpeed = 100f;
+        [Tooltip("Reserve Q and the wheel for lamb cards; use Z/C and Ctrl+wheel for the camera.")]
+        public bool cardInputMode;
 
         [Header("Smoothing")]
         public float followSharpness = 9f;
@@ -153,13 +155,15 @@ namespace B612
                     dPitch -= d.y * mouseSensitivity;
                 }
                 float scroll = mouse.scroll.ReadValue().y;
-                if (Mathf.Abs(scroll) > 0.01f) userDistance = Mathf.Clamp(userDistance - Mathf.Sign(scroll) * 0.5f, zoomRange.x, zoomRange.y);
+                var keys = Keyboard.current;
+                bool zoom = !cardInputMode || (keys != null && (keys.leftCtrlKey.isPressed || keys.rightCtrlKey.isPressed));
+                if (zoom && Mathf.Abs(scroll) > 0.01f) userDistance = Mathf.Clamp(userDistance - Mathf.Sign(scroll) * 0.5f, zoomRange.x, zoomRange.y);
             }
             var kb = Keyboard.current;
             if (kb != null)
             {
-                if (kb.qKey.isPressed) yaw -= keyTurnSpeed * dt;
-                if (kb.eKey.isPressed) yaw += keyTurnSpeed * dt;
+                if ((cardInputMode ? kb.zKey : kb.qKey).isPressed) yaw -= keyTurnSpeed * dt;
+                if ((cardInputMode ? kb.cKey : kb.eKey).isPressed) yaw += keyTurnSpeed * dt;
             }
             var gp = Gamepad.current;
             if (gp != null)
