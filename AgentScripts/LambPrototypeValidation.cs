@@ -32,15 +32,16 @@ public static class LambPrototypeValidation
             float assistedDistance=LambCardHand.SurfaceDistance(p,surface.WorldPoint(intended.slot),centre);
             Require(assistedDistance<hand.eatingRadius,"Placement assistance did not put the intended sprout in range.");
             Require(hand.TrySummonSelected() && hand.InHandCount==3,"Summon did not consume exactly one card.");
-            first=hand.LambForCard(0); first.enabled=false;
+            first=hand.LambForCard(0);
             Require(first.Target==records[0],"Summoned lamb did not lock the intended sprout.");
             Require(hand.SelectCard(1) && hand.TrySummonSelected(),"Second card could not be summoned.");
-            second=hand.LambForCard(1); second.enabled=false;
+            second=hand.LambForCard(1);
             Require(second.Target!=records[0],"Two lambs reserved the same sprout.");
-            first.Advance(9.99f);
-            Require(records[0].IsActive && first.SproutsEaten==0,"Sprout was eaten before 10 seconds.");
+            float bite=first.EatingDuration;
+            first.Advance(bite-.01f);
+            Require(records[0].IsActive && first.SproutsEaten==0,"Sprout was eaten before its stage duration.");
             first.Advance(.01f);
-            Require(!records[0].IsActive && first.SproutsEaten==1 && surge.ActiveSproutCount==5,"Ten-second bite did not release the active sprout slot.");
+            Require(!records[0].IsActive && first.SproutsEaten==1 && surge.ActiveSproutCount==5,"Completed bite did not release the active sprout slot.");
             second.gameObject.SetActive(false); hand.RecoverCard(1,second); UnityEngine.Object.Destroy(second.gameObject); second=null;
             // Just outside the nominal circle but inside its narrow grace band should still work.
             Vector3 lambRadial=(first.transform.position-centre).normalized;
@@ -49,7 +50,7 @@ public static class LambPrototypeValidation
             float edgeDistance=LambCardHand.SurfaceDistance(first.transform.position,surface.WorldPoint(records[1].slot),centre);
             Require(edgeDistance>hand.eatingRadius && edgeDistance<=hand.eatingRadius+hand.rangeGrace,$"Grace test fixture not at the range edge: {edgeDistance}.");
             PlaceAtDistance(surface,records[2],first.transform.position,-side,2.3f);
-            first.Advance(10f);
+            first.Advance(hand.activeSeconds-first.Age);
             Require(first.SproutsEaten==2 && !records[1].IsActive && records[2].IsActive,"Second bite or limited range failed.");
             Require(first.State==LambAgent.LambState.Pickup && Mathf.Abs(first.Age-20f)<.001f,"Lamb did not become a pickup at 20 seconds.");
             walker.Teleport(first.transform.position+first.transform.up*.03f,first.transform.up);
@@ -62,7 +63,7 @@ public static class LambPrototypeValidation
             walker.Suspend(true);
             Require(!hand.TrySummonSelected() && hand.InHandCount==cardsBefore,"Invalid airborne summon consumed a card.");
             walker.Suspend(false);
-            return new {passed=true,cardsRecovered=hand.InHandCount,assistedDistance,edgeDistance,firstBiteSeconds=10,
+            return new {passed=true,cardsRecovered=hand.InHandCount,assistedDistance,edgeDistance,firstBiteSeconds=bite,
                 secondBiteAndExpirySeconds=20,reservations=true,farSproutPreserved=true,duplicateRecoveryRejected=true,invalidSummonPreservedCard=true};
         }
         finally

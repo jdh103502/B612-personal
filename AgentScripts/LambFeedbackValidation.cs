@@ -27,7 +27,7 @@ public static class LambFeedbackValidation
             records[i].instance.transform.SetPositionAndRotation(p-n*.015f,Quaternion.FromToRotation(Vector3.up,n));
         }
         hand.SelectCard(0); Require(hand.TrySummonSelected(),"Summon failed.");
-        var lamb=hand.LambForCard(0); lamb.enabled=false; lamb.Advance(5f);
+        var lamb=hand.LambForCard(0); lamb.enabled=false; lamb.Advance(lamb.EatingDuration*.5f);
         Camera.main.GetComponent<OrbitCamera>().enabled=false;
         Camera.main.transform.position=origin+forward*3.6f+right*2.4f+up*2.4f;
         Camera.main.transform.LookAt(origin+up*.45f+forward*.6f,up);
@@ -42,7 +42,7 @@ public static class LambFeedbackValidation
         var lamb=hand.LambForCard(0);
         var ui=UnityEngine.Object.FindFirstObjectByType<LambEatingIndicators>();
         var hints=ui.horizon;
-        Require(lamb && lamb.State==LambAgent.LambState.Grazing && Mathf.Abs(lamb.EatingProgress-5f)<.01f,"Prepare half-eating first.");
+        Require(lamb && lamb.State==LambAgent.LambState.Grazing && Mathf.Abs(lamb.EatingFraction-.5f)<.01f,"Prepare half-eating first.");
         var camera=ui.viewCamera;
         Vector3 oldPosition=camera.transform.position; Quaternion oldRotation=camera.transform.rotation;
         Vector3 playerPosition=hand.player.transform.position,playerUp=hand.player.Up;
@@ -57,9 +57,9 @@ public static class LambFeedbackValidation
             camera.transform.position=centre-radial*(hand.surge.surface.ground.bounds.extents.magnitude+3f);
             camera.transform.LookAt(lamb.transform.position);
             Require(!ui.TryGetPresentation(lamb,out _,out _),"Eating UI reveals lamb through the planet.");
-            lamb.Advance(5f);
+            lamb.Advance(lamb.EatingDuration-lamb.EatingProgress);
             Require(lamb.SproutsEaten==1 && !ui.TryGetPresentation(lamb,out _,out _),"Idle/completed bite retained progress.");
-            lamb.Advance(10f);
+            lamb.Advance(hand.activeSeconds-lamb.Age);
             Require(lamb.State==LambAgent.LambState.Pickup && !ui.TryGetPresentation(lamb,out _,out _),"Pickup retained an eating pie.");
             Require(hints.IsPickupBehindPlanet(lamb) && hints.TryGetHorizon(lamb.transform.position,out var rim) && float.IsFinite(rim.x),"Hidden pickup has no horizon hint.");
             float near=hints.ScaleForDistance(.1f),far=hints.ScaleForDistance(1000f),previous=near;

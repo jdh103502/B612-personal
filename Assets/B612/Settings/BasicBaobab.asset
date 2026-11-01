@@ -18,3 +18,7 @@ MonoBehaviour:
   linearGrowth: 0.15
   quadraticGrowth: 0.005
   maximumThreat: 25
+  saplingAtSeconds: 20
+  treeAtSeconds: 40
+  saplingPrefab: {fileID: 7836771132347609491, guid: 2bd68c05c7cf120468059b0781ef80d3, type: 3}
+  treePrefab: {fileID: 5485557466162464545, guid: 20f4ee1d55073364bbe0a3aed7219555, type: 3}

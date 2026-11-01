@@ -29,7 +29,8 @@ public static class LambPrototypeBuilder
             hand=go.AddComponent<LambCardHand>();
         }
         hand.surge=surge; hand.player=walker; hand.lambPrefab=MakePrefab();
-        hand.startingCards=4; hand.activeSeconds=20f; hand.secondsPerSprout=10f;
+        hand.startingCards=4; hand.activeSeconds=20f;
+        hand.secondsPerSprout=7f; hand.secondsPerSapling=10f; hand.secondsPerTree=13f;
         hand.eatingRadius=1.7f; hand.rangeGrace=.25f; hand.intentRadius=2.05f; hand.pickupRadius=.9f;
         string ringPath="Assets/B612/Materials/LambRange.mat";
         var ring=AssetDatabase.LoadAssetAtPath<Material>(ringPath);

@@ -63,7 +63,8 @@ namespace B612
                 if(message==null && count>0)
                 {
                     if(!hand.player.Grounded) message="LAND TO SUMMON";
-                    else if(hand.TryGetPlacement(out _,out _,out var target)) message=target!=null?"A NEARBY SPROUT IS IN RANGE":"NO SPROUT NEARBY - MOVE CLOSER";
+                    else if(hand.TryGetPlacement(out _,out _,out var target)) message=target!=null
+                        ?$"{target.Stage.ToString().ToUpperInvariant()} IN RANGE - {hand.EatingSeconds(target.Stage):0.#}s TO EAT":"NO SPROUT NEARBY - MOVE CLOSER";
                     else message="MOVE A LITTLE TO MAKE ROOM";
                 }
                 messageLabel.text=message??"";
@@ -80,8 +81,8 @@ namespace B612
             var frameImage=frame.gameObject.AddComponent<UnityEngine.UI.Image>(); frameImage.sprite=frameSprite; frameImage.raycastTarget=false;
             var outline=frame.gameObject.AddComponent<UnityEngine.UI.Outline>(); outline.effectColor=new Color(1f,.87f,.43f,.9f); outline.effectDistance=new Vector2(2f,-2f);
             Label("Card Name",rect,new Vector2(.5f,1),new Vector2(.5f,1),new Vector2(0,-12),new Vector2(cardWidth*.78f,24),12f,(index+1)+"  CLOUD LAMB",new Color(.24f,.14f,.075f));
-            Label("Duration",rect,new Vector2(.5f,0),new Vector2(.5f,0),new Vector2(0,34),new Vector2(cardWidth*.72f,17),12f,$"{hand.activeSeconds:0.#}s  ON THE PLANET",new Color(.28f,.19f,.11f));
-            Label("Eating Speed",rect,new Vector2(.5f,0),new Vector2(.5f,0),new Vector2(0,20),new Vector2(cardWidth*.72f,17),11f,$"1 SPROUT / {hand.secondsPerSprout:0.#}s",new Color(.3f,.22f,.13f));
+            Label("Duration",rect,new Vector2(.5f,0),new Vector2(.5f,0),new Vector2(0,37),new Vector2(cardWidth*.72f,17),11f,$"{hand.activeSeconds:0.#}s  ON THE PLANET",new Color(.28f,.19f,.11f));
+            Label("Eating Speed",rect,new Vector2(.5f,0),new Vector2(.5f,0),new Vector2(0,10),new Vector2(cardWidth*.75f,26),8.5f,$"SPROUT {hand.secondsPerSprout:0.#}s / SAPLING {hand.secondsPerSapling:0.#}s\nTREE {hand.secondsPerTree:0.#}s",new Color(.3f,.22f,.13f));
             views.Add(new CardView {rect=rect,group=group,outline=outline,index=index});
         }
 

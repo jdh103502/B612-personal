@@ -21,6 +21,7 @@ namespace B612
         public float GrowthPerSecond { get; private set; }
         public BaobabTypeDefinition RunType { get; private set; }
         public BaobabGrowth RunGrowth { get; private set; } = BaobabGrowth.Basic;
+        public BaobabLifeCycle RunLifeCycle { get; private set; } = BaobabLifeCycle.Basic;
         public event Action Changed;
         public event Action GameOver;
 
@@ -33,6 +34,7 @@ namespace B612
             Capacity = profile ? Mathf.Max(.01f, profile.threatCapacity) : 100f;
             RunType = profile ? profile.defaultType : null;
             RunGrowth = RunType ? RunType.Snapshot() : BaobabGrowth.Basic;
+            RunLifeCycle = RunType ? RunType.SnapshotLifeCycle() : BaobabLifeCycle.Basic;
             RawThreat = GrowthPerSecond = 0f;
             State = Phase.Surging;
             restarting = false;

@@ -4015,6 +4015,8 @@ MonoBehaviour:
   collisionMask:
     serializedVersion: 2
     m_Bits: 4294967295
+  obstacleComfortDistance: 2.2
+  obstacleOrbitSmoothTime: 0.18
 --- !u!81 &1811029408
 AudioListener:
   m_ObjectHideFlags: 0
@@ -4808,7 +4810,9 @@ MonoBehaviour:
   ringMaterial: {fileID: 2100000, guid: f2902b739a10d334194f726fd6b8154c, type: 2}
   startingCards: 4
   activeSeconds: 20
-  secondsPerSprout: 10
+  secondsPerSprout: 7
+  secondsPerSapling: 10
+  secondsPerTree: 13
   eatingRadius: 1.7
   rangeGrace: 0.25
   intentRadius: 2.05

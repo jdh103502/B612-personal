@@ -52,7 +52,7 @@ namespace B612
         {
             point=Vector3.zero; fraction=0f;
             if(!lamb || !lamb.gameObject.activeInHierarchy || lamb.State!=LambAgent.LambState.Grazing || !lamb.Owner || lamb.Target==null || !lamb.Target.IsActive) return false;
-            fraction=Mathf.Clamp01(lamb.EatingProgress/Mathf.Max(.01f,lamb.Owner.secondsPerSprout));
+            fraction=lamb.EatingFraction;
             Vector3 up=lamb.transform.up;
             point=lamb.transform.position+up*height;
             Vector3 viewport=viewCamera.WorldToViewportPoint(point);

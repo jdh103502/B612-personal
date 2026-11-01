@@ -5,6 +5,7 @@ using UnityEngine;
 namespace B612
 {
     /// <summary>Prototype only: a timed, spatially balanced sprout spawning phase.</summary>
+    [DefaultExecutionOrder(-100)]
     public sealed class BaobabSurge : MonoBehaviour
     {
         public PlanetSurfaceGrid surface;
@@ -29,6 +30,12 @@ namespace B612
             public float spawnedAt;
             public BaobabTypeDefinition type;
             public BaobabGrowth growth = BaobabGrowth.Basic;
+            public BaobabLifeCycle lifeCycle = BaobabLifeCycle.Basic;
+            public BaobabStage Stage { get; internal set; }
+            public Transform Visual { get; internal set; }
+            public LambAgent FeedingLamb { get; internal set; }
+            public bool IsBeingEaten => FeedingLamb && FeedingLamb.isActiveAndEnabled
+                && FeedingLamb.State == LambAgent.LambState.Grazing && FeedingLamb.Target == this;
             public bool released;
             public bool IsActive => !released && instance && instance.activeInHierarchy;
         }
@@ -134,6 +141,7 @@ namespace B612
             if (!ready || IsGameOver || float.IsNaN(deltaSeconds) || float.IsInfinity(deltaSeconds)) return;
             ReleaseRemovedSlots();
             SimulationSeconds += Mathf.Max(0f, deltaSeconds);
+            RefreshLifeStages();
             if (IsComplete) { Changed?.Invoke(); return; }
             ElapsedSeconds = Mathf.Min(durationSeconds, ElapsedSeconds + Mathf.Max(0f, deltaSeconds));
             // First sprout at 0s, then 3s, 6s, ... 117s with the default 40 / 120s.
@@ -191,8 +199,33 @@ namespace B612
             cellCounts[best.cellId]++;
             spawned.Add(new SpawnRecord { slot = best, instance = instance, scheduledTime = scheduledTime,
                 spawnedAt = SimulationSeconds, type = threat ? threat.RunType : null,
-                growth = threat ? threat.RunGrowth : BaobabGrowth.Basic });
+                growth = threat ? threat.RunGrowth : BaobabGrowth.Basic,
+                lifeCycle = threat ? threat.RunLifeCycle : BaobabLifeCycle.Basic,
+                Visual = instance.transform.childCount > 0 ? instance.transform.GetChild(0) : null });
             return true;
+        }
+
+        public void RefreshLifeStages()
+        {
+            if (IsGameOver) return;
+            foreach (var record in spawned) RefreshStage(record);
+        }
+
+        public void RefreshStage(SpawnRecord record)
+        {
+            if (IsGameOver || record == null || !record.IsActive || record.IsBeingEaten) return;
+            var next = record.lifeCycle.StageAt(Mathf.Max(0f, SimulationSeconds - record.spawnedAt));
+            if (next <= record.Stage) return;
+            var prefab = record.lifeCycle.PrefabFor(next);
+            if (prefab)
+            {
+                var visual = Instantiate(prefab, record.instance.transform, false).transform;
+                visual.name = next + " Visual";
+                if (record.Visual) { record.Visual.gameObject.SetActive(false); Destroy(record.Visual.gameObject); }
+                record.Visual = visual;
+            }
+            // Identity, surface slot, age and reservations survive a model change.
+            record.Stage = next;
         }
     }
 }

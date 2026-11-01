@@ -13,7 +13,9 @@ namespace B612
         public Material ringMaterial;
         [Range(1,9)] public int startingCards = 4;
         [Min(1f)] public float activeSeconds = 20f;
-        [Min(0.1f)] public float secondsPerSprout = 10f;
+        [Min(0.1f)] public float secondsPerSprout = 7f;
+        [Min(0.1f)] public float secondsPerSapling = 10f;
+        [Min(0.1f)] public float secondsPerTree = 13f;
         [Min(0.1f)] public float eatingRadius = 1.7f;
         [Min(0f)] public float rangeGrace = 0.25f;
         [Min(0f)] public float intentRadius = 2.05f;
@@ -24,6 +26,9 @@ namespace B612
         public IReadOnlyList<LambAgent> Deployed => deployed;
         public string Message { get; private set; }
         public event Action Changed;
+
+        public float EatingSeconds(BaobabStage stage) => Mathf.Max(.1f,
+            stage == BaobabStage.Tree ? secondsPerTree : stage == BaobabStage.Sapling ? secondsPerSapling : secondsPerSprout);
 
         LambAgent[] cards;
         readonly List<LambAgent> deployed = new List<LambAgent>();
@@ -177,7 +182,7 @@ namespace B612
 
         public BaobabSurge.SpawnRecord ClaimTarget(LambAgent agent,BaobabSurge.SpawnRecord preferred=null)
         {
-            if(preferred!=null && CanClaim(agent,preferred)) { claims[preferred]=agent; return preferred; }
+            if(preferred!=null && CanClaim(agent,preferred)) { Reserve(agent,preferred); return preferred; }
             BaobabSurge.SpawnRecord best=null; float nearest=float.PositiveInfinity;
             foreach(var record in surge.Spawned)
             {
@@ -185,21 +190,34 @@ namespace B612
                 float distance=SurfaceDistance(agent.transform.position,surge.surface.WorldPoint(record.slot),surge.surface.transform.position);
                 if(distance<nearest) { nearest=distance; best=record; }
             }
-            if(best!=null) claims[best]=agent;
+            if(best!=null) Reserve(agent,best);
             return best;
         }
 
         bool CanClaim(LambAgent agent,BaobabSurge.SpawnRecord record)
         {
-            return record.IsActive && (!claims.TryGetValue(record,out var other) || !other || other==agent || other.State!=LambAgent.LambState.Grazing)
+            return record.IsActive && (!claims.TryGetValue(record,out var other) || !other || !other.isActiveAndEnabled || other==agent || other.State!=LambAgent.LambState.Grazing)
                 && SurfaceDistance(agent.transform.position,surge.surface.WorldPoint(record.slot),surge.surface.transform.position)<=eatingRadius+rangeGrace;
         }
 
-        bool IsClaimed(BaobabSurge.SpawnRecord record) => claims.TryGetValue(record,out var lamb) && lamb && lamb.State==LambAgent.LambState.Grazing;
+        bool IsClaimed(BaobabSurge.SpawnRecord record) => claims.TryGetValue(record,out var lamb) && lamb && lamb.isActiveAndEnabled && lamb.State==LambAgent.LambState.Grazing;
+
+        void Reserve(LambAgent agent,BaobabSurge.SpawnRecord record)
+        {
+            surge.RefreshStage(record);
+            claims[record]=agent; record.FeedingLamb=agent;
+        }
+
+        public bool OwnsTarget(LambAgent agent,BaobabSurge.SpawnRecord record)
+            => record!=null && claims.TryGetValue(record,out var owner) && owner==agent;
 
         public void ReleaseTarget(LambAgent agent,BaobabSurge.SpawnRecord record)
         {
-            if(record!=null && claims.TryGetValue(record,out var other) && other==agent) claims.Remove(record);
+            if(record!=null && claims.TryGetValue(record,out var other) && other==agent)
+            {
+                claims.Remove(record);
+                if(record.FeedingLamb==agent) record.FeedingLamb=null;
+            }
         }
 
         public bool RecoverCard(int index,LambAgent agent)

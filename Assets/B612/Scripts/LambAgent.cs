@@ -9,6 +9,9 @@ namespace B612
         public LambState State { get; private set; }
         public float Age { get; private set; }
         public float EatingProgress { get; private set; }
+        public float EatingDuration { get; private set; }
+        public float EatingFraction => Target != null ? Mathf.Clamp01(EatingProgress / Mathf.Max(.1f, EatingDuration)) : 0f;
+        public BaobabStage EatingStage { get; private set; }
         public int SproutsEaten { get; private set; }
         public int CardIndex { get; private set; }
         public BaobabSurge.SpawnRecord Target { get; private set; }
@@ -28,7 +31,7 @@ namespace B612
             baseScale=visual.localScale;
             baseLocalPosition=transform.localPosition; baseLocalRotation=transform.localRotation;
             baseLocalUp=transform.parent.InverseTransformDirection(transform.up);
-            Target=owner.ClaimTarget(this,preferred);
+            FindTarget(preferred);
             rangeRing=owner.CreateRing("Lamb "+(cardIndex+1)+" grazing range",0.012f,new Color(0.65f,0.88f,0.69f,0.3f));
             owner.DrawRing(rangeRing,transform.position,transform.up,owner.eatingRadius);
             rangeRing.enabled=true; initialized=true;
@@ -68,23 +71,23 @@ namespace B612
             float remaining=seconds;
             for(int guard=0;guard<64 && remaining>0.000001f && State==LambState.Grazing;guard++)
             {
-                if(Target!=null && (!Target.IsActive || !InRange(Target)))
+                if(Target!=null && (!Target.IsActive || !InRange(Target) || !Owner.OwnsTarget(this,Target) || Target.Stage!=EatingStage))
                 { Owner.ReleaseTarget(this,Target); Target=null; EatingProgress=0f; }
-                if(Target==null) Target=Owner.ClaimTarget(this);
+                if(Target==null) FindTarget();
                 float slice=Mathf.Min(remaining,Mathf.Max(0f,Owner.activeSeconds-Age));
-                if(Target!=null) slice=Mathf.Min(slice,Mathf.Max(0f,Owner.secondsPerSprout-EatingProgress));
+                if(Target!=null) slice=Mathf.Min(slice,Mathf.Max(0f,EatingDuration-EatingProgress));
                 Age+=slice; remaining-=slice;
                 if(Target!=null)
                 {
                     EatingProgress+=slice;
-                    if(EatingProgress>=Owner.secondsPerSprout-0.00001f)
+                    if(EatingProgress>=EatingDuration-0.00001f)
                     {
                         var eaten=Target; Target=null; EatingProgress=0f;
                         Owner.ReleaseTarget(this,eaten);
                         if(eaten.IsActive && Owner.surge.RemoveSprout(eaten.instance)) SproutsEaten++;
                     }
                 }
-                // A second bite at exactly 20s completes before the lamb becomes an item.
+                // A bite completing exactly at expiry still counts before becoming an item.
                 if(Age>=Owner.activeSeconds-0.00001f) BecomePickup();
                 if(slice<=0.000001f && State==LambState.Grazing) break;
             }
@@ -95,6 +98,14 @@ namespace B612
         {
             return LambCardHand.SurfaceDistance(transform.position,Owner.surge.surface.WorldPoint(target.slot),Owner.surge.surface.transform.position)
                 <=Owner.eatingRadius+Owner.rangeGrace;
+        }
+
+        void FindTarget(BaobabSurge.SpawnRecord preferred=null)
+        {
+            Target=Owner.ClaimTarget(this,preferred);
+            EatingProgress=0f;
+            EatingStage=Target!=null?Target.Stage:BaobabStage.Sprout;
+            EatingDuration=Target!=null?Owner.EatingSeconds(EatingStage):0f;
         }
 
         void BecomePickup()
