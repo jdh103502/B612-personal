@@ -1,0 +1,2 @@
+passed=True
+Locked real motor cannot air-jump/dash; unlocked actions consume resources; lock cancels dash without refilling.

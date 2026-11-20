@@ -1,0 +1,77 @@
+[
+  {
+    "chapter": 3,
+    "runSeed": 612101,
+    "planetSeed": 558768094,
+    "requiredKind": 2,
+    "reviewedLayout": 0,
+    "fixedPlacement": false,
+    "buildAttempts": 1,
+    "repairs": [
+      "Reduced landform budget for reserved or small planet.",
+      "River omitted after bounded source/basin/protected-space search."
+    ],
+    "traversalCosts": [
+      {
+        "kind": 2,
+        "basicSeconds": 12.48,
+        "shortcutSeconds": 5.46
+      },
+      {
+        "kind": 0,
+        "basicSeconds": 8.82,
+        "shortcutSeconds": 3.22
+      }
+    ]
+  },
+  {
+    "chapter": 3,
+    "runSeed": 1,
+    "planetSeed": 216666997,
+    "requiredKind": 2,
+    "reviewedLayout": 0,
+    "fixedPlacement": false,
+    "buildAttempts": 1,
+    "repairs": [
+      "Reduced landform budget for reserved or small planet.",
+      "River omitted after bounded source/basin/protected-space search."
+    ],
+    "traversalCosts": [
+      {
+        "kind": 2,
+        "basicSeconds": 12.46,
+        "shortcutSeconds": 5.46
+      },
+      {
+        "kind": 0,
+        "basicSeconds": 8.84,
+        "shortcutSeconds": 3.22
+      }
+    ]
+  },
+  {
+    "chapter": 3,
+    "runSeed": 77,
+    "planetSeed": 1038211444,
+    "requiredKind": 2,
+    "reviewedLayout": 0,
+    "fixedPlacement": false,
+    "buildAttempts": 1,
+    "repairs": [
+      "Reduced landform budget for reserved or small planet.",
+      "River omitted after bounded source/basin/protected-space search."
+    ],
+    "traversalCosts": [
+      {
+        "kind": 2,
+        "basicSeconds": 12.48,
+        "shortcutSeconds": 5.46
+      },
+      {
+        "kind": 0,
+        "basicSeconds": 8.82,
+        "shortcutSeconds": 3.22
+      }
+    ]
+  }
+]

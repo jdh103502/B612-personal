@@ -1,0 +1,34 @@
+{
+  "passed": true,
+  "results": [
+    {
+      "scale": 0.7,
+      "radius": 3.71,
+      "features": 0,
+      "repairs": [],
+      "slots": 2161
+    },
+    {
+      "scale": 1.0,
+      "radius": 5.3,
+      "features": 0,
+      "repairs": [],
+      "slots": 2221
+    },
+    {
+      "scale": 1.5,
+      "radius": 7.95000029,
+      "features": 0,
+      "repairs": [],
+      "slots": 5298
+    },
+    {
+      "scale": 2.0,
+      "radius": 10.6,
+      "features": 1,
+      "repairs": [],
+      "slots": 8132
+    }
+  ],
+  "oldVersionRejected": true
+}

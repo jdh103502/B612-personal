@@ -1,0 +1,533 @@
+[
+  {
+    "chapter": 1,
+    "seed": 612101,
+    "size": 0.7,
+    "cells": 80,
+    "patches": 9,
+    "plain": 62,
+    "hill": 18,
+    "valley": 0,
+    "river": true,
+    "features": [
+      0
+    ]
+  },
+  {
+    "chapter": 1,
+    "seed": 612101,
+    "size": 1.0,
+    "cells": 80,
+    "patches": 9,
+    "plain": 62,
+    "hill": 18,
+    "valley": 0,
+    "river": true,
+    "features": [
+      0,
+      1
+    ]
+  },
+  {
+    "chapter": 1,
+    "seed": 612101,
+    "size": 1.5,
+    "cells": 180,
+    "patches": 13,
+    "plain": 153,
+    "hill": 18,
+    "valley": 9,
+    "river": true,
+    "features": [
+      0,
+      1
+    ]
+  },
+  {
+    "chapter": 1,
+    "seed": 612101,
+    "size": 2.0,
+    "cells": 320,
+    "patches": 18,
+    "plain": 262,
+    "hill": 34,
+    "valley": 24,
+    "river": true,
+    "features": [
+      0,
+      1
+    ]
+  },
+  {
+    "chapter": 1,
+    "seed": 1,
+    "size": 0.7,
+    "cells": 80,
+    "patches": 9,
+    "plain": 40,
+    "hill": 32,
+    "valley": 8,
+    "river": true,
+    "features": [
+      0
+    ]
+  },
+  {
+    "chapter": 1,
+    "seed": 1,
+    "size": 1.0,
+    "cells": 80,
+    "patches": 9,
+    "plain": 40,
+    "hill": 32,
+    "valley": 8,
+    "river": false,
+    "features": [
+      1,
+      0
+    ]
+  },
+  {
+    "chapter": 1,
+    "seed": 1,
+    "size": 1.5,
+    "cells": 180,
+    "patches": 13,
+    "plain": 109,
+    "hill": 48,
+    "valley": 23,
+    "river": true,
+    "features": [
+      1,
+      0
+    ]
+  },
+  {
+    "chapter": 1,
+    "seed": 1,
+    "size": 2.0,
+    "cells": 320,
+    "patches": 18,
+    "plain": 196,
+    "hill": 95,
+    "valley": 29,
+    "river": true,
+    "features": [
+      1,
+      0
+    ]
+  },
+  {
+    "chapter": 1,
+    "seed": 77,
+    "size": 0.7,
+    "cells": 80,
+    "patches": 9,
+    "plain": 72,
+    "hill": 0,
+    "valley": 8,
+    "river": true,
+    "features": [
+      0
+    ]
+  },
+  {
+    "chapter": 1,
+    "seed": 77,
+    "size": 1.0,
+    "cells": 80,
+    "patches": 9,
+    "plain": 72,
+    "hill": 0,
+    "valley": 8,
+    "river": true,
+    "features": [
+      1,
+      0
+    ]
+  },
+  {
+    "chapter": 1,
+    "seed": 77,
+    "size": 1.5,
+    "cells": 180,
+    "patches": 13,
+    "plain": 166,
+    "hill": 14,
+    "valley": 0,
+    "river": true,
+    "features": [
+      1,
+      0
+    ]
+  },
+  {
+    "chapter": 1,
+    "seed": 77,
+    "size": 2.0,
+    "cells": 320,
+    "patches": 18,
+    "plain": 280,
+    "hill": 23,
+    "valley": 17,
+    "river": true,
+    "features": [
+      1,
+      0
+    ]
+  },
+  {
+    "chapter": 2,
+    "seed": 612101,
+    "size": 0.7,
+    "cells": 80,
+    "patches": 9,
+    "plain": 62,
+    "hill": 18,
+    "valley": 0,
+    "river": true,
+    "features": [
+      0
+    ]
+  },
+  {
+    "chapter": 2,
+    "seed": 612101,
+    "size": 1.0,
+    "cells": 80,
+    "patches": 9,
+    "plain": 62,
+    "hill": 18,
+    "valley": 0,
+    "river": true,
+    "features": [
+      0,
+      1
+    ]
+  },
+  {
+    "chapter": 2,
+    "seed": 612101,
+    "size": 1.5,
+    "cells": 180,
+    "patches": 13,
+    "plain": 145,
+    "hill": 26,
+    "valley": 9,
+    "river": true,
+    "features": [
+      0,
+      1
+    ]
+  },
+  {
+    "chapter": 2,
+    "seed": 612101,
+    "size": 2.0,
+    "cells": 320,
+    "patches": 18,
+    "plain": 237,
+    "hill": 59,
+    "valley": 24,
+    "river": true,
+    "features": [
+      0,
+      1
+    ]
+  },
+  {
+    "chapter": 2,
+    "seed": 1,
+    "size": 0.7,
+    "cells": 80,
+    "patches": 9,
+    "plain": 44,
+    "hill": 23,
+    "valley": 13,
+    "river": true,
+    "features": [
+      0
+    ]
+  },
+  {
+    "chapter": 2,
+    "seed": 1,
+    "size": 1.0,
+    "cells": 80,
+    "patches": 9,
+    "plain": 44,
+    "hill": 23,
+    "valley": 13,
+    "river": false,
+    "features": [
+      1,
+      0
+    ]
+  },
+  {
+    "chapter": 2,
+    "seed": 1,
+    "size": 1.5,
+    "cells": 180,
+    "patches": 13,
+    "plain": 96,
+    "hill": 61,
+    "valley": 23,
+    "river": true,
+    "features": [
+      1,
+      0
+    ]
+  },
+  {
+    "chapter": 2,
+    "seed": 1,
+    "size": 2.0,
+    "cells": 320,
+    "patches": 18,
+    "plain": 186,
+    "hill": 97,
+    "valley": 37,
+    "river": true,
+    "features": [
+      1,
+      0
+    ]
+  },
+  {
+    "chapter": 2,
+    "seed": 77,
+    "size": 0.7,
+    "cells": 80,
+    "patches": 9,
+    "plain": 64,
+    "hill": 7,
+    "valley": 9,
+    "river": true,
+    "features": [
+      0
+    ]
+  },
+  {
+    "chapter": 2,
+    "seed": 77,
+    "size": 1.0,
+    "cells": 80,
+    "patches": 9,
+    "plain": 64,
+    "hill": 7,
+    "valley": 9,
+    "river": true,
+    "features": [
+      1,
+      0
+    ]
+  },
+  {
+    "chapter": 2,
+    "seed": 77,
+    "size": 1.5,
+    "cells": 180,
+    "patches": 13,
+    "plain": 123,
+    "hill": 43,
+    "valley": 14,
+    "river": true,
+    "features": [
+      1,
+      0
+    ]
+  },
+  {
+    "chapter": 2,
+    "seed": 77,
+    "size": 2.0,
+    "cells": 320,
+    "patches": 18,
+    "plain": 222,
+    "hill": 53,
+    "valley": 45,
+    "river": true,
+    "features": [
+      1,
+      0
+    ]
+  },
+  {
+    "chapter": 3,
+    "seed": 612101,
+    "size": 0.7,
+    "cells": 80,
+    "patches": 9,
+    "plain": 61,
+    "hill": 6,
+    "valley": 13,
+    "river": true,
+    "features": [
+      0
+    ]
+  },
+  {
+    "chapter": 3,
+    "seed": 612101,
+    "size": 1.0,
+    "cells": 80,
+    "patches": 9,
+    "plain": 61,
+    "hill": 6,
+    "valley": 13,
+    "river": true,
+    "features": [
+      2,
+      0
+    ]
+  },
+  {
+    "chapter": 3,
+    "seed": 612101,
+    "size": 1.5,
+    "cells": 180,
+    "patches": 13,
+    "plain": 138,
+    "hill": 32,
+    "valley": 10,
+    "river": true,
+    "features": [
+      2,
+      0
+    ]
+  },
+  {
+    "chapter": 3,
+    "seed": 612101,
+    "size": 2.0,
+    "cells": 320,
+    "patches": 18,
+    "plain": 238,
+    "hill": 39,
+    "valley": 43,
+    "river": true,
+    "features": [
+      2,
+      0
+    ]
+  },
+  {
+    "chapter": 3,
+    "seed": 1,
+    "size": 0.7,
+    "cells": 80,
+    "patches": 9,
+    "plain": 39,
+    "hill": 22,
+    "valley": 19,
+    "river": true,
+    "features": [
+      0
+    ]
+  },
+  {
+    "chapter": 3,
+    "seed": 1,
+    "size": 1.0,
+    "cells": 80,
+    "patches": 9,
+    "plain": 39,
+    "hill": 22,
+    "valley": 19,
+    "river": true,
+    "features": [
+      2,
+      0
+    ]
+  },
+  {
+    "chapter": 3,
+    "seed": 1,
+    "size": 1.5,
+    "cells": 180,
+    "patches": 13,
+    "plain": 89,
+    "hill": 56,
+    "valley": 35,
+    "river": true,
+    "features": [
+      2,
+      0
+    ]
+  },
+  {
+    "chapter": 3,
+    "seed": 1,
+    "size": 2.0,
+    "cells": 320,
+    "patches": 18,
+    "plain": 186,
+    "hill": 75,
+    "valley": 59,
+    "river": true,
+    "features": [
+      2,
+      0
+    ]
+  },
+  {
+    "chapter": 3,
+    "seed": 77,
+    "size": 0.7,
+    "cells": 80,
+    "patches": 9,
+    "plain": 64,
+    "hill": 7,
+    "valley": 9,
+    "river": true,
+    "features": [
+      0
+    ]
+  },
+  {
+    "chapter": 3,
+    "seed": 77,
+    "size": 1.0,
+    "cells": 80,
+    "patches": 9,
+    "plain": 64,
+    "hill": 7,
+    "valley": 9,
+    "river": true,
+    "features": [
+      2,
+      0
+    ]
+  },
+  {
+    "chapter": 3,
+    "seed": 77,
+    "size": 1.5,
+    "cells": 180,
+    "patches": 13,
+    "plain": 121,
+    "hill": 35,
+    "valley": 24,
+    "river": true,
+    "features": [
+      2,
+      0
+    ]
+  },
+  {
+    "chapter": 3,
+    "seed": 77,
+    "size": 2.0,
+    "cells": 320,
+    "patches": 18,
+    "plain": 201,
+    "hill": 46,
+    "valley": 73,
+    "river": true,
+    "features": [
+      2,
+      0
+    ]
+  }
+]

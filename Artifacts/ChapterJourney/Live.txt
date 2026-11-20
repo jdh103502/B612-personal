@@ -1,0 +1,8 @@
+passed=True
+error=
+Fresh campaign locks abilities independently of developer allow flags
+Chapter 1: actual E unlock, reachable sites, immutable terrain and no repeated grant
+Failed next-chapter preparation preserves current world, chapter, path and unlocks
+Chapter 2: actual E unlock, reachable sites, immutable terrain and no repeated grant
+Chapter 3: actual E unlock, reachable sites, immutable terrain and no repeated grant
+Three chapters, alternate DAG routes, 11 transitions, persistent unlocks, complete history, terminal state and single EventSystem

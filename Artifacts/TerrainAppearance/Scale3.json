@@ -1,0 +1,62 @@
+[
+  {
+    "scale": 2.0,
+    "seed": 612101,
+    "radius": 24.0,
+    "features": 2,
+    "kinds": [
+      0,
+      1
+    ],
+    "placementAttempts": 2,
+    "buildAttempts": 1,
+    "safeFallback": false,
+    "repairs": [],
+    "maximumWalkSlope": 34.0115471,
+    "SlotCount": 9509,
+    "EmptyCellCount": 18,
+    "vertices": 427736,
+    "prepareMilliseconds": 2308.234,
+    "hash": "75-CB-25-F1-25-09-E5-73-A3-AC-06-8B-84-47-98-D4-97-40-5D-9D-B4-47-7C-14-69-AE-A8-B2-4D-CE-22-20"
+  },
+  {
+    "scale": 2.0,
+    "seed": 1,
+    "radius": 24.0,
+    "features": 2,
+    "kinds": [
+      0,
+      1
+    ],
+    "placementAttempts": 7,
+    "buildAttempts": 1,
+    "safeFallback": false,
+    "repairs": [],
+    "maximumWalkSlope": 33.4913,
+    "SlotCount": 9544,
+    "EmptyCellCount": 18,
+    "vertices": 427736,
+    "prepareMilliseconds": 2251.9225,
+    "hash": "2B-39-90-66-C7-B0-87-27-CF-98-71-7B-4B-9F-92-1C-64-5E-2E-69-C4-9D-C6-7A-0E-40-6A-F8-5D-5A-81-33"
+  },
+  {
+    "scale": 2.0,
+    "seed": 77,
+    "radius": 24.0,
+    "features": 2,
+    "kinds": [
+      0,
+      1
+    ],
+    "placementAttempts": 6,
+    "buildAttempts": 1,
+    "safeFallback": false,
+    "repairs": [],
+    "maximumWalkSlope": 35.27486,
+    "SlotCount": 9517,
+    "EmptyCellCount": 16,
+    "vertices": 427736,
+    "prepareMilliseconds": 2322.2645,
+    "hash": "71-BD-60-EC-D1-6C-15-7A-9E-3D-CE-59-CB-FD-D0-51-18-34-0D-80-E5-E4-38-82-15-A2-72-E3-80-5C-35-5C"
+  }
+]

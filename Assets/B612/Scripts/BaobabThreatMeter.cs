@@ -13,6 +13,7 @@ namespace B612
         public PlanetBaobabProfile profile;
         public PlayerController playerInput;
         public OrbitCamera cameraInput;
+        [NonSerialized] public float runCapacityOverride;
         public Phase State { get; private set; }
         public bool IsGameOver => State == Phase.GameOver;
         public float Capacity { get; private set; } = 100f;
@@ -25,13 +26,13 @@ namespace B612
         public event Action Changed;
         public event Action GameOver;
 
-        float previousTimeScale = 1f;
+        GamePauseCoordinator pause;
         bool ownsPause, playerWasEnabled, cameraWasEnabled, restarting;
 
         public void ResetForRun()
         {
             RestoreProgress();
-            Capacity = profile ? Mathf.Max(.01f, profile.threatCapacity) : 100f;
+            Capacity = runCapacityOverride > 0f ? runCapacityOverride : profile ? Mathf.Max(.01f, profile.threatCapacity) : 100f;
             RunType = profile ? profile.defaultType : null;
             RunGrowth = RunType ? RunType.Snapshot() : BaobabGrowth.Basic;
             RunLifeCycle = RunType ? RunType.SnapshotLifeCycle() : BaobabLifeCycle.Basic;
@@ -48,7 +49,7 @@ namespace B612
 
         public void Evaluate()
         {
-            if (!surge || IsGameOver) return;
+            if (!surge || !surge.IsRunning || IsGameOver) return;
             RawThreat = GrowthPerSecond = 0f;
             foreach (var record in surge.Spawned)
             {
@@ -60,13 +61,14 @@ namespace B612
             if (RawThreat >= Capacity)
             {
                 State = Phase.GameOver;
-                previousTimeScale = Time.timeScale;
+                pause = GamePauseCoordinator.GetOrCreate(gameObject.scene);
+                pause.AcquirePause(this, GamePauseReason.GameOver);
                 ownsPause = true;
                 playerWasEnabled = playerInput && playerInput.enabled;
                 cameraWasEnabled = cameraInput && cameraInput.enabled;
                 if (playerInput) playerInput.enabled = false;
                 if (cameraInput) cameraInput.enabled = false;
-                Time.timeScale = 0f;
+                Cursor.lockState = CursorLockMode.None; Cursor.visible = true;
                 GameOver?.Invoke();
             }
             else State = !surge.IsComplete ? Phase.Surging : surge.ActiveSproutCount > 0 ? Phase.Clearing : Phase.Resolved;
@@ -75,9 +77,10 @@ namespace B612
 
         public void RestartAttempt()
         {
-            if (!IsGameOver || restarting) return;
+            if (!IsGameOver || restarting || GameplayModalInput.BlocksGameplayInput) return;
             restarting = true;
             RestoreProgress();
+            if (pause) pause.ResetForSceneReload();
             SceneManager.LoadScene(gameObject.scene.path);
         }
 
@@ -85,7 +88,7 @@ namespace B612
         {
             if (!ownsPause) return;
             ownsPause = false;
-            Time.timeScale = previousTimeScale;
+            if (pause) pause.ReleasePause(this);
             if (playerInput) playerInput.enabled = playerWasEnabled;
             if (cameraInput) cameraInput.enabled = cameraWasEnabled;
         }

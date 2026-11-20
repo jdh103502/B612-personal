@@ -9,6 +9,7 @@ namespace B612
         public float surfaceRadius = 2f;
         public float influenceRadius = 6f;
         public float strength = 3.4f;
+        [System.NonSerialized] public ProceduralPlanetTerrain.Plan terrainPlan;
 
         static readonly List<GravitySource> active = new List<GravitySource>();
 

@@ -29,6 +29,7 @@ namespace B612
 
         void Update()
         {
+            if (GameplayModalInput.BlocksGameplayInput) return;
             var kb = UnityEngine.InputSystem.Keyboard.current;
             if (kb != null && kb.hKey.wasPressedThisFrame) showHelp = !showHelp;
         }

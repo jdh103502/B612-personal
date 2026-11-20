@@ -8,17 +8,21 @@ namespace B612
     public sealed class PlanetSurfaceGrid : MonoBehaviour
     {
         public Collider ground;
+        [Tooltip("Subdivision level of the 1x baseline. Area scaling uses ceil(2^level * sizeScale); up to 1,280 cells at level 2.")]
         [Range(0, 2)] public int subdivisions = 1;
+        [Tooltip("PlanetSpec sizeScale, independent of this transform. Applied only on explicit Prepare; never by Gizmos.")]
+        [SerializeField, Range(.7f, 2f)] float sizeScale = 1f;
         [Range(4, 96)] public int candidatesPerCell = 32;
         [Range(0f, 89f)] public float maxSlope = 55f;
         public bool drawCellGizmos = true;
+        [NonSerialized] public Func<Vector3,Vector3,bool> CandidateFilter;
 
         public sealed class SurfaceCell
         {
             public int id;
             public Vector3 a, b, c;
             public float solidAngle;
-            public int[] neighbors = new int[3];
+            public int[] neighbors = { -1, -1, -1 };
             public readonly List<SpawnSlot> slots = new List<SpawnSlot>();
         }
 
@@ -33,11 +37,33 @@ namespace B612
         public IReadOnlyList<SurfaceCell> Cells => cells;
         public int SlotCount { get; private set; }
         public int EmptyCellCount { get; private set; }
+        public float SizeScale => sizeScale;
+        public int PreparedFrequency { get; private set; }
+        public int PreparedVertexCount { get; private set; }
+        public int PreparedEdgeCount { get; private set; }
+        readonly List<SurfaceCell> previewCells = new List<SurfaceCell>();
+        int previewFrequency;
+
+        public static int CalculateFrequency(int baselineSubdivisions, float planetSizeScale)
+        {
+            if (baselineSubdivisions < 0 || baselineSubdivisions > 2)
+                throw new ArgumentOutOfRangeException(nameof(baselineSubdivisions), "Supported baseline levels are 0 through 2.");
+            PlanetGenerationSettings.Classify(planetSizeScale); // Shared finite/range validation: 0.7 through 2.0.
+            // Exact float boundaries are intentional: the next representable scale above 1/1.5 advances a band.
+            return Mathf.CeilToInt((1 << baselineSubdivisions) * planetSizeScale);
+        }
+        public void ConfigureResolution(int baselineSubdivisions, float planetSizeScale)
+        {
+            CalculateFrequency(baselineSubdivisions, planetSizeScale);
+            subdivisions = baselineSubdivisions; sizeScale = planetSizeScale;
+        }
 
         public void Prepare(int seed)
         {
             if (!ground) throw new InvalidOperationException("Assign this planet's ground collider.");
-            BuildCells();
+            int frequency = CalculateFrequency(subdivisions, sizeScale);
+            BuildCells(frequency, cells, out int vertexCount, out int edgeCount);
+            PreparedFrequency = frequency; PreparedVertexCount = vertexCount; PreparedEdgeCount = edgeCount;
             var random = new System.Random(seed);
             SlotCount = EmptyCellCount = 0;
             foreach (var cell in cells)
@@ -58,6 +84,7 @@ namespace B612
                     if (!Contains(cell, direction) || !TryProject(direction, out var point, out var normal)) continue;
                     var radial = (point - transform.position).normalized;
                     if (Vector3.Angle(normal, radial) > maxSlope) continue;
+                    if (CandidateFilter!=null && !CandidateFilter(point,normal)) continue;
                     cell.slots.Add(new SpawnSlot
                     {
                         cellId = cell.id,
@@ -93,7 +120,9 @@ namespace B612
                 && Vector3.Dot(Vector3.Cross(cell.c, cell.a), direction) >= -0.00001f;
         }
 
-        void BuildCells()
+        public static List<SurfaceCell> CreateTopology(int frequency)
+        {var result=new List<SurfaceCell>();BuildCells(frequency,result,out _,out _);return result;}
+        static void BuildCells(int frequency, List<SurfaceCell> result, out int vertexCount, out int edgeCount)
         {
             float t = (1f + Mathf.Sqrt(5f)) * 0.5f;
             var vertices = new List<Vector3>
@@ -110,39 +139,96 @@ namespace B612
                 new[]{3,9,4}, new[]{3,4,2}, new[]{3,2,6}, new[]{3,6,8}, new[]{3,8,9},
                 new[]{4,9,5}, new[]{2,4,11}, new[]{6,2,10}, new[]{8,6,7}, new[]{9,8,1}
             };
-            var midpoints = new Dictionary<long, int>();
-            for (int level = 0; level < Mathf.Clamp(subdivisions, 0, 2); level++)
+            if ((frequency & (frequency - 1)) != 0)
+                faces = FrequencyFaces(frequency, vertices, faces);
+            else
             {
-                var next = new List<int[]>(faces.Count * 4);
-                foreach (var face in faces)
+                // Keep the original recursive order and float operations for powers of two, including 1x.
+                var midpoints = new Dictionary<long, int>();
+                for (int resolution = 1; resolution < frequency; resolution *= 2)
                 {
-                    int a = Midpoint(face[0], face[1], vertices, midpoints);
-                    int b = Midpoint(face[1], face[2], vertices, midpoints);
-                    int c = Midpoint(face[2], face[0], vertices, midpoints);
-                    next.Add(new[] { face[0], a, c }); next.Add(new[] { face[1], b, a });
-                    next.Add(new[] { face[2], c, b }); next.Add(new[] { a, b, c });
+                    var next = new List<int[]>(faces.Count * 4);
+                    foreach (var face in faces)
+                    {
+                        int a = Midpoint(face[0], face[1], vertices, midpoints);
+                        int b = Midpoint(face[1], face[2], vertices, midpoints);
+                        int c = Midpoint(face[2], face[0], vertices, midpoints);
+                        next.Add(new[] { face[0], a, c }); next.Add(new[] { face[1], b, a });
+                        next.Add(new[] { face[2], c, b }); next.Add(new[] { a, b, c });
+                    }
+                    faces = next;
                 }
-                faces = next;
             }
-            cells.Clear();
+            result.Clear();
             var edges = new Dictionary<long, KeyValuePair<int, int>>();
             foreach (var face in faces)
             {
                 var a = vertices[face[0]]; var b = vertices[face[1]]; var c = vertices[face[2]];
-                var cell = new SurfaceCell { id = cells.Count, a = a, b = b, c = c,
+                var cell = new SurfaceCell { id = result.Count, a = a, b = b, c = c,
                     solidAngle = 2f * Mathf.Atan2(Mathf.Abs(Vector3.Dot(a, Vector3.Cross(b,c))), 1f + Vector3.Dot(a,b) + Vector3.Dot(b,c) + Vector3.Dot(c,a)) };
-                cells.Add(cell);
+                result.Add(cell);
                 for (int side = 0; side < 3; side++)
                 {
                     long key = EdgeKey(face[side], face[(side + 1) % 3]);
                     if (edges.TryGetValue(key, out var other))
                     {
                         cell.neighbors[side] = other.Key;
-                        cells[other.Key].neighbors[other.Value] = cell.id;
+                        if (result[other.Key].neighbors[other.Value] >= 0) throw new InvalidOperationException("Non-manifold planet cell edge.");
+                        result[other.Key].neighbors[other.Value] = cell.id;
                     }
                     else edges.Add(key, new KeyValuePair<int, int>(cell.id, side));
                 }
             }
+            foreach (var cell in result)
+                foreach (int neighbor in cell.neighbors)
+                    if (neighbor < 0) throw new InvalidOperationException("Open planet cell edge.");
+            vertexCount = vertices.Count; edgeCount = edges.Count;
+        }
+
+        static List<int[]> FrequencyFaces(int frequency, List<Vector3> vertices, List<int[]> originalFaces)
+        {
+            var faces = new List<int[]>(20 * frequency * frequency);
+            var edgeVertices = new Dictionary<long, int>();
+            foreach (var face in originalFaces)
+            {
+                var grid = new int[frequency + 1, frequency + 1];
+                for (int i = 0; i <= frequency; i++)
+                    for (int j = 0; j <= frequency - i; j++)
+                    {
+                        int a = frequency - i - j, b = i, c = j;
+                        int vertex;
+                        if (a == frequency) vertex = face[0];
+                        else if (b == frequency) vertex = face[1];
+                        else if (c == frequency) vertex = face[2];
+                        else if (c == 0) vertex = EdgeVertex(face[0], face[1], b, frequency, vertices, edgeVertices);
+                        else if (b == 0) vertex = EdgeVertex(face[0], face[2], c, frequency, vertices, edgeVertices);
+                        else if (a == 0) vertex = EdgeVertex(face[1], face[2], c, frequency, vertices, edgeVertices);
+                        else
+                        {
+                            vertex = vertices.Count;
+                            vertices.Add((a * vertices[face[0]] + b * vertices[face[1]] + c * vertices[face[2]]).normalized);
+                        }
+                        grid[i, j] = vertex;
+                    }
+                for (int i = 0; i < frequency; i++)
+                    for (int j = 0; j < frequency - i; j++)
+                    {
+                        faces.Add(new[] { grid[i, j], grid[i + 1, j], grid[i, j + 1] });
+                        if (i + j < frequency - 1) faces.Add(new[] { grid[i + 1, j], grid[i + 1, j + 1], grid[i, j + 1] });
+                    }
+            }
+            return faces;
+        }
+
+        static int EdgeVertex(int from, int to, int step, int frequency, List<Vector3> vertices, Dictionary<long, int> cache)
+        {
+            int low = Mathf.Min(from, to), high = Mathf.Max(from, to);
+            int canonicalStep = from == low ? step : frequency - step;
+            long key = (EdgeKey(low, high) << 4) | (uint)canonicalStep; // Original endpoint IDs + integer step; f <= 8.
+            if (cache.TryGetValue(key, out int existing)) return existing;
+            int index = vertices.Count;
+            vertices.Add(((frequency - canonicalStep) * vertices[low] + canonicalStep * vertices[high]).normalized);
+            cache.Add(key, index); return index;
         }
 
         static long EdgeKey(int a, int b) => ((long)Mathf.Min(a, b) << 32) | (uint)Mathf.Max(a, b);
@@ -157,11 +243,24 @@ namespace B612
             return index;
         }
 
+        IReadOnlyList<SurfaceCell> DrawingCells(bool playing)
+        {
+            // Drawing never changes live cells, candidate references, IDs or occupancy.
+            if (playing) return cells;
+            int frequency;
+            try { frequency = CalculateFrequency(subdivisions, sizeScale); }
+            catch (ArgumentOutOfRangeException) { return Array.Empty<SurfaceCell>(); }
+            if (previewFrequency != frequency || previewCells.Count == 0)
+            {
+                BuildCells(frequency, previewCells, out _, out _); previewFrequency = frequency;
+            }
+            return previewCells;
+        }
+
         void OnDrawGizmosSelected()
         {
             if (!drawCellGizmos || !ground) return;
-            if (cells.Count != 20 * (1 << (2 * subdivisions))) BuildCells();
-            foreach (var cell in cells)
+            foreach (var cell in DrawingCells(Application.isPlaying))
             {
                 Gizmos.color = new Color(0.5f, 0.95f, 0.85f, 0.65f);
                 DrawEdge(cell.a, cell.b); DrawEdge(cell.b, cell.c); DrawEdge(cell.c, cell.a);

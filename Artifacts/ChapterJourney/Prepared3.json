@@ -1,0 +1,74 @@
+[
+  {
+    "chapter": 3,
+    "size": 0.7,
+    "features": [
+      0
+    ],
+    "river": true,
+    "buildAttempts": 1,
+    "repairs": [],
+    "SlotCount": 2129,
+    "mainRouteSeconds": 13.48,
+    "traversalCosts": [
+      {
+        "kind": 0,
+        "basicSeconds": 8.4,
+        "shortcutSeconds": 3.36
+      }
+    ],
+    "milliseconds": 663.1856
+  },
+  {
+    "chapter": 3,
+    "size": 1.0,
+    "features": [
+      2,
+      0
+    ],
+    "river": true,
+    "buildAttempts": 1,
+    "repairs": [],
+    "SlotCount": 1767,
+    "mainRouteSeconds": 19.14,
+    "traversalCosts": [
+      {
+        "kind": 2,
+        "basicSeconds": 12.48,
+        "shortcutSeconds": 5.46
+      },
+      {
+        "kind": 0,
+        "basicSeconds": 8.84,
+        "shortcutSeconds": 3.22
+      }
+    ],
+    "milliseconds": 1311.1358
+  },
+  {
+    "chapter": 3,
+    "size": 2.0,
+    "features": [
+      2,
+      0
+    ],
+    "river": true,
+    "buildAttempts": 1,
+    "repairs": [],
+    "SlotCount": 9434,
+    "mainRouteSeconds": 37.98,
+    "traversalCosts": [
+      {
+        "kind": 2,
+        "basicSeconds": 13.04,
+        "shortcutSeconds": 5.02
+      },
+      {
+        "kind": 0,
+        "basicSeconds": 9.16,
+        "shortcutSeconds": 3.19999981
+      }
+    ],
+    "milliseconds": 4880.109
+  }
+]

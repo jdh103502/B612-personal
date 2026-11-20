@@ -1,0 +1,64 @@
+[
+  {
+    "scale": 1.0,
+    "seed": 612101,
+    "radius": 12.0,
+    "features": 2,
+    "kinds": [
+      0,
+      1
+    ],
+    "placementAttempts": 10,
+    "buildAttempts": 1,
+    "safeFallback": false,
+    "repairs": [
+      "Landforms: placed 0/1 basins within approach and reservation bounds."
+    ],
+    "maximumWalkSlope": 35.01331,
+    "SlotCount": 1678,
+    "EmptyCellCount": 22,
+    "vertices": 107738,
+    "prepareMilliseconds": 867.5782,
+    "hash": "14-3D-EE-9A-02-3D-B7-95-76-D8-27-B3-50-E3-C9-C8-DA-E0-4E-28-7B-A6-EB-59-4F-8D-A2-1C-7C-B5-EE-1A"
+  },
+  {
+    "scale": 1.0,
+    "seed": 1,
+    "radius": 12.0,
+    "features": 2,
+    "kinds": [
+      0,
+      1
+    ],
+    "placementAttempts": 7,
+    "buildAttempts": 1,
+    "safeFallback": false,
+    "repairs": [],
+    "maximumWalkSlope": 36.0627861,
+    "SlotCount": 1666,
+    "EmptyCellCount": 21,
+    "vertices": 107738,
+    "prepareMilliseconds": 977.8925,
+    "hash": "39-E5-96-7B-EE-63-66-2B-15-19-D3-C4-AB-B3-A7-FC-63-B0-36-B4-E6-53-59-52-12-3B-1E-F8-75-DA-C6-56"
+  },
+  {
+    "scale": 1.0,
+    "seed": 77,
+    "radius": 12.0,
+    "features": 2,
+    "kinds": [
+      0,
+      1
+    ],
+    "placementAttempts": 18,
+    "buildAttempts": 1,
+    "safeFallback": false,
+    "repairs": [],
+    "maximumWalkSlope": 36.46779,
+    "SlotCount": 1707,
+    "EmptyCellCount": 23,
+    "vertices": 107738,
+    "prepareMilliseconds": 945.8065,
+    "hash": "73-A0-E8-1F-F8-F0-53-4E-5E-E3-5F-51-BF-CA-22-A5-0E-FB-1D-48-02-42-55-35-97-EA-F7-B1-84-3D-90-8A"
+  }
+]

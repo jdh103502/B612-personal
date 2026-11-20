@@ -1,0 +1,1109 @@
+[
+  {
+    "chapter": 1,
+    "runSeed": 612101,
+    "planetSeed": 654478584,
+    "size": 0.7,
+    "amplitude": 1.176,
+    "min": -0.4030558,
+    "max": 0.913652539,
+    "macroSeed": 111365496,
+    "hillSeed": 1388761198,
+    "cells": 80,
+    "patches": 9,
+    "river": true,
+    "features": [
+      0
+    ],
+    "landformAttempts": 27,
+    "landforms": [
+      {
+        "height": 0.9017038,
+        "radius": 5.589552
+      },
+      {
+        "height": 0.9773985,
+        "radius": 5.53310633
+      },
+      {
+        "height": -0.492294431,
+        "radius": 4.804501
+      }
+    ]
+  },
+  {
+    "chapter": 1,
+    "runSeed": 612101,
+    "planetSeed": 395484021,
+    "size": 1.0,
+    "amplitude": 1.6,
+    "min": -0.141545877,
+    "max": 1.08365548,
+    "macroSeed": 1093110609,
+    "hillSeed": 2136561306,
+    "cells": 80,
+    "patches": 9,
+    "river": true,
+    "features": [
+      0,
+      1
+    ],
+    "landformAttempts": 3,
+    "landforms": [
+      {
+        "height": 1.39991283,
+        "radius": 7.876673
+      }
+    ]
+  },
+  {
+    "chapter": 1,
+    "runSeed": 612101,
+    "planetSeed": 654478584,
+    "size": 1.5,
+    "amplitude": 1.6,
+    "min": -0.5894277,
+    "max": 1.27756035,
+    "macroSeed": 111365496,
+    "hillSeed": 1388761198,
+    "cells": 180,
+    "patches": 13,
+    "river": true,
+    "features": [
+      1,
+      0
+    ],
+    "landformAttempts": 3,
+    "landforms": [
+      {
+        "height": 1.37322068,
+        "radius": 7.978115
+      },
+      {
+        "height": 1.28814828,
+        "radius": 7.98507452
+      },
+      {
+        "height": -0.746271133,
+        "radius": 6.919521
+      }
+    ]
+  },
+  {
+    "chapter": 1,
+    "runSeed": 612101,
+    "planetSeed": 654478584,
+    "size": 2.0,
+    "amplitude": 1.6,
+    "min": -0.5771676,
+    "max": 1.35265958,
+    "macroSeed": 111365496,
+    "hillSeed": 1388761198,
+    "cells": 320,
+    "patches": 18,
+    "river": true,
+    "features": [
+      1,
+      0
+    ],
+    "landformAttempts": 4,
+    "landforms": [
+      {
+        "height": 1.39656925,
+        "radius": 7.90436459
+      },
+      {
+        "height": 1.29368377,
+        "radius": 7.92786551
+      },
+      {
+        "height": -0.729155064,
+        "radius": 6.84366369
+      }
+    ]
+  },
+  {
+    "chapter": 1,
+    "runSeed": 1,
+    "planetSeed": 383634773,
+    "size": 0.7,
+    "amplitude": 1.176,
+    "min": -0.4979108,
+    "max": 0.9126778,
+    "macroSeed": 1357222604,
+    "hillSeed": 1768390966,
+    "cells": 80,
+    "patches": 9,
+    "river": false,
+    "features": [
+      0
+    ],
+    "landformAttempts": 13,
+    "landforms": [
+      {
+        "height": 0.8894229,
+        "radius": 5.53641558
+      },
+      {
+        "height": 0.9507311,
+        "radius": 5.560871
+      },
+      {
+        "height": -0.5196105,
+        "radius": 4.881822
+      }
+    ]
+  },
+  {
+    "chapter": 1,
+    "runSeed": 1,
+    "planetSeed": 859273975,
+    "size": 1.0,
+    "amplitude": 1.6,
+    "min": -0.237142667,
+    "max": 1.15637839,
+    "macroSeed": 261827432,
+    "hillSeed": 208489866,
+    "cells": 80,
+    "patches": 9,
+    "river": true,
+    "features": [
+      0,
+      1
+    ],
+    "landformAttempts": 1,
+    "landforms": [
+      {
+        "height": 1.32635975,
+        "radius": 7.89656973
+      }
+    ]
+  },
+  {
+    "chapter": 1,
+    "runSeed": 1,
+    "planetSeed": 383634773,
+    "size": 1.5,
+    "amplitude": 1.6,
+    "min": -0.6330327,
+    "max": 1.31233132,
+    "macroSeed": 1357222604,
+    "hillSeed": 1768390966,
+    "cells": 180,
+    "patches": 13,
+    "river": true,
+    "features": [
+      0,
+      1
+    ],
+    "landformAttempts": 8,
+    "landforms": [
+      {
+        "height": 1.28502786,
+        "radius": 7.879588
+      },
+      {
+        "height": 1.30112958,
+        "radius": 7.83389664
+      },
+      {
+        "height": -0.7676349,
+        "radius": 6.984883
+      }
+    ]
+  },
+  {
+    "chapter": 1,
+    "runSeed": 1,
+    "planetSeed": 383634773,
+    "size": 2.0,
+    "amplitude": 1.6,
+    "min": -0.6651758,
+    "max": 1.26080942,
+    "macroSeed": 1357222604,
+    "hillSeed": 1768390966,
+    "cells": 320,
+    "patches": 18,
+    "river": true,
+    "features": [
+      0,
+      1
+    ],
+    "landformAttempts": 5,
+    "landforms": [
+      {
+        "height": 1.34156561,
+        "radius": 7.82762241
+      },
+      {
+        "height": 1.29878676,
+        "radius": 7.946179
+      },
+      {
+        "height": -0.775439143,
+        "radius": 6.82010555
+      }
+    ]
+  },
+  {
+    "chapter": 1,
+    "runSeed": 77,
+    "planetSeed": 312642391,
+    "size": 0.7,
+    "amplitude": 1.176,
+    "min": -0.5115146,
+    "max": 1.00590086,
+    "macroSeed": 1998862828,
+    "hillSeed": 497719638,
+    "cells": 80,
+    "patches": 9,
+    "river": true,
+    "features": [
+      0
+    ],
+    "landformAttempts": 25,
+    "landforms": [
+      {
+        "height": 0.933251143,
+        "radius": 5.544415
+      },
+      {
+        "height": 0.9613839,
+        "radius": 5.580151
+      },
+      {
+        "height": -0.551823556,
+        "radius": 4.7694726
+      }
+    ]
+  },
+  {
+    "chapter": 1,
+    "runSeed": 77,
+    "planetSeed": 788378694,
+    "size": 1.0,
+    "amplitude": 1.6,
+    "min": -0.131827921,
+    "max": 1.226647,
+    "macroSeed": 445483186,
+    "hillSeed": 1925010998,
+    "cells": 80,
+    "patches": 9,
+    "river": true,
+    "features": [
+      0,
+      1
+    ],
+    "landformAttempts": 7,
+    "landforms": [
+      {
+        "height": 1.31782961,
+        "radius": 7.95589066
+      }
+    ]
+  },
+  {
+    "chapter": 1,
+    "runSeed": 77,
+    "planetSeed": 312642391,
+    "size": 1.5,
+    "amplitude": 1.6,
+    "min": -0.7186584,
+    "max": 1.3266052,
+    "macroSeed": 1998862828,
+    "hillSeed": 497719638,
+    "cells": 180,
+    "patches": 13,
+    "river": true,
+    "features": [
+      0,
+      1
+    ],
+    "landformAttempts": 3,
+    "landforms": [
+      {
+        "height": 1.37246728,
+        "radius": 7.82448626
+      },
+      {
+        "height": 1.28915262,
+        "radius": 7.895212
+      },
+      {
+        "height": -0.79497385,
+        "radius": 6.87134552
+      }
+    ]
+  },
+  {
+    "chapter": 1,
+    "runSeed": 77,
+    "planetSeed": 312642391,
+    "size": 2.0,
+    "amplitude": 1.6,
+    "min": -0.741746,
+    "max": 1.32960379,
+    "macroSeed": 1998862828,
+    "hillSeed": 497719638,
+    "cells": 320,
+    "patches": 18,
+    "river": true,
+    "features": [
+      0,
+      1
+    ],
+    "landformAttempts": 3,
+    "landforms": [
+      {
+        "height": 1.37596822,
+        "radius": 7.827303
+      },
+      {
+        "height": 1.39368832,
+        "radius": 7.933372
+      },
+      {
+        "height": -0.7977239,
+        "radius": 6.76186275
+      }
+    ]
+  },
+  {
+    "chapter": 2,
+    "runSeed": 612101,
+    "planetSeed": 1076931390,
+    "size": 0.7,
+    "amplitude": 1.176,
+    "min": -0.563163161,
+    "max": 0.98598,
+    "macroSeed": 1018426399,
+    "hillSeed": 1680975076,
+    "cells": 80,
+    "patches": 9,
+    "river": true,
+    "features": [
+      0
+    ],
+    "landformAttempts": 14,
+    "landforms": [
+      {
+        "height": 0.949384868,
+        "radius": 5.52091646
+      },
+      {
+        "height": 0.964292,
+        "radius": 5.50642443
+      },
+      {
+        "height": -0.522137,
+        "radius": 4.74517
+      }
+    ]
+  },
+  {
+    "chapter": 2,
+    "runSeed": 612101,
+    "planetSeed": 1798197590,
+    "size": 1.0,
+    "amplitude": 1.6,
+    "min": -0.188306212,
+    "max": 1.19407654,
+    "macroSeed": 107740611,
+    "hillSeed": 1746043436,
+    "cells": 80,
+    "patches": 9,
+    "river": false,
+    "features": [
+      1,
+      0
+    ],
+    "landformAttempts": 3,
+    "landforms": [
+      {
+        "height": 1.33734953,
+        "radius": 7.87282658
+      }
+    ]
+  },
+  {
+    "chapter": 2,
+    "runSeed": 612101,
+    "planetSeed": 1076931390,
+    "size": 1.5,
+    "amplitude": 1.6,
+    "min": -0.5132322,
+    "max": 1.36419141,
+    "macroSeed": 1018426399,
+    "hillSeed": 1680975076,
+    "cells": 180,
+    "patches": 13,
+    "river": true,
+    "features": [
+      0,
+      1
+    ],
+    "landformAttempts": 8,
+    "landforms": [
+      {
+        "height": 1.387772,
+        "radius": 7.867368
+      },
+      {
+        "height": 1.37604141,
+        "radius": 7.954131
+      },
+      {
+        "height": -0.739481747,
+        "radius": 6.72326374
+      }
+    ]
+  },
+  {
+    "chapter": 2,
+    "runSeed": 612101,
+    "planetSeed": 1076931390,
+    "size": 2.0,
+    "amplitude": 1.6,
+    "min": -0.61253804,
+    "max": 1.30596781,
+    "macroSeed": 1018426399,
+    "hillSeed": 1680975076,
+    "cells": 320,
+    "patches": 18,
+    "river": true,
+    "features": [
+      0,
+      1
+    ],
+    "landformAttempts": 3,
+    "landforms": [
+      {
+        "height": 1.34740317,
+        "radius": 7.875348
+      },
+      {
+        "height": 1.33870566,
+        "radius": 7.96184349
+      },
+      {
+        "height": -0.748069,
+        "radius": 6.73204327
+      }
+    ]
+  },
+  {
+    "chapter": 2,
+    "runSeed": 1,
+    "planetSeed": 883955359,
+    "size": 0.7,
+    "amplitude": 1.176,
+    "min": -0.487720251,
+    "max": 0.8743367,
+    "macroSeed": 15920288,
+    "hillSeed": 7457970,
+    "cells": 80,
+    "patches": 9,
+    "river": true,
+    "features": [
+      0
+    ],
+    "landformAttempts": 6,
+    "landforms": [
+      {
+        "height": 0.9696428,
+        "radius": 5.505872
+      },
+      {
+        "height": 0.9062847,
+        "radius": 5.491943
+      },
+      {
+        "height": -0.522172034,
+        "radius": 4.72062
+      }
+    ]
+  },
+  {
+    "chapter": 2,
+    "runSeed": 1,
+    "planetSeed": 1306282729,
+    "size": 1.0,
+    "amplitude": 1.6,
+    "min": -0.23157692,
+    "max": 1.25671434,
+    "macroSeed": 1701630143,
+    "hillSeed": 463524738,
+    "cells": 80,
+    "patches": 9,
+    "river": false,
+    "features": [
+      1,
+      0
+    ],
+    "landformAttempts": 1,
+    "landforms": [
+      {
+        "height": 1.39006722,
+        "radius": 7.92397928
+      }
+    ]
+  },
+  {
+    "chapter": 2,
+    "runSeed": 1,
+    "planetSeed": 883955359,
+    "size": 1.5,
+    "amplitude": 1.6,
+    "min": -0.7636951,
+    "max": 1.16674018,
+    "macroSeed": 15920288,
+    "hillSeed": 7457970,
+    "cells": 180,
+    "patches": 13,
+    "river": true,
+    "features": [
+      1,
+      0
+    ],
+    "landformAttempts": 5,
+    "landforms": [
+      {
+        "height": 1.2946924,
+        "radius": 7.84563255
+      },
+      {
+        "height": 1.35700107,
+        "radius": 7.843499
+      },
+      {
+        "height": -0.7965224,
+        "radius": 6.93138075
+      }
+    ]
+  },
+  {
+    "chapter": 2,
+    "runSeed": 1,
+    "planetSeed": 883955359,
+    "size": 2.0,
+    "amplitude": 1.6,
+    "min": -0.370958865,
+    "max": 1.11026549,
+    "macroSeed": 15920288,
+    "hillSeed": 7457970,
+    "cells": 320,
+    "patches": 18,
+    "river": true,
+    "features": [
+      1,
+      0
+    ],
+    "landformAttempts": 3,
+    "landforms": [
+      {
+        "height": 1.34992468,
+        "radius": 7.99798
+      },
+      {
+        "height": 1.29847288,
+        "radius": 7.88879633
+      },
+      {
+        "height": -0.721478939,
+        "radius": 6.83993864
+      }
+    ]
+  },
+  {
+    "chapter": 2,
+    "runSeed": 77,
+    "planetSeed": 1965127375,
+    "size": 0.7,
+    "amplitude": 1.176,
+    "min": -0.426120967,
+    "max": 1.01848841,
+    "macroSeed": 1562627100,
+    "hillSeed": 620453008,
+    "cells": 80,
+    "patches": 9,
+    "river": true,
+    "features": [
+      0
+    ],
+    "landformAttempts": 8,
+    "landforms": [
+      {
+        "height": 0.952985346,
+        "radius": 5.585485
+      },
+      {
+        "height": 0.9684295,
+        "radius": 5.58772469
+      },
+      {
+        "height": -0.537907064,
+        "radius": 4.7740407
+      }
+    ]
+  },
+  {
+    "chapter": 2,
+    "runSeed": 77,
+    "planetSeed": 1089129197,
+    "size": 1.0,
+    "amplitude": 1.6,
+    "min": -0.152062476,
+    "max": 1.1495961,
+    "macroSeed": 1726540783,
+    "hillSeed": 80399580,
+    "cells": 80,
+    "patches": 9,
+    "river": false,
+    "features": [
+      1,
+      0
+    ],
+    "landformAttempts": 12,
+    "landforms": [
+      {
+        "height": 1.373741,
+        "radius": 7.94410133
+      }
+    ]
+  },
+  {
+    "chapter": 2,
+    "runSeed": 77,
+    "planetSeed": 1965127375,
+    "size": 1.5,
+    "amplitude": 1.6,
+    "min": -0.6324419,
+    "max": 1.50123906,
+    "macroSeed": 1562627100,
+    "hillSeed": 620453008,
+    "cells": 180,
+    "patches": 13,
+    "river": true,
+    "features": [
+      1,
+      0
+    ],
+    "landformAttempts": 6,
+    "landforms": [
+      {
+        "height": 1.39593291,
+        "radius": 7.98205662
+      },
+      {
+        "height": 1.276372,
+        "radius": 7.84289551
+      },
+      {
+        "height": -0.7333195,
+        "radius": 6.86019039
+      }
+    ]
+  },
+  {
+    "chapter": 2,
+    "runSeed": 77,
+    "planetSeed": 1965127375,
+    "size": 2.0,
+    "amplitude": 1.6,
+    "min": -0.589296043,
+    "max": 1.30899215,
+    "macroSeed": 1562627100,
+    "hillSeed": 620453008,
+    "cells": 320,
+    "patches": 18,
+    "river": true,
+    "features": [
+      1,
+      0
+    ],
+    "landformAttempts": 5,
+    "landforms": [
+      {
+        "height": 1.26604152,
+        "radius": 7.875411
+      },
+      {
+        "height": 1.3380661,
+        "radius": 7.956537
+      },
+      {
+        "height": -0.7436665,
+        "radius": 6.71622372
+      }
+    ]
+  },
+  {
+    "chapter": 3,
+    "runSeed": 612101,
+    "planetSeed": 588406475,
+    "size": 0.7,
+    "amplitude": 1.176,
+    "min": -0.485899627,
+    "max": 0.8274592,
+    "macroSeed": 1049026862,
+    "hillSeed": 1929189614,
+    "cells": 80,
+    "patches": 9,
+    "river": true,
+    "features": [
+      0
+    ],
+    "landformAttempts": 7,
+    "landforms": [
+      {
+        "height": 0.883296669,
+        "radius": 5.554562
+      },
+      {
+        "height": 0.968151569,
+        "radius": 5.477601
+      },
+      {
+        "height": -0.5043283,
+        "radius": 4.73963642
+      }
+    ]
+  },
+  {
+    "chapter": 3,
+    "runSeed": 612101,
+    "planetSeed": 558768094,
+    "size": 1.0,
+    "amplitude": 1.6,
+    "min": -0.2143595,
+    "max": 1.26776755,
+    "macroSeed": 631080181,
+    "hillSeed": 1371902794,
+    "cells": 80,
+    "patches": 9,
+    "river": false,
+    "features": [
+      2,
+      0
+    ],
+    "landformAttempts": 9,
+    "landforms": [
+      {
+        "height": 1.3275286,
+        "radius": 7.89328575
+      }
+    ]
+  },
+  {
+    "chapter": 3,
+    "runSeed": 612101,
+    "planetSeed": 588406475,
+    "size": 1.5,
+    "amplitude": 1.6,
+    "min": -0.7173319,
+    "max": 1.17336977,
+    "macroSeed": 1049026862,
+    "hillSeed": 1929189614,
+    "cells": 180,
+    "patches": 13,
+    "river": true,
+    "features": [
+      2,
+      0
+    ],
+    "landformAttempts": 8,
+    "landforms": [
+      {
+        "height": 1.30737007,
+        "radius": 7.867826
+      },
+      {
+        "height": 1.32758856,
+        "radius": 7.90263271
+      },
+      {
+        "height": -0.712173164,
+        "radius": 6.728224
+      }
+    ]
+  },
+  {
+    "chapter": 3,
+    "runSeed": 612101,
+    "planetSeed": 588406475,
+    "size": 2.0,
+    "amplitude": 1.6,
+    "min": -0.5346328,
+    "max": 1.1374377,
+    "macroSeed": 1049026862,
+    "hillSeed": 1929189614,
+    "cells": 320,
+    "patches": 18,
+    "river": true,
+    "features": [
+      2,
+      0
+    ],
+    "landformAttempts": 6,
+    "landforms": [
+      {
+        "height": 1.33637929,
+        "radius": 7.909642
+      },
+      {
+        "height": 1.35228729,
+        "radius": 7.9671073
+      },
+      {
+        "height": -0.7254381,
+        "radius": 6.70567369
+      }
+    ]
+  },
+  {
+    "chapter": 3,
+    "runSeed": 1,
+    "planetSeed": 414949251,
+    "size": 0.7,
+    "amplitude": 1.176,
+    "min": -0.483084,
+    "max": 0.846488357,
+    "macroSeed": 1041735545,
+    "hillSeed": 1545321596,
+    "cells": 80,
+    "patches": 9,
+    "river": true,
+    "features": [
+      0
+    ],
+    "landformAttempts": 23,
+    "landforms": [
+      {
+        "height": 0.8886982,
+        "radius": 5.58036947
+      },
+      {
+        "height": 0.906558931,
+        "radius": 5.523087
+      },
+      {
+        "height": -0.520633042,
+        "radius": 4.8750453
+      }
+    ]
+  },
+  {
+    "chapter": 3,
+    "runSeed": 1,
+    "planetSeed": 216666997,
+    "size": 1.0,
+    "amplitude": 1.6,
+    "min": -0.201380417,
+    "max": 1.238974,
+    "macroSeed": 140767890,
+    "hillSeed": 1044839918,
+    "cells": 80,
+    "patches": 9,
+    "river": false,
+    "features": [
+      2,
+      0
+    ],
+    "landformAttempts": 3,
+    "landforms": [
+      {
+        "height": 1.31012774,
+        "radius": 7.848662
+      }
+    ]
+  },
+  {
+    "chapter": 3,
+    "runSeed": 1,
+    "planetSeed": 414949251,
+    "size": 1.5,
+    "amplitude": 1.6,
+    "min": -0.7793986,
+    "max": 1.40892684,
+    "macroSeed": 1041735545,
+    "hillSeed": 1545321596,
+    "cells": 180,
+    "patches": 13,
+    "river": true,
+    "features": [
+      2,
+      0
+    ],
+    "landformAttempts": 3,
+    "landforms": [
+      {
+        "height": 1.2622087,
+        "radius": 7.855363
+      },
+      {
+        "height": 1.3704381,
+        "radius": 7.907931
+      },
+      {
+        "height": -0.781226456,
+        "radius": 6.6898036
+      }
+    ]
+  },
+  {
+    "chapter": 3,
+    "runSeed": 1,
+    "planetSeed": 414949251,
+    "size": 2.0,
+    "amplitude": 1.6,
+    "min": -0.598273158,
+    "max": 1.3304559,
+    "macroSeed": 1041735545,
+    "hillSeed": 1545321596,
+    "cells": 320,
+    "patches": 18,
+    "river": true,
+    "features": [
+      2,
+      0
+    ],
+    "landformAttempts": 4,
+    "landforms": [
+      {
+        "height": 1.26708734,
+        "radius": 7.83107042
+      },
+      {
+        "height": 1.30480373,
+        "radius": 7.88935852
+      },
+      {
+        "height": -0.716256261,
+        "radius": 6.82362747
+      }
+    ]
+  },
+  {
+    "chapter": 3,
+    "runSeed": 77,
+    "planetSeed": 843416449,
+    "size": 0.7,
+    "amplitude": 1.176,
+    "min": -0.5890803,
+    "max": 0.8965876,
+    "macroSeed": 334192764,
+    "hillSeed": 1944237504,
+    "cells": 80,
+    "patches": 9,
+    "river": true,
+    "features": [
+      0
+    ],
+    "landformAttempts": 20,
+    "landforms": [
+      {
+        "height": 0.8834473,
+        "radius": 5.48037148
+      },
+      {
+        "height": 0.929757833,
+        "radius": 5.5454936
+      },
+      {
+        "height": -0.507013,
+        "radius": 4.75558567
+      }
+    ]
+  },
+  {
+    "chapter": 3,
+    "runSeed": 77,
+    "planetSeed": 1038211444,
+    "size": 1.0,
+    "amplitude": 1.6,
+    "min": -0.194147542,
+    "max": 1.18746042,
+    "macroSeed": 1005324703,
+    "hillSeed": 1742882662,
+    "cells": 80,
+    "patches": 9,
+    "river": false,
+    "features": [
+      2,
+      0
+    ],
+    "landformAttempts": 1,
+    "landforms": [
+      {
+        "height": 1.28141534,
+        "radius": 7.859123
+      }
+    ]
+  },
+  {
+    "chapter": 3,
+    "runSeed": 77,
+    "planetSeed": 843416449,
+    "size": 1.5,
+    "amplitude": 1.6,
+    "min": -0.7607844,
+    "max": 1.28151357,
+    "macroSeed": 334192764,
+    "hillSeed": 1944237504,
+    "cells": 180,
+    "patches": 13,
+    "river": true,
+    "features": [
+      2,
+      0
+    ],
+    "landformAttempts": 5,
+    "landforms": [
+      {
+        "height": 1.34505379,
+        "radius": 7.88592672
+      },
+      {
+        "height": 1.32822549,
+        "radius": 7.922134
+      },
+      {
+        "height": -0.7617813,
+        "radius": 6.94977856
+      }
+    ]
+  },
+  {
+    "chapter": 3,
+    "runSeed": 77,
+    "planetSeed": 843416449,
+    "size": 2.0,
+    "amplitude": 1.6,
+    "min": -0.495529443,
+    "max": 1.14551175,
+    "macroSeed": 334192764,
+    "hillSeed": 1944237504,
+    "cells": 320,
+    "patches": 18,
+    "river": true,
+    "features": [
+      2,
+      0
+    ],
+    "landformAttempts": 4,
+    "landforms": [
+      {
+        "height": 1.3666538,
+        "radius": 7.84485245
+      },
+      {
+        "height": 1.38074863,
+        "radius": 7.95294237
+      },
+      {
+        "height": -0.707117438,
+        "radius": 6.917356
+      }
+    ]
+  }
+]

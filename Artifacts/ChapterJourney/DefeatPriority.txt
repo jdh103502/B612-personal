@@ -1,0 +1,2 @@
+passed=True
+Same-frame game over cancels pending unlock/site interaction and chapter requests.

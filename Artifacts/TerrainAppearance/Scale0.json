@@ -1,0 +1,59 @@
+[
+  {
+    "scale": 0.7,
+    "seed": 612101,
+    "radius": 8.4,
+    "features": 1,
+    "kinds": [
+      0
+    ],
+    "placementAttempts": 4,
+    "buildAttempts": 1,
+    "safeFallback": false,
+    "repairs": [],
+    "maximumWalkSlope": 38.9686546,
+    "SlotCount": 2003,
+    "EmptyCellCount": 13,
+    "vertices": 53018,
+    "prepareMilliseconds": 388.0084,
+    "hash": "63-AC-9A-88-EF-51-9C-D4-29-DC-12-C0-81-48-17-1F-85-8F-A4-BD-EB-F9-1F-B0-F8-B8-86-9B-3F-69-BC-BF"
+  },
+  {
+    "scale": 0.7,
+    "seed": 1,
+    "radius": 8.4,
+    "features": 1,
+    "kinds": [
+      0
+    ],
+    "placementAttempts": 4,
+    "buildAttempts": 1,
+    "safeFallback": false,
+    "repairs": [],
+    "maximumWalkSlope": 37.06758,
+    "SlotCount": 1893,
+    "EmptyCellCount": 16,
+    "vertices": 53018,
+    "prepareMilliseconds": 472.51840000000004,
+    "hash": "F9-8B-10-2C-B2-34-DB-4B-D8-88-FB-41-FD-5A-72-81-BD-A4-22-3E-EF-49-C5-FF-91-52-76-6F-5F-8A-87-21"
+  },
+  {
+    "scale": 0.7,
+    "seed": 77,
+    "radius": 8.4,
+    "features": 1,
+    "kinds": [
+      0
+    ],
+    "placementAttempts": 4,
+    "buildAttempts": 1,
+    "safeFallback": false,
+    "repairs": [],
+    "maximumWalkSlope": 37.840004,
+    "SlotCount": 2028,
+    "EmptyCellCount": 12,
+    "vertices": 53018,
+    "prepareMilliseconds": 386.47790000000003,
+    "hash": "B6-30-99-FC-BA-09-1E-FC-02-8B-E3-A7-5F-1B-EA-5E-ED-0C-A9-D3-45-AF-D2-79-BF-81-8E-73-F8-A7-36-6C"
+  }
+]

@@ -1,0 +1,24 @@
+{
+  "label": "after",
+  "seed": 395484021,
+  "radius": 12.0,
+  "version": 5,
+  "validationMilliseconds": 1022.8833,
+  "vertexCount": 97905,
+  "triangles": 195806,
+  "subMeshCount": 1,
+  "materialCount": 1,
+  "bumpScales": [
+    0.0
+  ],
+  "nearRenderAndReadbackMs": 21.99366666666667,
+  "slopes": {
+    "bandsOutsideCourse": [
+      94.005243967893534,
+      3.8140495771454477,
+      2.1807064549610122
+    ],
+    "referenceCoursePercent": 6.761457910070181
+  },
+  "river": true
+}

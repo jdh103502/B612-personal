@@ -24,6 +24,7 @@ namespace B612
         public int CardCount => cards == null ? startingCards : cards.Length;
         public int InHandCount { get { int n=0; if(cards!=null) foreach(var c in cards) if(!c) n++; return n; } }
         public IReadOnlyList<LambAgent> Deployed => deployed;
+        public int ClaimCount => claims.Count;
         public string Message { get; private set; }
         public event Action Changed;
 
@@ -53,6 +54,7 @@ namespace B612
 
         void Update()
         {
+            if (GameplayModalInput.BlocksGameplayInput) return;
             if (!surge || !player) return;
             if (surge.IsGameOver)
             {
@@ -95,6 +97,7 @@ namespace B612
 
         public bool SelectCard(int index)
         {
+            if (GameplayModalInput.BlocksGameplayInput) return false;
             if(!IsInHand(index)) { Notify("That lamb is already on the planet."); return false; }
             SelectedIndex=index; Changed?.Invoke(); return true;
         }
@@ -112,6 +115,7 @@ namespace B612
 
         public bool TrySummonSelected()
         {
+            if (GameplayModalInput.BlocksGameplayInput || Time.timeScale <= 0f) return false;
             if(!surge || surge.IsGameOver) return false;
             if(!IsInHand(SelectedIndex)) { Notify("Collect a floating lamb to recover its card."); return false; }
             if(!player.Grounded || player.Suspended) { Notify("Land on the planet to summon a lamb."); return false; }
@@ -226,6 +230,33 @@ namespace B612
             cards[index]=null; deployed.Remove(agent);
             if(SelectedIndex<0) SelectedIndex=index;
             Notify("Lamb card recovered."); Changed?.Invoke(); return true;
+        }
+
+        public void RecallForTravel()
+        { RecallAll(false); }
+        internal void RecallForDebugSkip()
+        { RecallAll(true); }
+        void RecallAll(bool preserveSelection)
+        {
+            int previousSelection=SelectedIndex;
+            foreach(var agent in deployed.ToArray())
+            {
+                if(!agent)continue;
+                agent.RetireForRecall();
+                if(cards!=null && agent.CardIndex>=0 && agent.CardIndex<cards.Length && cards[agent.CardIndex]==agent)cards[agent.CardIndex]=null;
+                agent.gameObject.SetActive(false);Destroy(agent.gameObject);
+            }
+            deployed.Clear();claims.Clear();
+            if(previewRing){previewRing.enabled=false;if(!preserveSelection){Destroy(previewRing.gameObject);previewRing=null;}}
+            if(targetRing){targetRing.enabled=false;if(!preserveSelection){Destroy(targetRing.gameObject);targetRing=null;}}
+            SelectedIndex=preserveSelection && previousSelection>=0 && previousSelection<CardCount ? previousSelection : 0;
+            nextPreview=0f;Message=null;Changed?.Invoke();
+        }
+        public void BindSurfaceAfterTravel()
+        {
+            if(!previewRing)previewRing=CreateRing("Lamb placement range",.018f,new Color(.56f,.95f,.79f,.65f));
+            if(!targetRing)targetRing=CreateRing("Intended sprout",.025f,new Color(1f,.86f,.39f,.95f));
+            nextPreview=0f;Changed?.Invoke();
         }
 
         public void Notify(string message) { Message=message; messageUntil=Time.unscaledTime+2f; Changed?.Invoke(); }

@@ -27,9 +27,10 @@ namespace B612
         }
         void Update()
         {
+            if (GameplayModalInput.BlocksGameplayInput) return;
             if (meter && meter.IsGameOver && Keyboard.current != null && Keyboard.current.enterKey.wasPressedThisFrame) Retry();
         }
-        void Retry() { if (meter) meter.RestartAttempt(); }
+        void Retry() { if (!GameplayModalInput.BlocksGameplayInput && meter) meter.RestartAttempt(); }
         public void Refresh()
         {
             if (!meter) return;

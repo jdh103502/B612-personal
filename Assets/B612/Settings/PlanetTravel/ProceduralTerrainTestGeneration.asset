@@ -1,0 +1,77 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3a58739290784b74bb99a14b1c27a897, type: 3}
+  m_Name: ProceduralTerrainTestGeneration
+  m_EditorClassIdentifier: Assembly-CSharp::B612.PlanetGenerationSettings
+  profileId: terrain.stylized.v2
+  groundTemplate: {fileID: 6001805088334103870, guid: eeb4c83c52a823a488cd47c8ac6ad47b, type: 3}
+  baselineScale: {x: 1, y: 1, z: 1}
+  nominalRadius: 12
+  gravitySurfaceRadius: 12
+  influenceRadius: 32
+  gravityStrength: 3.4
+  originalMaterials:
+  - {fileID: 2100000, guid: 0fcd70975c2659c4d8a8a4122160a541, type: 2}
+  - {fileID: 2100000, guid: 70690cf92d253bd4586a08483f53ac4d, type: 2}
+  - {fileID: 2100000, guid: 3d84d0f9f10ca1b46a5ed3eacfb2f998, type: 2}
+  - {fileID: 2100000, guid: 20db6c122f87b844abcd1f27f798c8a1, type: 2}
+  - {fileID: 2100000, guid: 4f2b71e738cd0ae40b42411eb8043080, type: 2}
+  - {fileID: 2100000, guid: 0a3464f2c1550bc4896c440edc4e5251, type: 2}
+  - {fileID: 2100000, guid: 98a04aa7e3a12074182594734f654117, type: 2}
+  - {fileID: 2100000, guid: 7174cf0dc14b75c4588fff59808dec45, type: 2}
+  proceduralGroundMaterial: {fileID: 2100000, guid: 38433d6f94e2f744aad393faa1b49885, type: 2}
+  proceduralWaterMaterial: {fileID: 2100000, guid: 4f98de91e5907874aba2abeb8905fa71, type: 2}
+  routeGuideMaterial: {fileID: 2100000, guid: bc6372c3627e2874db6f521ed223af2a, type: 2}
+  terrainAppearance:
+    macroFrequency: 1.2
+    hillScaleMeters: 3.2
+    broadHills: 2
+    broadBasins: 1
+    hillHeights: {x: 1.05, y: 1.4}
+    hillRadii: {x: 7.6, y: 8}
+    basinDepths: {x: 0.55, y: 0.8}
+    basinRadii: {x: 6.3, y: 7}
+    residualMacroMeters: 0.24
+    residualHillMeters: 0.07
+    ridgeShare: 0
+    warpStrength: 0
+    transitionMeters: 2.4
+    macroKeys:
+    - {x: 0, y: -1}
+    - {x: 1, y: 1}
+    earth: {r: 0.83, g: 0.57, b: 0.42, a: 1}
+    vegetation: {r: 0.57, g: 0.8, b: 0.49, a: 1}
+    rock: {r: 0.69, g: 0.61, b: 0.76, a: 1}
+    paletteStrength: 0.7
+    vegetationRemap: {x: 0.35, y: 0.63}
+    heightColorRange: 1.05
+  baselineColor: {r: 0.91764706, g: 0.8745098, b: 0.7764706, a: 1}
+  palette:
+  - '#EADFC6'
+  - '#A6B88C'
+  - '#B8A6D8'
+  - '#D9A6AC'
+  - '#9EBCCB'
+  spawnDirection: {x: -0.1673453, y: 0.9644489, z: 0.20453313}
+  spawnForward: {x: -0.79836136, y: 0, z: -0.6021788}
+  spawnClearance: 0.05
+  gravityOuterMargin: 7
+  subdivisions: 1
+  candidatesPerCell: 32
+  maxSpawnSlope: 55
+  proceduralTerrain: 1
+  terrainFeatureBudget: 2
+  chapterCampaign: 0
+  chapters:
+  - {fileID: 11400000, guid: ece3ae3e62505754db03d4218b2ca305, type: 2}
+  - {fileID: 11400000, guid: 7ce97b3fa032c6640a52b2a16e64f7b6, type: 2}
+  - {fileID: 11400000, guid: 34fbba5e9056344469a61498f9b16bc1, type: 2}

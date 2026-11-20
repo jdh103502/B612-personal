@@ -21,6 +21,8 @@ namespace B612
         [Min(0f)] public float spawnClearance = 0.7f;
         public bool randomizeSeed = true;
         public int seed = 612;
+        public bool automaticStart = true;
+        public bool IsRunning => ready;
 
         public sealed class SpawnRecord
         {
@@ -50,6 +52,7 @@ namespace B612
         public float RemainingSeconds => Mathf.Max(0f, durationSeconds - ElapsedSeconds);
         public float RemainingFraction => Mathf.Clamp01(RemainingSeconds / Mathf.Max(1f, durationSeconds));
         public bool IsComplete { get; private set; }
+        public bool WasSkippedByDebug { get; private set; }
         public int Attempts { get; private set; }
         public int SkippedSpawns { get; private set; }
         public int CapacityBlockedSpawns { get; private set; }
@@ -65,9 +68,22 @@ namespace B612
         Transform sproutRoot;
         bool ready;
 
-        void Start() { Begin(); }
+        void Start() { if (automaticStart) Begin(); }
 
-        public void Begin()
+        public void StopAndClear()
+        {
+            ready = false;
+            foreach (var record in spawned)
+            {
+                record.slot.occupied = false;
+                record.released = true;
+                if (record.instance) record.instance.SetActive(false);
+            }
+            spawned.Clear();
+            if (sproutRoot) { sproutRoot.gameObject.SetActive(false); Destroy(sproutRoot.gameObject); sproutRoot = null; }
+        }
+
+        public void Begin(bool surfacePrepared = false)
         {
             if (!surface || !surface.ground || !sproutPrefab)
             {
@@ -76,17 +92,14 @@ namespace B612
                 return;
             }
             // Begin can also be used to repeat the same scene during playtesting.
-            foreach (var record in spawned)
-                if (record.instance) { record.instance.SetActive(false); Destroy(record.instance); }
-            spawned.Clear();
-            if (sproutRoot) Destroy(sproutRoot.gameObject);
+            StopAndClear();
             durationSeconds = Mathf.Max(1f, durationSeconds);
             targetSprouts = Mathf.Max(1, targetSprouts);
             maxActiveSprouts = Mathf.Max(1, maxActiveSprouts);
             SeedUsed = randomizeSeed ? Guid.NewGuid().GetHashCode() : seed;
             random = new System.Random(SeedUsed);
             Physics.SyncTransforms();
-            surface.Prepare(SeedUsed);
+            if(!surfacePrepared)surface.Prepare(SeedUsed);
             cellCounts = new int[surface.Cells.Count];
             sproutRoot = new GameObject("Spawned Sprouts").transform;
             sproutRoot.SetParent(surface.transform, false);
@@ -94,9 +107,32 @@ namespace B612
             SimulationSeconds = 0f;
             Attempts = SkippedSpawns = CapacityBlockedSpawns = 0;
             IsComplete = false;
+            WasSkippedByDebug = false;
             ready = true;
             if (threat) threat.ResetForRun();
             Advance(0f);
+        }
+
+        // Called only by the flow after this frame's final defeat decision. No simulation advance.
+        internal bool CompleteForDebug(LambCardHand hand)
+        {
+            if (!DeveloperDebugController.Available || !ready || IsGameOver || WasSkippedByDebug
+                || !hand || hand.surge != this || (IsComplete && ActiveSproutCount == 0)) return false;
+            IsComplete = true;
+            ElapsedSeconds = durationSeconds;
+            hand.RecallForDebugSkip();
+            foreach (var record in spawned)
+            {
+                record.slot.occupied = false;
+                record.released = true;
+                record.FeedingLamb = null;
+                if (record.instance) record.instance.SetActive(false);
+            }
+            if (sproutRoot) { sproutRoot.gameObject.SetActive(false); Destroy(sproutRoot.gameObject); sproutRoot = null; }
+            WasSkippedByDebug = true;
+            if (threat) threat.Evaluate();
+            Changed?.Invoke();
+            return true;
         }
 
         void Update()

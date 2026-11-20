@@ -41,6 +41,7 @@ namespace B612
             int seconds = Mathf.CeilToInt(surge.RemainingSeconds);
             if (timeLabel) timeLabel.SetText("{0:00}:{1:00}", seconds / 60, seconds % 60);
             if (titleLabel) titleLabel.text = surge.IsGameOver ? "PLANET OVERWHELMED" : !surge.IsComplete ? "BAOBAB SURGE"
+                : surge.WasSkippedByDebug ? "BAOBAB PHASE SKIPPED (DEBUG)"
                 : surge.ActiveSproutCount > 0 ? "CLEAR REMAINING SPROUTS" : "BAOBAB THREAT CLEARED";
             if (countLabel) countLabel.SetText("ACTIVE  {0} / {1}    |    TOTAL  {2}", surge.ActiveSproutCount, surge.maxActiveSprouts, surge.SpawnedCount);
         }

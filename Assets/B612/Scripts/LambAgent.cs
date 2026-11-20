@@ -129,6 +129,13 @@ namespace B612
             }
         }
 
+        internal void RetireForRecall()
+        {
+            if(Owner) Owner.ReleaseTarget(this,Target);
+            Target=null;EatingProgress=0f;State=LambState.Collected;
+            if(rangeRing) rangeRing.enabled=false;
+        }
+
         void OnDestroy()
         {
             if(rangeRing) Destroy(rangeRing.gameObject);

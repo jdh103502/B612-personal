@@ -1,0 +1,40 @@
+{
+  "passed": true,
+  "results": [
+    {
+      "scale": 0.7,
+      "radius": 3.71,
+      "features": 0,
+      "repairs": [
+        "Reduced landform budget for reserved or small planet."
+      ],
+      "slots": 2072
+    },
+    {
+      "scale": 1.0,
+      "radius": 5.3,
+      "features": 0,
+      "repairs": [
+        "Reduced landform budget for reserved or small planet."
+      ],
+      "slots": 2112
+    },
+    {
+      "scale": 1.5,
+      "radius": 7.95000029,
+      "features": 0,
+      "repairs": [
+        "Reduced landform budget for reserved or small planet."
+      ],
+      "slots": 4958
+    },
+    {
+      "scale": 2.0,
+      "radius": 10.6,
+      "features": 1,
+      "repairs": [],
+      "slots": 6495
+    }
+  ],
+  "oldVersionRejected": true
+}

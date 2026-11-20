@@ -1,0 +1,66 @@
+[
+  {
+    "chapter": 1,
+    "runSeed": 612101,
+    "planetSeed": 395484021,
+    "requiredKind": 0,
+    "reviewedLayout": 0,
+    "fixedPlacement": false,
+    "buildAttempts": 1,
+    "repairs": [
+      "Reduced landform budget for reserved or small planet."
+    ],
+    "traversalCosts": [
+      {
+        "kind": 0,
+        "basicSeconds": 8.84,
+        "shortcutSeconds": 3.22
+      },
+      {
+        "kind": 1,
+        "basicSeconds": 9.58,
+        "shortcutSeconds": 3.76
+      }
+    ]
+  },
+  {
+    "chapter": 1,
+    "runSeed": 1,
+    "planetSeed": 859273975,
+    "requiredKind": 0,
+    "reviewedLayout": 0,
+    "fixedPlacement": false,
+    "buildAttempts": 2,
+    "repairs": [
+      "Reduced landform budget for reserved or small planet.",
+      "Feature 1: shortcut basic=True, powered=True at this radius."
+    ],
+    "traversalCosts": [
+      {
+        "kind": 0,
+        "basicSeconds": 8.82,
+        "shortcutSeconds": 3.22
+      }
+    ]
+  },
+  {
+    "chapter": 1,
+    "runSeed": 77,
+    "planetSeed": 788378694,
+    "requiredKind": 0,
+    "reviewedLayout": 0,
+    "fixedPlacement": false,
+    "buildAttempts": 2,
+    "repairs": [
+      "Reduced landform budget for reserved or small planet.",
+      "Feature 1: shortcut basic=True, powered=True at this radius."
+    ],
+    "traversalCosts": [
+      {
+        "kind": 0,
+        "basicSeconds": 8.82,
+        "shortcutSeconds": 3.22
+      }
+    ]
+  }
+]

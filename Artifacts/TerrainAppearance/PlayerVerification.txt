@@ -1,0 +1,5 @@
+Windows64 Development: Succeeded
+Build errors: 0
+Player exit: 0
+B612_TERRAIN_PLAYER: B612/Planet Ground, DepthOnly pixels 12092/16384, seed 395484021, mesh 97905 vertices, 4 passes
+B612_TERRAIN_SMOKE_PASSED

@@ -1,0 +1,88 @@
+{
+  "modelVersion": 1,
+  "spec": {
+    "planetId": "system_01_planet_03",
+    "seed": 612103,
+    "generatorVersion": 1,
+    "role": "Normal",
+    "sizeClass": "Medium",
+    "terrain": {
+      "profileId": "terrain.rocky",
+      "sizeScale": 1.0,
+      "radius": 5.3,
+      "gravityStrength": 3.4,
+      "groundColor": "#B8A6D8"
+    },
+    "baobab": {
+      "profileId": "baobab.standard",
+      "durationSeconds": 120.0,
+      "spawnEventCount": 40,
+      "spawnBatchSize": 1,
+      "maxActive": 6,
+      "minimumSpacing": 1.4,
+      "threatCapacity": 100.0,
+      "typePool": [
+        {
+          "typeId": "basic",
+          "weight": 1.0,
+          "maxActive": 6
+        }
+      ]
+    },
+    "crops": [
+      {
+        "cropTypeId": "crop.cotton",
+        "count": 12
+      },
+      {
+        "cropTypeId": "crop.flower",
+        "count": 4
+      }
+    ],
+    "npc": {
+      "npcDefinitionId": "npc.gardener",
+      "encounterKind": "QuestNpc",
+      "contentId": "quest.gardener.cotton",
+      "requiredWool": [
+        {
+          "woolTypeId": "wool.cotton",
+          "amount": 8
+        }
+      ],
+      "rewardOptions": [
+        {
+          "optionId": "new-sheep",
+          "kind": "AddSheep",
+          "definitionId": "sheep.cloud-lamb"
+        },
+        {
+          "optionId": "redraw-sheep",
+          "kind": "UpgradeSheep",
+          "definitionId": "upgrade.crop-specialization"
+        }
+      ]
+    }
+  },
+  "map": {
+    "depth": 2,
+    "position01": {
+      "x": 0.42,
+      "y": 0.66
+    }
+  },
+  "state": {
+    "phase": "Unvisited",
+    "worldInitialized": false,
+    "simulationSeconds": 0.0,
+    "surge": {
+      "elapsedSpawnSeconds": 0.0,
+      "processedSpawnEvents": 0,
+      "result": "NotStarted"
+    },
+    "harvestedCrops": [],
+    "quest": {
+      "status": "NotStarted",
+      "chosenRewardOptionId": null
+    }
+  }
+}

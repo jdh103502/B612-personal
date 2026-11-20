@@ -6,6 +6,9 @@ EditorBuildSettings:
   serializedVersion: 2
   m_Scenes:
   - enabled: 1
+    path: Assets/B612/Scenes/B612_ChapterJourney.unity
+    guid: 5df0a0a2cba8a60418549062251b6018
+  - enabled: 1
     path: Assets/B612/Scenes/B612_Night.unity
     guid: a71aa1378e00f2c4ea2389b1965b596e
   - enabled: 1

@@ -34,6 +34,8 @@ namespace B612
         public float introSeconds = 2.4f;
         [Header("Stable planet frame")]
         [Min(0f)] public float jumpHeightAllowance = 1f;
+        [Min(0f)] public float traversalHeightAllowance = .2f;
+        [Min(.01f)] public float traversalVerticalSharpness = 10f;
         [Min(0f)] public float fallHeightAllowance = .45f;
         [Min(.01f)] public float sourceConfirmSeconds = .25f;
         [Min(1f)] public float referenceTurnSpeed = 100f;
@@ -110,6 +112,18 @@ namespace B612
             if (source && !groundCollider) groundCollider = source.GetComponentInChildren<Collider>();
             candidateSource = null; sourceHeld = transferHeld = 0f;
         }
+        public void ResetForPlanet(GravitySource source,Collider ground)
+        {
+            if(!initialized||!target)return;
+            SetSource(source);groundCollider=ground;
+            camUp=StableUp();flatForward=Tangent(target.transform.forward,camUp);
+            velocity=ahead=Vector3.zero;lift=blockedTime=lowerClear=farClear=turnSpeed=0f;
+            orbitYaw=orbitPitch=orbitYawSpeed=orbitPitchSpeed=orbitTargetYaw=orbitTargetPitch=orbitClearTime=nextOrbitChoice=0f;
+            lastCollisionDirection=Vector3.zero;sourceHeld=transferHeld=0f;
+            userPitch=pitch;userDistance=distance;curDistance=wantDistance=distance;intro=1f;
+            lastTargetPos=target.transform.position;groundPoint=lastGroundPoint=SampleGround();State=FollowState.Grounded;
+            focus=FocusGoal();Place(.02f,false);
+        }
         Vector3 StableUp()
         {
             if (groundSource)
@@ -162,13 +176,20 @@ namespace B612
                 return target.transform.position + camUp * focusHeight + ahead;
             // Spend ordinary jump height inside the frame instead of moving the rig with it.
             float height = Vector3.Dot(target.transform.position - groundPoint, StableUp());
-            float excess = Mathf.Max(0f, height - jumpHeightAllowance) + Mathf.Min(0f, height + fallHeightAllowance);
+            float allowance = ExtendedTraversal() ? Mathf.Min(jumpHeightAllowance, traversalHeightAllowance) : jumpHeightAllowance;
+            float excess = Mathf.Max(0f, height - allowance) + Mathf.Min(0f, height + fallHeightAllowance);
             return groundPoint + camUp * (focusHeight + excess) + ahead;
+        }
+        bool ExtendedTraversal()
+        {
+            var abilities = target.Traversal;
+            return !target.Grounded && abilities && abilities.isActiveAndEnabled
+                && (abilities.AirJumpsRemaining == 0 || abilities.IsDashing || abilities.IsGliding);
         }
 
         void LateUpdate()
         {
-            if (!initialized || !target || Time.deltaTime <= 0f) return;
+            if (!initialized || !target || Time.deltaTime <= 0f || GameplayModalInput.BlocksGameplayInput) return;
             float dt = Time.deltaTime;
             Vector3 tpos = target.transform.position;
             bool teleported = (tpos - lastTargetPos).sqrMagnitude > 4f;
@@ -203,7 +224,8 @@ namespace B612
             if (teleported) focus = goal;
             var delta = goal - focus;
             var vertical = camUp * Vector3.Dot(delta, camUp);
-            focus += (delta - vertical) * (1f - Mathf.Exp(-followSharpness * dt)) + vertical * (1f - Mathf.Exp(-verticalSharpness * dt));
+            float heightRate = ExtendedTraversal() ? Mathf.Max(verticalSharpness, traversalVerticalSharpness) : verticalSharpness;
+            focus += (delta - vertical) * (1f - Mathf.Exp(-followSharpness * dt)) + vertical * (1f - Mathf.Exp(-heightRate * dt));
             bool travelling = State == FollowState.Transfer;
             float want = userDistance + (travelling ? travelPullBack : 0f);
             wantDistance = Mathf.Lerp(wantDistance, want, 1f - Mathf.Exp(-3f * dt));
@@ -212,10 +234,11 @@ namespace B612
 
         void ReadInput(float dt)
         {
+            if (GameplayModalInput.BlocksGameplayInput) return;
             float yaw = 0f, dPitch = 0f;
             var mouse = Mouse.current;
             var keys = Keyboard.current;
-            if (mouse != null)
+            if (mouse != null && !GameplayModalInput.BlocksMouseInput)
             {
                 if (mouse.rightButton.isPressed || mouse.leftButton.isPressed)
                 {

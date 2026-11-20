@@ -1,0 +1,11 @@
+{
+  "passed": true,
+  "buildAttempts": 3,
+  "repairs": [
+    "Landforms: placed 0/1 basins within approach and reservation bounds.",
+    "Feature 0: shortcut basic=False, powered=False at this radius.",
+    "Feature 0: shortcut basic=False, powered=False at this radius."
+  ],
+  "features": 0,
+  "SlotCount": 2334
+}

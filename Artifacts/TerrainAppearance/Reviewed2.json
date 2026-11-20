@@ -1,0 +1,74 @@
+[
+  {
+    "chapter": 2,
+    "runSeed": 612101,
+    "planetSeed": 1798197590,
+    "requiredKind": 1,
+    "reviewedLayout": 0,
+    "fixedPlacement": false,
+    "buildAttempts": 1,
+    "repairs": [
+      "River omitted after bounded source/basin/protected-space search."
+    ],
+    "traversalCosts": [
+      {
+        "kind": 1,
+        "basicSeconds": 9.58,
+        "shortcutSeconds": 3.78
+      },
+      {
+        "kind": 0,
+        "basicSeconds": 8.84,
+        "shortcutSeconds": 3.26
+      }
+    ]
+  },
+  {
+    "chapter": 2,
+    "runSeed": 1,
+    "planetSeed": 1306282729,
+    "requiredKind": 1,
+    "reviewedLayout": 0,
+    "fixedPlacement": false,
+    "buildAttempts": 1,
+    "repairs": [
+      "River omitted after bounded source/basin/protected-space search."
+    ],
+    "traversalCosts": [
+      {
+        "kind": 1,
+        "basicSeconds": 9.58,
+        "shortcutSeconds": 3.78
+      },
+      {
+        "kind": 0,
+        "basicSeconds": 8.82,
+        "shortcutSeconds": 3.22
+      }
+    ]
+  },
+  {
+    "chapter": 2,
+    "runSeed": 77,
+    "planetSeed": 1089129197,
+    "requiredKind": 1,
+    "reviewedLayout": 0,
+    "fixedPlacement": false,
+    "buildAttempts": 1,
+    "repairs": [
+      "River omitted after bounded source/basin/protected-space search."
+    ],
+    "traversalCosts": [
+      {
+        "kind": 1,
+        "basicSeconds": 9.58,
+        "shortcutSeconds": 3.84
+      },
+      {
+        "kind": 0,
+        "basicSeconds": 8.82,
+        "shortcutSeconds": 3.22
+      }
+    ]
+  }
+]

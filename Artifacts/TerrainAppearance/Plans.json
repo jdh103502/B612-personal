@@ -1,0 +1,641 @@
+[
+  {
+    "chapter": 1,
+    "runSeed": 612101,
+    "planetSeed": 654478584,
+    "size": 0.7,
+    "amplitude": 0.55,
+    "min": -0.379971743,
+    "max": 0.407378256,
+    "macroSeed": 111365496,
+    "hillSeed": 1388761198,
+    "cells": 80,
+    "patches": 9,
+    "river": true,
+    "features": [
+      0
+    ]
+  },
+  {
+    "chapter": 1,
+    "runSeed": 612101,
+    "planetSeed": 395484021,
+    "size": 1.0,
+    "amplitude": 0.55,
+    "min": -0.404796243,
+    "max": 0.4557389,
+    "macroSeed": 1093110609,
+    "hillSeed": 2136561306,
+    "cells": 80,
+    "patches": 9,
+    "river": true,
+    "features": [
+      0,
+      1
+    ]
+  },
+  {
+    "chapter": 1,
+    "runSeed": 612101,
+    "planetSeed": 654478584,
+    "size": 1.5,
+    "amplitude": 0.55,
+    "min": -0.350597262,
+    "max": 0.4418223,
+    "macroSeed": 111365496,
+    "hillSeed": 1388761198,
+    "cells": 180,
+    "patches": 13,
+    "river": true,
+    "features": [
+      1,
+      0
+    ]
+  },
+  {
+    "chapter": 1,
+    "runSeed": 612101,
+    "planetSeed": 654478584,
+    "size": 2.0,
+    "amplitude": 0.55,
+    "min": -0.3289391,
+    "max": 0.413254529,
+    "macroSeed": 111365496,
+    "hillSeed": 1388761198,
+    "cells": 320,
+    "patches": 18,
+    "river": true,
+    "features": [
+      1,
+      0
+    ]
+  },
+  {
+    "chapter": 1,
+    "runSeed": 1,
+    "planetSeed": 383634773,
+    "size": 0.7,
+    "amplitude": 0.55,
+    "min": -0.3785449,
+    "max": 0.370905668,
+    "macroSeed": 1357222604,
+    "hillSeed": 1768390966,
+    "cells": 80,
+    "patches": 9,
+    "river": false,
+    "features": [
+      0
+    ]
+  },
+  {
+    "chapter": 1,
+    "runSeed": 1,
+    "planetSeed": 859273975,
+    "size": 1.0,
+    "amplitude": 0.55,
+    "min": -0.4453105,
+    "max": 0.218895361,
+    "macroSeed": 261827432,
+    "hillSeed": 208489866,
+    "cells": 80,
+    "patches": 9,
+    "river": true,
+    "features": [
+      0,
+      1
+    ]
+  },
+  {
+    "chapter": 1,
+    "runSeed": 1,
+    "planetSeed": 383634773,
+    "size": 1.5,
+    "amplitude": 0.55,
+    "min": -0.379671127,
+    "max": 0.361360461,
+    "macroSeed": 1357222604,
+    "hillSeed": 1768390966,
+    "cells": 180,
+    "patches": 13,
+    "river": true,
+    "features": [
+      0,
+      1
+    ]
+  },
+  {
+    "chapter": 1,
+    "runSeed": 1,
+    "planetSeed": 383634773,
+    "size": 2.0,
+    "amplitude": 0.55,
+    "min": -0.371178746,
+    "max": 0.351502746,
+    "macroSeed": 1357222604,
+    "hillSeed": 1768390966,
+    "cells": 320,
+    "patches": 18,
+    "river": true,
+    "features": [
+      0,
+      1
+    ]
+  },
+  {
+    "chapter": 1,
+    "runSeed": 77,
+    "planetSeed": 312642391,
+    "size": 0.7,
+    "amplitude": 0.55,
+    "min": -0.36411792,
+    "max": 0.4782557,
+    "macroSeed": 1998862828,
+    "hillSeed": 497719638,
+    "cells": 80,
+    "patches": 9,
+    "river": true,
+    "features": [
+      0
+    ]
+  },
+  {
+    "chapter": 1,
+    "runSeed": 77,
+    "planetSeed": 788378694,
+    "size": 1.0,
+    "amplitude": 0.55,
+    "min": -0.116847329,
+    "max": 0.431866348,
+    "macroSeed": 445483186,
+    "hillSeed": 1925010998,
+    "cells": 80,
+    "patches": 9,
+    "river": true,
+    "features": [
+      0,
+      1
+    ]
+  },
+  {
+    "chapter": 1,
+    "runSeed": 77,
+    "planetSeed": 312642391,
+    "size": 1.5,
+    "amplitude": 0.55,
+    "min": -0.4031179,
+    "max": 0.429020017,
+    "macroSeed": 1998862828,
+    "hillSeed": 497719638,
+    "cells": 180,
+    "patches": 13,
+    "river": true,
+    "features": [
+      0,
+      1
+    ]
+  },
+  {
+    "chapter": 1,
+    "runSeed": 77,
+    "planetSeed": 312642391,
+    "size": 2.0,
+    "amplitude": 0.55,
+    "min": -0.398522884,
+    "max": 0.454850167,
+    "macroSeed": 1998862828,
+    "hillSeed": 497719638,
+    "cells": 320,
+    "patches": 18,
+    "river": true,
+    "features": [
+      0,
+      1
+    ]
+  },
+  {
+    "chapter": 2,
+    "runSeed": 612101,
+    "planetSeed": 1076931390,
+    "size": 0.7,
+    "amplitude": 0.55,
+    "min": -0.214618132,
+    "max": 0.437962681,
+    "macroSeed": 1018426399,
+    "hillSeed": 1680975076,
+    "cells": 80,
+    "patches": 9,
+    "river": true,
+    "features": [
+      0
+    ]
+  },
+  {
+    "chapter": 2,
+    "runSeed": 612101,
+    "planetSeed": 1798197590,
+    "size": 1.0,
+    "amplitude": 0.55,
+    "min": -0.333705366,
+    "max": 0.436923623,
+    "macroSeed": 107740611,
+    "hillSeed": 1746043436,
+    "cells": 80,
+    "patches": 9,
+    "river": false,
+    "features": [
+      1,
+      0
+    ]
+  },
+  {
+    "chapter": 2,
+    "runSeed": 612101,
+    "planetSeed": 1076931390,
+    "size": 1.5,
+    "amplitude": 0.55,
+    "min": -0.208240211,
+    "max": 0.464046419,
+    "macroSeed": 1018426399,
+    "hillSeed": 1680975076,
+    "cells": 180,
+    "patches": 13,
+    "river": true,
+    "features": [
+      0,
+      1
+    ]
+  },
+  {
+    "chapter": 2,
+    "runSeed": 612101,
+    "planetSeed": 1076931390,
+    "size": 2.0,
+    "amplitude": 0.55,
+    "min": -0.1740504,
+    "max": 0.4295046,
+    "macroSeed": 1018426399,
+    "hillSeed": 1680975076,
+    "cells": 320,
+    "patches": 18,
+    "river": true,
+    "features": [
+      0,
+      1
+    ]
+  },
+  {
+    "chapter": 2,
+    "runSeed": 1,
+    "planetSeed": 883955359,
+    "size": 0.7,
+    "amplitude": 0.55,
+    "min": -0.290980428,
+    "max": 0.3932535,
+    "macroSeed": 15920288,
+    "hillSeed": 7457970,
+    "cells": 80,
+    "patches": 9,
+    "river": true,
+    "features": [
+      0
+    ]
+  },
+  {
+    "chapter": 2,
+    "runSeed": 1,
+    "planetSeed": 1306282729,
+    "size": 1.0,
+    "amplitude": 0.55,
+    "min": -0.435883731,
+    "max": 0.4466251,
+    "macroSeed": 1701630143,
+    "hillSeed": 463524738,
+    "cells": 80,
+    "patches": 9,
+    "river": false,
+    "features": [
+      1,
+      0
+    ]
+  },
+  {
+    "chapter": 2,
+    "runSeed": 1,
+    "planetSeed": 883955359,
+    "size": 1.5,
+    "amplitude": 0.55,
+    "min": -0.257355958,
+    "max": 0.4017596,
+    "macroSeed": 15920288,
+    "hillSeed": 7457970,
+    "cells": 180,
+    "patches": 13,
+    "river": true,
+    "features": [
+      1,
+      0
+    ]
+  },
+  {
+    "chapter": 2,
+    "runSeed": 1,
+    "planetSeed": 883955359,
+    "size": 2.0,
+    "amplitude": 0.55,
+    "min": -0.27764973,
+    "max": 0.399079382,
+    "macroSeed": 15920288,
+    "hillSeed": 7457970,
+    "cells": 320,
+    "patches": 18,
+    "river": true,
+    "features": [
+      1,
+      0
+    ]
+  },
+  {
+    "chapter": 2,
+    "runSeed": 77,
+    "planetSeed": 1965127375,
+    "size": 0.7,
+    "amplitude": 0.55,
+    "min": -0.3537211,
+    "max": 0.3516124,
+    "macroSeed": 1562627100,
+    "hillSeed": 620453008,
+    "cells": 80,
+    "patches": 9,
+    "river": true,
+    "features": [
+      0
+    ]
+  },
+  {
+    "chapter": 2,
+    "runSeed": 77,
+    "planetSeed": 1089129197,
+    "size": 1.0,
+    "amplitude": 0.55,
+    "min": -0.217747018,
+    "max": 0.3012765,
+    "macroSeed": 1726540783,
+    "hillSeed": 80399580,
+    "cells": 80,
+    "patches": 9,
+    "river": false,
+    "features": [
+      1,
+      0
+    ]
+  },
+  {
+    "chapter": 2,
+    "runSeed": 77,
+    "planetSeed": 1965127375,
+    "size": 1.5,
+    "amplitude": 0.55,
+    "min": -0.349904776,
+    "max": 0.4311643,
+    "macroSeed": 1562627100,
+    "hillSeed": 620453008,
+    "cells": 180,
+    "patches": 13,
+    "river": true,
+    "features": [
+      1,
+      0
+    ]
+  },
+  {
+    "chapter": 2,
+    "runSeed": 77,
+    "planetSeed": 1965127375,
+    "size": 2.0,
+    "amplitude": 0.55,
+    "min": -0.3632809,
+    "max": 0.361868829,
+    "macroSeed": 1562627100,
+    "hillSeed": 620453008,
+    "cells": 320,
+    "patches": 18,
+    "river": true,
+    "features": [
+      1,
+      0
+    ]
+  },
+  {
+    "chapter": 3,
+    "runSeed": 612101,
+    "planetSeed": 588406475,
+    "size": 0.7,
+    "amplitude": 0.55,
+    "min": -0.375422746,
+    "max": 0.272907138,
+    "macroSeed": 1049026862,
+    "hillSeed": 1929189614,
+    "cells": 80,
+    "patches": 9,
+    "river": true,
+    "features": [
+      0
+    ]
+  },
+  {
+    "chapter": 3,
+    "runSeed": 612101,
+    "planetSeed": 558768094,
+    "size": 1.0,
+    "amplitude": 0.55,
+    "min": -0.31940195,
+    "max": 0.303827643,
+    "macroSeed": 631080181,
+    "hillSeed": 1371902794,
+    "cells": 80,
+    "patches": 9,
+    "river": false,
+    "features": [
+      2,
+      0
+    ]
+  },
+  {
+    "chapter": 3,
+    "runSeed": 612101,
+    "planetSeed": 588406475,
+    "size": 1.5,
+    "amplitude": 0.55,
+    "min": -0.3912626,
+    "max": 0.2912311,
+    "macroSeed": 1049026862,
+    "hillSeed": 1929189614,
+    "cells": 180,
+    "patches": 13,
+    "river": true,
+    "features": [
+      2,
+      0
+    ]
+  },
+  {
+    "chapter": 3,
+    "runSeed": 612101,
+    "planetSeed": 588406475,
+    "size": 2.0,
+    "amplitude": 0.55,
+    "min": -0.395735651,
+    "max": 0.30428496,
+    "macroSeed": 1049026862,
+    "hillSeed": 1929189614,
+    "cells": 320,
+    "patches": 18,
+    "river": true,
+    "features": [
+      2,
+      0
+    ]
+  },
+  {
+    "chapter": 3,
+    "runSeed": 1,
+    "planetSeed": 414949251,
+    "size": 0.7,
+    "amplitude": 0.55,
+    "min": -0.4250595,
+    "max": 0.427471876,
+    "macroSeed": 1041735545,
+    "hillSeed": 1545321596,
+    "cells": 80,
+    "patches": 9,
+    "river": true,
+    "features": [
+      0
+    ]
+  },
+  {
+    "chapter": 3,
+    "runSeed": 1,
+    "planetSeed": 216666997,
+    "size": 1.0,
+    "amplitude": 0.55,
+    "min": -0.369457483,
+    "max": 0.393191934,
+    "macroSeed": 140767890,
+    "hillSeed": 1044839918,
+    "cells": 80,
+    "patches": 9,
+    "river": false,
+    "features": [
+      2,
+      0
+    ]
+  },
+  {
+    "chapter": 3,
+    "runSeed": 1,
+    "planetSeed": 414949251,
+    "size": 1.5,
+    "amplitude": 0.55,
+    "min": -0.438662469,
+    "max": 0.4922437,
+    "macroSeed": 1041735545,
+    "hillSeed": 1545321596,
+    "cells": 180,
+    "patches": 13,
+    "river": true,
+    "features": [
+      2,
+      0
+    ]
+  },
+  {
+    "chapter": 3,
+    "runSeed": 1,
+    "planetSeed": 414949251,
+    "size": 2.0,
+    "amplitude": 0.55,
+    "min": -0.428696841,
+    "max": 0.451694757,
+    "macroSeed": 1041735545,
+    "hillSeed": 1545321596,
+    "cells": 320,
+    "patches": 18,
+    "river": true,
+    "features": [
+      2,
+      0
+    ]
+  },
+  {
+    "chapter": 3,
+    "runSeed": 77,
+    "planetSeed": 843416449,
+    "size": 0.7,
+    "amplitude": 0.55,
+    "min": -0.397898048,
+    "max": 0.3952648,
+    "macroSeed": 334192764,
+    "hillSeed": 1944237504,
+    "cells": 80,
+    "patches": 9,
+    "river": true,
+    "features": [
+      0
+    ]
+  },
+  {
+    "chapter": 3,
+    "runSeed": 77,
+    "planetSeed": 1038211444,
+    "size": 1.0,
+    "amplitude": 0.55,
+    "min": -0.277144253,
+    "max": 0.425825864,
+    "macroSeed": 1005324703,
+    "hillSeed": 1742882662,
+    "cells": 80,
+    "patches": 9,
+    "river": false,
+    "features": [
+      2,
+      0
+    ]
+  },
+  {
+    "chapter": 3,
+    "runSeed": 77,
+    "planetSeed": 843416449,
+    "size": 1.5,
+    "amplitude": 0.55,
+    "min": -0.398057938,
+    "max": 0.429119229,
+    "macroSeed": 334192764,
+    "hillSeed": 1944237504,
+    "cells": 180,
+    "patches": 13,
+    "river": true,
+    "features": [
+      2,
+      0
+    ]
+  },
+  {
+    "chapter": 3,
+    "runSeed": 77,
+    "planetSeed": 843416449,
+    "size": 2.0,
+    "amplitude": 0.55,
+    "min": -0.388990581,
+    "max": 0.407217979,
+    "macroSeed": 334192764,
+    "hillSeed": 1944237504,
+    "cells": 320,
+    "patches": 18,
+    "river": true,
+    "features": [
+      2,
+      0
+    ]
+  }
+]

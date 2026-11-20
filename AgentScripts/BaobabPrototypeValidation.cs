@@ -56,7 +56,8 @@ public static class BaobabPrototypeValidation
                 s.seed = seed; s.Begin();
                 for (int step = 0; step < 120; step++) s.Advance(1f);
                 Require(s.IsComplete && s.SpawnedCount == 40 && s.SkippedSpawns == 0, $"Incomplete seed {seed}.");
-                Require(s.surface.Cells.Count == 80 && s.surface.EmptyCellCount == 0, $"Invalid cells for seed {seed}.");
+                int frequency=PlanetSurfaceGrid.CalculateFrequency(s.surface.subdivisions,s.surface.SizeScale);
+                Require(s.surface.Cells.Count == 20*frequency*frequency && (frequency!=2 || s.surface.EmptyCellCount == 0), $"Invalid cells for seed {seed}.");
                 Require(s.Spawned.Select(r => r.slot.cellId).Distinct().Count() == 40, $"Repeated cells in first pass for seed {seed}.");
                 float min = float.PositiveInfinity;
                 var octants = new int[8];
