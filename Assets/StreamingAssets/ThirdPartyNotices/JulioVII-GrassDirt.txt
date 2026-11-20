@@ -1,0 +1,18 @@
+Stylized Grass & Dirt by JulioVII
+Source: https://juliovii.itch.io/ftpgrass-dirt
+Downloaded: 2026-11-20, free Stylized_GrassAndDirt.zip
+
+The author identifies the license as CC-BY without specifying a version.
+The source page permits commercial use and excludes resale. The downloaded
+archive contains JPEG textures and a Blender file, with no separate license
+document. See the source page for the author's terms.
+
+Files used in B612 (original 4096 x 4096 JPEGs):
+  Stylized_HandpaintedDirt_01_basecolor.jpg — dirt base color
+  Stylized_HandpaintedDirt_01_normalogl.jpg — dirt OpenGL normal
+  Stylized_HandpaintedGrass_01_basecolor.jpg — grass base color
+  Stylized_HandpaintedGrass_01_normalogl.jpg — grass OpenGL normal
+
+B612 retains the original JPEGs and applies Unity import compression and mipmaps.
+The planet shader projects the textures in three directions, blends them into
+the existing planet palette and weights the normal perturbation by surface type.

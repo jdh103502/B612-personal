@@ -12,7 +12,6 @@ public static class TerrainAppearanceBuilder
         if (EditorApplication.isPlayingOrWillChangePlaymode) throw new InvalidOperationException("Use Edit mode.");
         var material = GetOrCreateMaterial();
         var water = GetOrCreateTemplate("ShallowRiver", "Universal Render Pipeline/Lit");
-        var guides = GetOrCreateTemplate("RouteGuide", "Universal Render Pipeline/Unlit");
         foreach (string path in new[]
         {
             "Assets/B612/Settings/Chapters/ChapterJourneyGeneration.asset",
@@ -24,7 +23,6 @@ public static class TerrainAppearanceBuilder
             if (!settings) throw new InvalidOperationException("Missing " + path);
             if (!settings.proceduralGroundMaterial) settings.proceduralGroundMaterial = material;
             if (!settings.proceduralWaterMaterial) settings.proceduralWaterMaterial = water;
-            if (!settings.routeGuideMaterial) settings.routeGuideMaterial = guides;
             settings.terrainAppearance ??= new TerrainAppearanceSettings();
             if (settings.profileId == "terrain.stylized.v1")
             {
@@ -33,7 +31,7 @@ public static class TerrainAppearanceBuilder
                     keys[2] == new Vector2(.65f, .12f))
                     settings.terrainAppearance.macroKeys = new TerrainAppearanceSettings().macroKeys;
             }
-            settings.profileId = PlanetGenerationSettings.StylizedProfileId;
+            settings.profileId = PlanetGenerationSettings.NaturalProfileId;
             EditorUtility.SetDirty(settings);
             AssetDatabase.SaveAssetIfDirty(settings);
         }

@@ -1,0 +1,21 @@
+passed=True
+error=
+Scene Assets/B612/Scenes/B612_ChapterJourney.unity, journey seed 612101
+system_01_Start Start seed=395484021, R=12.00, spawn=(-0.1886, 0.9607, 0.2038), walkable=99.7 %, river=Downhill channel accepted.
+Chapter 1: basic jump, unlocked ability and valid landing recovery.
+Invalid natural setting surfaced a preparation failure and preserved the current world, route and modal.
+system_01_C Normal seed=1909821952, R=13.30, spawn=(-0.1687, 0.9687, 0.1823), walkable=99.8 %, river=Downhill channel accepted.
+Baobab candidate, Q summon, eating and physical pickup/recovery passed.
+system_01_E Normal seed=986090518, R=10.26, spawn=(-0.1290, 0.9740, 0.1860), walkable=100.0 %, river=Downhill channel accepted.
+system_01_Destination Destination seed=1173783402, R=23.08, spawn=(-0.1755, 0.9620, 0.2093), walkable=100.0 %, river=Downhill channel accepted.
+system_02_Start Start seed=1798197590, R=12.00, spawn=(-0.1886, 0.9607, 0.2038), walkable=99.7 %, river=Downhill channel accepted.
+Chapter 2: basic jump, unlocked ability and valid landing recovery.
+system_02_B Normal seed=1076931390, R=19.55, spawn=(-0.1670, 0.9642, 0.2061), walkable=99.8 %, river=Downhill channel accepted.
+system_02_E Normal seed=1826509951, R=15.28, spawn=(-0.1838, 0.9592, 0.2150), walkable=99.8 %, river=Downhill channel accepted.
+system_02_Destination Destination seed=262352529, R=22.92, spawn=(-0.1755, 0.9620, 0.2093), walkable=100.0 %, river=Downhill channel accepted.
+system_03_Start Start seed=558768094, R=12.00, spawn=(-0.1886, 0.9607, 0.2038), walkable=99.8 %, river=Downhill channel accepted.
+Chapter 3: basic jump, unlocked ability and valid landing recovery.
+system_03_C Normal seed=1052576226, R=8.67, spawn=(-0.1609, 0.9658, 0.2032), walkable=100.0 %, river=Downhill channel accepted.
+system_03_E Normal seed=854945633, R=21.41, spawn=(-0.1505, 0.9687, 0.1973), walkable=99.8 %, river=Downhill channel accepted.
+system_03_Destination Destination seed=1833731310, R=17.98, spawn=(-0.1796, 0.9644, 0.1939), walkable=99.8 %, river=Downhill channel accepted.
+E at nine sites, 11 UI transitions, R/F12, natural role routing and departed resources passed.

@@ -22,6 +22,7 @@ namespace B612
                 throw new InvalidOperationException("Incomplete planet world template.");
             if(settings.spawnDirection.sqrMagnitude<.01f||!Finite(settings.spawnDirection))throw new InvalidOperationException("Invalid projected spawn direction.");
             Data=data;gravity.enabled=false;
+            surface.ground = ground;
             transform.localScale=Vector3.one;ground.transform.localScale=Vector3.Scale(settings.baselineScale,Vector3.one*data.spec.terrain.sizeScale);
             ColorUtility.TryParseHtmlString(data.spec.terrain.groundColor,out var color);
             if(settings.proceduralTerrain)
@@ -42,24 +43,31 @@ namespace B612
                 ground.transform.localScale=Vector3.one;
                 ground.transform.SetLocalPositionAndRotation(Vector3.zero,Quaternion.identity);
                 Terrain=gameObject.AddComponent<ProceduralPlanetTerrain>();
-                var chapter=settings.Chapter(data.spec.chapter);
-                int requiredKind = -1;
-                if (settings.chapterCampaign && data.spec.role == PlanetRole.Start)
+                if (settings.profileId == PlanetGenerationSettings.NaturalProfileId)
                 {
-                    requiredKind = data.spec.unlock switch
-                    {
-                        TraversalCapability.Dash => 0,
-                        TraversalCapability.AirJump => 1,
-                        TraversalCapability.Glide => 2,
-                        _ => -1
-                    };
+                    Terrain.PrepareNatural(data.spec.seed, data.spec.terrain.radius, data.spec.chapter, settings, filter, meshCollider);
+                    var natural = Terrain.GenerationPlan;
+                    Terrain.NaturalPlacement = new NaturalTerrainPlacement(natural, surface, playerCapsule,
+                        settings.spawnClearance, settings.spawnDirection.normalized, settings.chapterCampaign);
+                    natural.spawn = natural.placement.spawn.direction;
                 }
-                Terrain.Prepare(data.spec.seed, data.spec.terrain.radius, settings.spawnDirection.normalized,
-                    chapter ? chapter.featureBudget : settings.terrainFeatureBudget, filter, meshCollider,
-                    playerCapsule, data.spec.chapter,
-                    PlanetSurfaceGrid.CalculateFrequency(settings.subdivisions, data.spec.terrain.sizeScale),
-                    chapter ? (Vector3?)chapter.regionWeights : null, requiredKind, settings.terrainAppearance,
-                    settings.proceduralWaterMaterial);
+                else
+                {
+                    var chapter = settings.Chapter(data.spec.chapter);
+                    int requiredKind = settings.chapterCampaign && data.spec.role == PlanetRole.Start
+                        ? data.spec.unlock switch
+                        {
+                            TraversalCapability.Dash => 0, TraversalCapability.AirJump => 1,
+                            TraversalCapability.Glide => 2, _ => -1
+                        }
+                        : -1;
+                    Terrain.Prepare(data.spec.seed, data.spec.terrain.radius, settings.spawnDirection.normalized,
+                        chapter ? chapter.featureBudget : settings.terrainFeatureBudget, filter, meshCollider,
+                        playerCapsule, data.spec.chapter,
+                        PlanetSurfaceGrid.CalculateFrequency(settings.subdivisions, data.spec.terrain.sizeScale),
+                        chapter ? (Vector3?)chapter.regionWeights : null, requiredKind, settings.terrainAppearance,
+                        settings.proceduralWaterMaterial, useNormalPlanetRelief: data.spec.role == PlanetRole.Normal);
+                }
                 var appearance = Terrain.GenerationPlan.appearance;
                 material.SetColor("_EarthColor", appearance.earth);
                 material.SetColor("_VegetationColor", appearance.vegetation);
@@ -87,12 +95,25 @@ namespace B612
                 }
                 groundRenderer.sharedMaterials = ownedMaterials;
             }
-            surface.ground=ground;surface.ConfigureResolution(settings.subdivisions,data.spec.terrain.sizeScale);surface.candidatesPerCell=settings.candidatesPerCell;surface.maxSlope=settings.maxSpawnSlope;
-            Physics.SyncTransforms();surface.Prepare(data.spec.seed);
-            if(surface.SlotCount==0||!surface.TryProject(settings.spawnDirection.normalized,out var point,out var normal)
-                ||Vector3.Angle(normal,(point-transform.position).normalized)>60f)throw new InvalidOperationException("No usable surface/spawn.");
+            surface.ConfigureResolution(settings.subdivisions,data.spec.terrain.sizeScale);surface.candidatesPerCell=settings.candidatesPerCell;surface.maxSlope=settings.maxSpawnSlope;
             var plan = Terrain ? Terrain.GenerationPlan : null;
+            var placement = plan?.placement;
+            Physics.SyncTransforms();
+            var watch = System.Diagnostics.Stopwatch.StartNew();
+            surface.Prepare(placement == null ? data.spec.seed : StarSystemFactory.DeriveSeed(plan.placementSeed, 1, 0));
+            if (placement != null)
+            {
+                Terrain.NaturalPlacement.CheckCapacity(data.spec.baobab.maxActive, data.spec.baobab.minimumSpacing);
+                placement.candidates = surface.SlotCount;
+                placement.emptyCells = surface.EmptyCellCount;
+                placement.candidateMilliseconds = (float)watch.Elapsed.TotalMilliseconds;
+            }
+            var spawnDirection = placement == null ? settings.spawnDirection.normalized : placement.spawn.direction;
+            if(surface.SlotCount==0||!surface.TryProject(spawnDirection,out var point,out var normal)
+                ||Vector3.Angle(normal,(point-transform.position).normalized)>60f)throw new InvalidOperationException("No usable surface/spawn.");
             Vector3 heading = plan != null && plan.requiredKind >= 0 ? plan.routeTangent : settings.spawnForward;
+            if (placement != null && placement.sites.Length > 0)
+                heading = transform.TransformPoint(placement.sites[0].localPoint) - point;
             Vector3 forward=Vector3.ProjectOnPlane(heading,normal);
             if(forward.sqrMagnitude<.001f)forward=Vector3.ProjectOnPlane(Vector3.forward,normal);
             if(forward.sqrMagnitude<.001f)forward=Vector3.ProjectOnPlane(Vector3.right,normal);

@@ -224,7 +224,7 @@ namespace B612
         {
             int low = Mathf.Min(from, to), high = Mathf.Max(from, to);
             int canonicalStep = from == low ? step : frequency - step;
-            long key = (EdgeKey(low, high) << 4) | (uint)canonicalStep; // Original endpoint IDs + integer step; f <= 8.
+            long key = ((long)(low * 12 + high) << 32) | (uint)canonicalStep; // Original icosahedron endpoint IDs and subdivision step.
             if (cache.TryGetValue(key, out int existing)) return existing;
             int index = vertices.Count;
             vertices.Add(((frequency - canonicalStep) * vertices[low] + canonicalStep * vertices[high]).normalized);

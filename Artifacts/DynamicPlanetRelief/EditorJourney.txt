@@ -1,0 +1,23 @@
+passed=True
+error=
+Scene Assets/B612/Scenes/B612_ChapterJourney.unity, build index 0, run seed 612101
+Fresh campaign locks abilities independently of developer allow flags
+Chapter 1: planet seed 395484021, kind 0, layout 0, fixed False, builds 1, basic bypass 9.12s
+Chapter 1: ability used and stable landing at (3.10, 0.00), height 0.00m, 3.18s
+Chapter 1: actual E unlock, reachable sites, immutable terrain and no repeated grant
+Normal planet system_01_C, radius 13.30m, peak parameters [2.98, 2.99, -1.47]m, build attempts 1
+A summoned sheep claimed and ate an active root on a normal campaign planet
+Normal planet system_01_E, radius 10.26m, peak parameters [2.46, 2.48, -1.20]m, build attempts 1
+Failed next-chapter preparation preserves current world, chapter, path and unlocks
+Chapter 2: planet seed 1798197590, kind 1, layout 0, fixed False, builds 1, basic bypass 9.90s
+Chapter 2: ability used and stable landing at (2.19, 0.00), height 1.98m, 3.82s
+Chapter 2: actual E unlock, reachable sites, immutable terrain and no repeated grant
+Normal planet system_02_B, radius 19.55m, peak parameters [2.91, 2.94, -1.44]m, build attempts 1
+Normal planet system_02_E, radius 15.28m, peak parameters [2.85, 2.95, -1.31]m, build attempts 1
+Chapter 3: planet seed 558768094, kind 2, layout 0, fixed False, builds 1, basic bypass 12.78s
+Chapter 3: ability used and stable landing at (6.19, 0.00), height 0.40m, 5.42s
+Chapter 3: actual E unlock, reachable sites, immutable terrain and no repeated grant
+Normal planet system_03_C, radius 8.67m, peak parameters [2.15, 2.10, -1.07]m, build attempts 1
+Normal planet system_03_E, radius 21.41m, peak parameters [2.88, 2.91, -1.42]m, build attempts 1
+Three chapters, alternate DAG routes, 11 transitions, persistent unlocks, complete history, terminal state and single EventSystem
+Departed ground and water meshes and owned ground materials released on every transition

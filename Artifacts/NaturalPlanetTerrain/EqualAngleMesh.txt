@@ -1,0 +1,56 @@
+# Equal-angle cube-sphere mesh experiment (2026-11-21, Unity 6000.3.23f1 Editor Play mode)
+# Settings: ChapterJourneyGeneration.asset, NaturalTerrainSettings.equalAngleMesh toggled in memory per run.
+# A: journey 612101 chapter 2 system_02_B (planet seed 1076931390), radius 12*size. mode=normal is the v8 default.
+# Times in ms (total = PlanetWorldHost.Prepare). Err = |collider radius - analytic height| on 4096 uniform directions; riverMaxErr = 5cm samples across channel+banks.
+
+mode=normal size=0.7 rep=0 total=155 mesh=99 analysis=32 candidates=21 verts=53018 tris=106032 river=True connected=0.9982 nodes=2880 standable=2875 slots=2560 empty=0 spawn=(-0.1609, 0.9658, 0.2032) site=(0.1628, 0.9101, 0.3811) site=(-0.1085, 0.9660, -0.2348) site=(-0.5867, 0.7186, 0.3734) meanErr=0.42mm maxErr=15.71mm riverMaxErr=21.15mm misses=0
+mode=equal size=0.7 rep=0 total=124 mesh=67 analysis=33 candidates=22 verts=32858 tris=65712 river=True connected=0.9996 nodes=2880 standable=2879 slots=2560 empty=0 spawn=(-0.1609, 0.9658, 0.2032) site=(0.1628, 0.9101, 0.3811) site=(-0.1085, 0.9660, -0.2348) site=(-0.5867, 0.7186, 0.3734) meanErr=0.59mm maxErr=15.62mm riverMaxErr=24.17mm misses=0
+mode=normal size=0.7 rep=1 total=159 mesh=103 analysis=32 candidates=22 verts=53018 tris=106032
+mode=equal size=0.7 rep=1 total=126 mesh=68 analysis=33 candidates=24 verts=32858 tris=65712
+mode=normal size=0.7 rep=2 total=162 mesh=103 analysis=35 candidates=23 verts=53018 tris=106032
+mode=equal size=0.7 rep=2 total=123 mesh=67 analysis=33 candidates=20 verts=32858 tris=65712
+mode=normal size=1 rep=0 total=305 mesh=216 analysis=65 candidates=22 verts=107738 tris=215472 river=True connected=0.9995 nodes=5780 standable=5777 slots=2560 empty=0 spawn=(-0.1886, 0.9607, 0.2038) site=(0.0775, 0.9314, 0.3557) site=(-0.1145, 0.9718, -0.2061) site=(-0.6170, 0.6959, 0.3674) meanErr=0.30mm maxErr=10.56mm riverMaxErr=22.21mm misses=0
+mode=equal size=1 rep=0 total=223 mesh=140 analysis=60 candidates=22 verts=66152 tris=132300 river=True connected=1.0000 nodes=5780 standable=5780 slots=2560 empty=0 spawn=(-0.1886, 0.9607, 0.2038) site=(0.0775, 0.9314, 0.3557) site=(-0.1145, 0.9718, -0.2061) site=(-0.6170, 0.6959, 0.3674) meanErr=0.42mm maxErr=10.01mm riverMaxErr=19.74mm misses=0
+mode=normal size=1 rep=1 total=305 mesh=218 analysis=63 candidates=23 verts=107738 tris=215472
+mode=equal size=1 rep=1 total=224 mesh=139 analysis=59 candidates=24 verts=66152 tris=132300
+mode=normal size=1 rep=2 total=300 mesh=215 analysis=61 candidates=22 verts=107738 tris=215472
+mode=equal size=1 rep=2 total=223 mesh=139 analysis=60 candidates=22 verts=66152 tris=132300
+mode=normal size=2 rep=0 total=1529 mesh=1069 analysis=363 candidates=95 verts=427736 tris=855468 river=True connected=1.0000 nodes=21780 standable=21780 slots=10240 empty=0 spawn=(-0.1756, 0.9617, 0.2106) site=(0.0799, 0.9227, 0.3771) site=(-0.1364, 0.9763, -0.1682) site=(-0.5033, 0.7966, 0.3348) meanErr=0.16mm maxErr=10.80mm riverMaxErr=26.45mm misses=0
+mode=equal size=2 rep=0 total=1089 mesh=647 analysis=353 candidates=87 verts=264602 tris=529200 river=True connected=1.0000 nodes=21780 standable=21779 slots=10240 empty=0 spawn=(-0.1756, 0.9617, 0.2106) site=(0.0799, 0.9227, 0.3771) site=(-0.1364, 0.9763, -0.1682) site=(-0.5033, 0.7966, 0.3348) meanErr=0.23mm maxErr=12.18mm riverMaxErr=25.48mm misses=0
+mode=normal size=2 rep=1 total=1518 mesh=1026 analysis=394 candidates=95 verts=427736 tris=855468
+mode=equal size=2 rep=1 total=1104 mesh=648 analysis=366 candidates=88 verts=264602 tris=529200
+mode=normal size=2 rep=2 total=1517 mesh=1044 analysis=381 candidates=90 verts=427736 tris=855468
+mode=equal size=2 rep=2 total=1081 mesh=626 analysis=356 candidates=97 verts=264602 tris=529200
+
+# B: equal-angle sweep over native sizes, journeys 612101 and 77, chapters 1 and 3
+j=612101 ch=1 id=system_01_Start r=12.0 mode=equal total=243 mesh=160 analysis=59 candidates=22 verts=66152 tris=132300 river=True connected=1.0000 nodes=5780 standable=5780 slots=2560 empty=0 meanErr=0.42mm maxErr=10.22mm riverMaxErr=18.58mm misses=0
+j=612101 ch=1 id=system_01_B r=10.9 mode=equal total=221 mesh=153 analysis=44 candidates=23 verts=54152 tris=108300 river=True connected=1.0000 nodes=4500 standable=4500 slots=2560 empty=0 meanErr=0.50mm maxErr=18.22mm riverMaxErr=26.19mm misses=0
+j=612101 ch=1 id=system_01_C r=15.1 mode=equal total=431 mesh=277 analysis=103 candidates=49 verts=104546 tris=209088 river=True connected=0.9998 nodes=8820 standable=8818 slots=5760 empty=0 meanErr=0.34mm maxErr=8.22mm riverMaxErr=23.80mm misses=0
+j=612101 ch=1 id=system_01_D r=23.5 mode=equal total=1052 mesh=598 analysis=366 candidates=87 verts=254618 tris=509232 river=True connected=1.0000 nodes=21780 standable=21780 slots=10240 empty=0 meanErr=0.22mm maxErr=5.62mm riverMaxErr=32.74mm misses=0
+j=612101 ch=1 id=system_01_E r=15.1 mode=equal total=501 mesh=343 analysis=107 candidates=49 verts=106136 tris=212268 river=True connected=1.0000 nodes=8820 standable=8820 slots=5760 empty=0 meanErr=0.35mm maxErr=10.00mm riverMaxErr=20.99mm misses=0
+j=612101 ch=1 id=system_01_Destination r=13.7 mode=equal total=381 mesh=250 analysis=81 candidates=48 verts=86402 tris=172800 river=True connected=1.0000 nodes=7220 standable=7220 slots=5760 empty=0 meanErr=0.38mm maxErr=16.25mm riverMaxErr=22.74mm misses=0
+j=612101 ch=3 id=system_03_Start r=12.0 mode=equal total=255 mesh=170 analysis=62 candidates=21 verts=66152 tris=132300 river=True connected=1.0000 nodes=5780 standable=5780 slots=2560 empty=0 meanErr=0.42mm maxErr=6.13mm riverMaxErr=17.92mm misses=0
+j=612101 ch=3 id=system_03_B r=21.1 mode=equal total=845 mesh=509 analysis=244 candidates=90 verts=205352 tris=410700 river=True connected=1.0000 nodes=16820 standable=16820 slots=10240 empty=0 meanErr=0.26mm maxErr=15.73mm riverMaxErr=28.51mm misses=0
+j=612101 ch=3 id=system_03_C r=8.7 mode=equal total=153 mesh=96 analysis=34 candidates=22 verts=34658 tris=69312 river=True connected=1.0000 nodes=2880 standable=2880 slots=2560 empty=0 meanErr=0.60mm maxErr=17.18mm riverMaxErr=26.75mm misses=0
+j=612101 ch=3 id=system_03_D r=23.3 mode=equal total=898 mesh=568 analysis=242 candidates=86 verts=249698 tris=499392 river=True connected=1.0000 nodes=20480 standable=20479 slots=10240 empty=0 meanErr=0.23mm maxErr=11.82mm riverMaxErr=23.34mm misses=0
+j=612101 ch=3 id=system_03_E r=21.4 mode=equal total=896 mesh=504 analysis=294 candidates=96 verts=209816 tris=419628 river=True connected=1.0000 nodes=18000 standable=18000 slots=10240 empty=0 meanErr=0.24mm maxErr=9.81mm riverMaxErr=18.31mm misses=0
+j=612101 ch=3 id=system_03_Destination r=18.0 mode=equal total=580 mesh=335 analysis=189 candidates=53 verts=147896 tris=295788 river=True connected=1.0000 nodes=12500 standable=12500 slots=5760 empty=0 meanErr=0.29mm maxErr=15.72mm riverMaxErr=22.72mm misses=0
+j=77 ch=1 id=system_01_Start r=12.0 mode=equal total=235 mesh=151 analysis=61 candidates=22 verts=66152 tris=132300 river=True connected=1.0000 nodes=5780 standable=5780 slots=2560 empty=0 meanErr=0.45mm maxErr=10.49mm riverMaxErr=23.11mm misses=0
+j=77 ch=1 id=system_01_B r=12.2 mode=equal total=345 mesh=221 analysis=66 candidates=57 verts=68696 tris=137388 river=True connected=1.0000 nodes=5780 standable=5780 slots=5760 empty=0 meanErr=0.41mm maxErr=11.48mm riverMaxErr=23.37mm misses=0
+j=77 ch=1 id=system_01_C r=9.7 mode=equal total=186 mesh=119 analysis=41 candidates=24 verts=43352 tris=86700 river=True connected=1.0000 nodes=3920 standable=3920 slots=2560 empty=0 meanErr=0.54mm maxErr=20.31mm riverMaxErr=25.25mm misses=0
+j=77 ch=1 id=system_01_D r=18.9 mode=equal total=635 mesh=368 analysis=179 candidates=86 verts=163352 tris=326700 river=True connected=1.0000 nodes=13520 standable=13520 slots=10240 empty=0 meanErr=0.27mm maxErr=5.46mm riverMaxErr=21.59mm misses=0
+j=77 ch=1 id=system_01_E r=10.6 mode=equal total=193 mesh=122 analysis=46 candidates=23 verts=51896 tris=103788 river=True connected=1.0000 nodes=4500 standable=4500 slots=2560 empty=0 meanErr=0.49mm maxErr=11.97mm riverMaxErr=15.47mm misses=0
+j=77 ch=1 id=system_01_Destination r=13.5 mode=equal total=432 mesh=282 analysis=89 candidates=59 verts=83546 tris=167088 river=True connected=0.9999 nodes=7220 standable=7219 slots=5760 empty=0 meanErr=0.43mm maxErr=19.33mm riverMaxErr=24.31mm misses=0
+j=77 ch=3 id=system_03_Start r=12.0 mode=equal total=290 mesh=199 analysis=65 candidates=23 verts=66152 tris=132300 river=True connected=1.0000 nodes=5780 standable=5780 slots=2560 empty=0 meanErr=0.45mm maxErr=19.62mm riverMaxErr=25.46mm misses=0
+j=77 ch=3 id=system_03_B r=11.4 mode=equal total=285 mesh=208 analysis=49 candidates=25 verts=60002 tris=120000 river=True connected=0.9996 nodes=5120 standable=5118 slots=2560 empty=0 meanErr=0.46mm maxErr=14.84mm riverMaxErr=24.36mm misses=0
+j=77 ch=3 id=system_03_C r=9.2 mode=equal total=152 mesh=92 analysis=37 candidates=21 verts=39368 tris=78732 river=True connected=1.0000 nodes=3380 standable=3380 slots=2560 empty=0 meanErr=0.56mm maxErr=20.61mm riverMaxErr=23.35mm misses=0
+j=77 ch=3 id=system_03_D r=9.5 mode=equal total=202 mesh=140 analysis=36 candidates=24 verts=41336 tris=82668 river=True connected=1.0000 nodes=3380 standable=3380 slots=2560 empty=0 meanErr=0.59mm maxErr=20.66mm riverMaxErr=28.40mm misses=0
+j=77 ch=3 id=system_03_E r=23.9 mode=equal total=1061 mesh=594 analysis=374 candidates=91 verts=262088 tris=524172 river=True connected=1.0000 nodes=21780 standable=21780 slots=10240 empty=0 meanErr=0.22mm maxErr=17.54mm riverMaxErr=23.20mm misses=0
+j=77 ch=3 id=system_03_Destination r=10.2 mode=equal total=216 mesh=151 analysis=40 candidates=23 verts=48602 tris=97200 river=True connected=0.9995 nodes=3920 standable=3918 slots=2560 empty=0 meanErr=0.50mm maxErr=20.76mm riverMaxErr=23.24mm misses=0
+
+# C: normalized (v8 default) on the journey 77 planets with the highest equal-angle maxErr
+j=77 ch=1 id=system_01_C r=9.7 mode=normal total=235 mesh=170 analysis=41 candidates=22 verts=69986 tris=139968 meanErr=0.39mm maxErr=19.09mm riverMaxErr=23.75mm misses=0
+j=77 ch=3 id=system_03_Start r=12.0 mode=normal total=392 mesh=304 analysis=62 candidates=23 verts=107738 tris=215472 meanErr=0.31mm maxErr=10.98mm riverMaxErr=28.79mm misses=0
+j=77 ch=3 id=system_03_C r=9.2 mode=normal total=201 mesh=142 analysis=35 candidates=22 verts=63656 tris=127308 meanErr=0.39mm maxErr=12.96mm riverMaxErr=19.97mm misses=0
+j=77 ch=3 id=system_03_D r=9.5 mode=normal total=299 mesh=224 analysis=48 candidates=25 verts=67418 tris=134832 meanErr=0.40mm maxErr=17.25mm riverMaxErr=23.80mm misses=0
+j=77 ch=3 id=system_03_Destination r=10.2 mode=normal total=315 mesh=247 analysis=41 candidates=25 verts=77978 tris=155952 meanErr=0.36mm maxErr=11.42mm riverMaxErr=16.84mm misses=0

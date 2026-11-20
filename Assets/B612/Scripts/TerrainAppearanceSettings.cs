@@ -14,6 +14,10 @@ namespace B612
         public Vector2 hillRadii = new Vector2(7.6f, 8f);
         public Vector2 basinDepths = new Vector2(.55f, .8f);
         public Vector2 basinRadii = new Vector2(6.3f, 7f);
+        [Tooltip("Peak height on normal planets at a radius of 12 m or more, before blending with the surrounding ground.")]
+        public Vector2 normalPlanetHillHeights = new Vector2(2.5f, 3f);
+        [Tooltip("Basin depth on normal planets at a radius of 12 m or more, before blending with the surrounding ground.")]
+        public Vector2 normalPlanetBasinDepths = new Vector2(1f, 1.5f);
         [Range(0f, .25f)] public float residualMacroMeters = .24f;
         [Range(0f, .10f)] public float residualHillMeters = .07f;
         [Range(0f, .25f)] public float ridgeShare;
@@ -35,6 +39,7 @@ namespace B612
                 broadHills < 0 || broadHills > 2 || broadBasins < 0 || broadBasins > 1 ||
                 !ValidRange(hillHeights, .8f, 1.4f) || !ValidRange(hillRadii, 5f, 8f) ||
                 !ValidRange(basinDepths, .4f, .8f) || !ValidRange(basinRadii, 4f, 7f) ||
+                !ValidRange(normalPlanetHillHeights, .8f, 3f) || !ValidRange(normalPlanetBasinDepths, .4f, 1.5f) ||
                 !InRange(paletteStrength, 0f, 1f) || !ValidRange(vegetationRemap, 0f, 1f) ||
                 vegetationRemap.y <= vegetationRemap.x || !InRange(heightColorRange, .1f, 3f) ||
                 !ValidColor(earth) || !ValidColor(vegetation) || !ValidColor(rock))

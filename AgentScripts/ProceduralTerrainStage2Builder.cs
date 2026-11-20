@@ -15,10 +15,10 @@ public static class ProceduralTerrainStage2Builder
         const string testPath="Assets/B612/Settings/PlanetTravel/ProceduralTerrainTestGeneration.asset";
         var main=AssetDatabase.LoadAssetAtPath<PlanetGenerationSettings>(mainPath);
         if(!main)throw new InvalidOperationException("Existing generation settings missing.");
-        main.proceduralTerrain=true;main.terrainFeatureBudget=2;main.profileId=PlanetGenerationSettings.StylizedProfileId;EditorUtility.SetDirty(main);AssetDatabase.SaveAssetIfDirty(main);
+        main.proceduralTerrain=true;main.profileId=PlanetGenerationSettings.NaturalProfileId;EditorUtility.SetDirty(main);AssetDatabase.SaveAssetIfDirty(main);
         var test=AssetDatabase.LoadAssetAtPath<PlanetGenerationSettings>(testPath);
         if(!test){test=UnityEngine.Object.Instantiate(main);test.name="ProceduralTerrainTestGeneration";AssetDatabase.CreateAsset(test,testPath);}
-        test.proceduralTerrain=true;test.terrainFeatureBudget=2;test.profileId=PlanetGenerationSettings.StylizedProfileId;test.nominalRadius=12;test.gravitySurfaceRadius=12;test.influenceRadius=32;EditorUtility.SetDirty(test);AssetDatabase.SaveAssetIfDirty(test);
+        test.proceduralTerrain=true;test.profileId=PlanetGenerationSettings.NaturalProfileId;test.nominalRadius=12;test.gravitySurfaceRadius=12;test.influenceRadius=32;EditorUtility.SetDirty(test);AssetDatabase.SaveAssetIfDirty(test);
         if(!AssetDatabase.LoadAssetAtPath<SceneAsset>(ScenePath))
         {
             var source=EditorSceneManager.OpenScene("Assets/B612/Scenes/B612_EmptyPlanet.unity");

@@ -27,11 +27,19 @@ namespace B612
             public float radius,amplitude,maximumWalkSlope,validationMilliseconds;
             public Vector3 spawn,routeTangent,routeNormal,noiseOffset;
             public TerrainAppearanceSettings appearance = new TerrainAppearanceSettings();
+            public string profileId;
+            public NaturalTerrainSettings natural;
+            public NaturalTerrainPlacement.Report placement;
+            public int riverSeed, placementSeed, riverSourceAttempts, riverShortTraces, riverRejectedBanks;
+            public string riverStatus;
+            public float riverPlanMilliseconds, meshMilliseconds;
             public int macroSeed, hillSeed, warpSeed, ridgeSeed, surfaceSeed;
             public int landformSeed, landformAttempts;
             public List<TerrainLandforms.Landform> landforms = new List<TerrainLandforms.Landform>();
             public Vector3 macroOffset, hillOffset;
-            public bool safeFallback, fixedPlacement;
+            public bool safeFallback, fixedPlacement, useNormalPlanetRelief;
+            public Vector2 HillHeights => useNormalPlanetRelief ? appearance.normalPlanetHillHeights : appearance.hillHeights;
+            public Vector2 BasinDepths => useNormalPlanetRelief ? appearance.normalPlanetBasinDepths : appearance.basinDepths;
             public List<Feature> features=new List<Feature>();
             public List<RouteConnector> connectors = new List<RouteConnector>();
             public List<string> repairs=new List<string>();
@@ -62,12 +70,14 @@ namespace B612
         public Plan GenerationPlan=>plan;
         public Mesh OwnedMesh { get; private set; }
         public Mesh WaterMesh { get; private set; }
+        internal NaturalTerrainPlacement NaturalPlacement { get; set; }
         Material waterMaterial;
         public const float ProtectedHalfWidth=1.25f;
         static float Smooth(float a,float b,float value){float t=Mathf.Clamp01((value-a)/(b-a));return t*t*(3-2*t);}
         static float Arc(Vector3 a,Vector3 b,float radius)=>Mathf.Acos(Mathf.Clamp(Vector3.Dot(a,b),-1,1))*radius;
         public static Plan CreatePlan(int seed,float radius,Vector3 spawn,int featureBudget,int chapter=1,int frequency=2,
-            Vector3? weights=null, int requiredKind=-1, int reviewedLayout=0, TerrainAppearanceSettings appearance=null)
+            Vector3? weights=null, int requiredKind=-1, int reviewedLayout=0, TerrainAppearanceSettings appearance=null,
+            bool useNormalPlanetRelief=false)
         {
             if(radius<2||float.IsNaN(radius)||float.IsInfinity(radius))throw new ArgumentOutOfRangeException(nameof(radius));
             if(spawn.sqrMagnitude<.01f||float.IsNaN(spawn.sqrMagnitude)||float.IsInfinity(spawn.sqrMagnitude))throw new ArgumentException("Invalid spawn direction.");
@@ -77,8 +87,11 @@ namespace B612
             var start=spawn.normalized;
             var tangent=Vector3.Cross(start,Mathf.Abs(start.y)<.8f?Vector3.up:Vector3.right).normalized;
             tangent=Quaternion.AngleAxis((float)random.NextDouble()*360,start)*tangent;
+            bool normalRelief = useNormalPlanetRelief && requiredKind < 0;
             var result=new Plan{seed=seed,radius=radius,chapter=chapter,spawn=start,routeTangent=tangent,routeNormal=Vector3.Cross(start,tangent).normalized,
-                amplitude=Mathf.Min(1.6f,radius*.14f),noiseOffset=new Vector3((float)random.NextDouble()*40,(float)random.NextDouble()*40,(float)random.NextDouble()*40)};
+                amplitude=normalRelief ? Mathf.Min(3.35f,radius*.28f) : Mathf.Min(1.6f,radius*.14f),
+                useNormalPlanetRelief=normalRelief,
+                noiseOffset=new Vector3((float)random.NextDouble()*40,(float)random.NextDouble()*40,(float)random.NextDouble()*40)};
             result.appearance = (appearance ?? new TerrainAppearanceSettings()).Snapshot();
             result.macroSeed = StarSystemFactory.DeriveSeed(seed, 51, 0);
             result.hillSeed = StarSystemFactory.DeriveSeed(seed, 52, 0);
@@ -196,6 +209,13 @@ namespace B612
         public static float FreeHeight(Plan plan, Vector3 direction)
         {
             if (plan.amplitude == 0f) return 0f;
+            if (plan.natural != null)
+            {
+                Vector3 metres = direction * plan.radius;
+                float broad = 2f * Noise(metres / plan.natural.broadScaleMeters + plan.macroOffset, plan.macroSeed) - 1f;
+                float medium = 2f * Noise(metres / plan.natural.mediumScaleMeters + plan.hillOffset, plan.hillSeed) - 1f;
+                return broad * plan.natural.broadAmplitudeMeters + medium * plan.natural.mediumAmplitudeMeters;
+            }
             var settings = plan.appearance;
             Vector3 sample = direction;
             if (settings.warpStrength > 0f)
@@ -217,7 +237,7 @@ namespace B612
             // Allocate the remainder to broad shapes and optional ridges. The scale is
             // constant per planet, so no peak is clipped and no plateau is stamped in.
             float shapeScale = Mathf.Min(1f, shapeBudget * (1f - settings.ridgeShare) /
-                (Mathf.Max(settings.hillHeights.y, settings.basinDepths.y) * size));
+                (Mathf.Max(plan.HillHeights.y, plan.BasinDepths.y) * size));
             float elevation = landform * shapeScale + macroBudget * macro + hillBudget * (.20f + .80f * region.x) * hill;
             if (settings.ridgeShare <= 0f) return elevation;
             float mountain = Smooth(.45f, .85f, region.x);
@@ -226,6 +246,7 @@ namespace B612
         }
         public static float BaseHeight(Plan plan,Vector3 direction)
         {
+            if (plan.natural != null) return FreeHeight(plan, direction);
             if (plan.fixedPlacement && plan.requiredKind == 2)
                 return FixedCourseHeight(plan, direction);
 
@@ -329,6 +350,7 @@ namespace B612
         }
         public bool AllowsSpawn(Vector3 point,Vector3 normal)
         {
+            if (plan.natural != null) return NaturalPlacement != null && NaturalPlacement.AllowsBaobab(point, normal);
             var direction=transform.InverseTransformPoint(point).normalized;
             if(Vector3.Angle(normal,transform.TransformDirection(direction))>30 || MainRouteDistance(plan,direction)<ProtectedHalfWidth+.5f
                 ||ConnectorDistance(plan,direction)<ProtectedHalfWidth+.5f
@@ -340,23 +362,49 @@ namespace B612
             if(TerrainWater.Sample(plan,direction,out float distance,out _,out _)&&distance<plan.river.width*.5f+1f)return false;
             return true;
         }
+
+        internal void PrepareNatural(int seed, float radius, int chapter, PlanetGenerationSettings settings,
+            MeshFilter filter, MeshCollider collider)
+        {
+            if (OwnedMesh) throw new InvalidOperationException("Terrain is immutable after preparation.");
+            var natural = (settings.naturalTerrain ?? new NaturalTerrainSettings()).Snapshot(radius);
+            plan = new Plan
+            {
+                seed = seed, radius = radius, chapter = chapter,
+                profileId = settings.profileId, natural = natural,
+                appearance = (settings.terrainAppearance ?? new TerrainAppearanceSettings()).Snapshot(),
+                amplitude = natural.broadAmplitudeMeters + natural.mediumAmplitudeMeters,
+                macroSeed = StarSystemFactory.DeriveSeed(seed, 81, 0),
+                hillSeed = StarSystemFactory.DeriveSeed(seed, 82, 0),
+                riverSeed = StarSystemFactory.DeriveSeed(seed, 83, 0),
+                placementSeed = StarSystemFactory.DeriveSeed(seed, 84, 0),
+                surfaceSeed = StarSystemFactory.DeriveSeed(seed, 85, 0)
+            };
+            plan.macroOffset = NoiseOffset(plan.macroSeed);
+            plan.hillOffset = NoiseOffset(plan.hillSeed);
+            plan.noiseOffset = NoiseOffset(plan.surfaceSeed);
+            var watch = System.Diagnostics.Stopwatch.StartNew();
+            NaturalTerrainRiver.Plan(plan);
+            plan.riverPlanMilliseconds = (float)watch.Elapsed.TotalMilliseconds;
+            watch.Restart();
+            AssignMesh(filter, collider);
+            if (plan.river != null) CreateWater(settings.proceduralWaterMaterial);
+            plan.meshMilliseconds = (float)watch.Elapsed.TotalMilliseconds;
+            plan.buildAttempts = 1;
+        }
+
         public void Prepare(int seed,float radius,Vector3 spawn,int budget,MeshFilter filter,MeshCollider collider,
             CapsuleCollider player,int chapter=1,int frequency=2,Vector3? weights=null,int requiredKind=-1,
-            TerrainAppearanceSettings appearance=null, Material waterTemplate=null)
+            TerrainAppearanceSettings appearance=null, Material waterTemplate=null, bool useNormalPlanetRelief=false)
         {
             if(OwnedMesh)throw new InvalidOperationException("Terrain is immutable after preparation.");
-            plan=CreatePlan(seed,radius,spawn,budget,chapter,frequency,weights,requiredKind,appearance:appearance);
+            plan=CreatePlan(seed,radius,spawn,budget,chapter,frequency,weights,requiredKind,appearance:appearance,
+                useNormalPlanetRelief:useNormalPlanetRelief);
             var watch=System.Diagnostics.Stopwatch.StartNew();
             for(int build=0;build<MaxBuildAttempts;build++)
             {
                 plan.buildAttempts = build + 1;
-                OwnedMesh = BuildMesh(plan);
-                filter.sharedMesh = OwnedMesh;
-                collider.sharedMesh = null;
-                if (OwnedMesh.GetIndexCount(0) / 3 > FastMidphaseTriangleLimit)
-                    collider.cookingOptions &= ~MeshColliderCookingOptions.UseFastMidphase;
-                collider.sharedMesh = OwnedMesh;
-                Physics.SyncTransforms();
+                AssignMesh(filter, collider);
                 var verdict=TerrainTraversalVerifier.Verify(collider,player,plan);
                 plan.maximumWalkSlope=verdict.maximumSlope;
                 if(verdict.passed)
@@ -416,10 +464,29 @@ namespace B612
             throw new InvalidOperationException("Terrain walk verification failed after bounded repairs: " +
                 string.Join(" | ", plan.repairs));
         }
+
+        void AssignMesh(MeshFilter filter, MeshCollider collider)
+        {
+            OwnedMesh = BuildMesh(plan);
+            filter.sharedMesh = OwnedMesh;
+            collider.sharedMesh = null;
+            if (OwnedMesh.GetIndexCount(0) / 3 > FastMidphaseTriangleLimit)
+                collider.cookingOptions &= ~MeshColliderCookingOptions.UseFastMidphase;
+            collider.sharedMesh = OwnedMesh;
+            Physics.SyncTransforms();
+        }
+
         static Mesh BuildMesh(Plan plan)
         {
             if (plan.requiredKind >= 0) return BuildReviewedMesh(plan);
-            int frequency=Mathf.CeilToInt(2*plan.radius/.18f);
+            float spacing = plan.natural != null && plan.river != null ? Mathf.Min(.18f, plan.river.width * .3f) : .18f;
+            // Normalized cube: the face centre is the coarsest spacing (2R/frequency).
+            // Equal-angle cube: tan() spreads samples so the face centre spacing is
+            // R*PI/(2*frequency) and corners are no longer oversampled.
+            bool equalAngle = plan.natural != null && plan.natural.equalAngleMesh;
+            int frequency = equalAngle ? Mathf.CeilToInt(Mathf.PI * plan.radius / (2f * spacing))
+                : Mathf.CeilToInt(2 * plan.radius / spacing);
+            float angleStep = Mathf.PI * .25f / frequency;
             var vertices=new List<Vector3>();
             var colors = new List<Color>();
             var indices = new List<int>();
@@ -435,9 +502,21 @@ namespace B612
                     var key=ns[face]*frequency+rs[face]*(2*i-frequency)+ups[face]*(2*j-frequency);
                     if(!shared.TryGetValue(key,out int id))
                     {
-                        id=vertices.Count;shared.Add(key,id);var n=((Vector3)key).normalized;
-                        vertices.Add(n*(plan.radius+Height(plan,n)));
-                        colors.Add(SurfaceWeights(plan, n));
+                        id=vertices.Count;shared.Add(key,id);
+                        var n = equalAngle
+                            ? new Vector3(Mathf.Tan(key.x * angleStep), Mathf.Tan(key.y * angleStep), Mathf.Tan(key.z * angleStep)).normalized
+                            : ((Vector3)key).normalized;
+                        if (plan.natural != null)
+                        {
+                            float elevation = FreeHeight(plan, n);
+                            vertices.Add(n * (plan.radius + TerrainWater.Height(plan, n, elevation)));
+                            colors.Add(NaturalSurfaceWeights(plan, n, elevation));
+                        }
+                        else
+                        {
+                            vertices.Add(n*(plan.radius+Height(plan,n)));
+                            colors.Add(SurfaceWeights(plan, n));
+                        }
                     }
                     grid[j*(frequency+1)+i]=id;
                 }
@@ -510,6 +589,16 @@ namespace B612
             return new Color(region.x, Mathf.Max(region.y, basin), bank, tone);
         }
 
+        static Color NaturalSurfaceWeights(Plan plan, Vector3 direction, float elevation)
+        {
+            float high = elevation / Mathf.Max(.001f, plan.amplitude);
+            float bank = 0f;
+            if (TerrainWater.Sample(plan, direction, out float distance, out _, out _))
+                bank = 1f - Smooth(plan.river.width * .5f, plan.river.width * .5f + plan.river.bankWidth, distance);
+            float tone = Noise(direction * (plan.radius / plan.natural.mediumScaleMeters) + plan.noiseOffset, plan.surfaceSeed);
+            return new Color(Smooth(-.3f, .45f, high), Smooth(-.25f, .45f, -high), bank, tone);
+        }
+
         static List<float> SampleAxis(float start, float end, float[] cuts, bool includeEnd)
         {
             var positions = new SortedSet<float> { start };
@@ -538,7 +627,7 @@ namespace B612
         {foreach(var owned in new UnityEngine.Object[]{OwnedMesh,WaterMesh,waterMaterial})if(owned){if(Application.isPlaying)Destroy(owned);else DestroyImmediate(owned);}}
         void OnDrawGizmosSelected()
         {
-            if(plan==null)return;Gizmos.color=new Color(.35f,.95f,.65f);Draw(MainRoute(plan));
+            if(plan==null || plan.natural != null)return;Gizmos.color=new Color(.35f,.95f,.65f);Draw(MainRoute(plan));
             foreach (var connector in plan.connectors) Draw(new List<Vector3> { connector.anchor, connector.pad });
             foreach (var feature in plan.features)
             {

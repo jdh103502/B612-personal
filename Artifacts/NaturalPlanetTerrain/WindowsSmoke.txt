@@ -1,0 +1,23 @@
+
+d3d12
+Forcing GfxDevice: Direct3D 12
+    Version:         Direct3D 12 [level 12.2]
+B612_NATURAL_PLAYER: system_01_Start, terrain.natural.v1 v8, seed 395484021, R 12.00, area 99.7 %, river vertices 104
+B612_TERRAIN_PLAYER: B612/Planet Ground, DepthOnly pixels 13181/16384, seed 395484021, mesh 107738 vertices, 4 passes
+B612_GROUND_TEXTURES: Stylized_HandpaintedDirt_01_basecolor: RGBA_BC7_SRGB, Stylized_HandpaintedDirt_01_normalogl: RG_BC5_UNorm, Stylized_HandpaintedGrass_01_basecolor: RGBA_BC7_SRGB, Stylized_HandpaintedGrass_01_normalogl: RG_BC5_UNorm; bytes 5636544, 5636544, 5636544, 5636544
+B612_GROUND_GPU: 1280x720, Direct3D12, NVIDIA GeForce RTX 3060 Ti, timing enabled True, timer 1000000000 Hz, off/on unavailable / unavailable
+B612_NATURAL_PLAYER: system_01_C, terrain.natural.v1 v8, seed 1909821952, R 13.30, area 99.8 %, river vertices 66
+B612_GROUND_TRAVEL: system_01_C, color #B8A6D8, scale 1.109, seed 1909821952
+B612_TERRAIN_SMOKE_PASSED
+Player exit code 0
+
+d3d11
+Forcing GfxDevice: Direct3D 11
+B612_NATURAL_PLAYER: system_01_Start, terrain.natural.v1 v8, seed 395484021, R 12.00, area 99.7 %, river vertices 104
+B612_TERRAIN_PLAYER: B612/Planet Ground, DepthOnly pixels 13181/16384, seed 395484021, mesh 107738 vertices, 4 passes
+B612_GROUND_TEXTURES: Stylized_HandpaintedDirt_01_basecolor: RGBA_BC7_SRGB, Stylized_HandpaintedDirt_01_normalogl: RG_BC5_UNorm, Stylized_HandpaintedGrass_01_basecolor: RGBA_BC7_SRGB, Stylized_HandpaintedGrass_01_normalogl: RG_BC5_UNorm; bytes 5592880, 5592880, 5592880, 5592880
+B612_GROUND_GPU: 1280x720, Direct3D11, NVIDIA GeForce RTX 3060 Ti, timing enabled True, timer 1000000000 Hz, off/on unavailable / unavailable
+B612_NATURAL_PLAYER: system_01_C, terrain.natural.v1 v8, seed 1909821952, R 13.30, area 99.8 %, river vertices 66
+B612_GROUND_TRAVEL: system_01_C, color #B8A6D8, scale 1.109, seed 1909821952
+B612_TERRAIN_SMOKE_PASSED
+Player exit code 0

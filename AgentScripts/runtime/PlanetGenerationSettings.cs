@@ -14,7 +14,9 @@ namespace B612
         public Material proceduralWaterMaterial;
         public Material routeGuideMaterial;
         public TerrainAppearanceSettings terrainAppearance = new TerrainAppearanceSettings();
+        public NaturalTerrainSettings naturalTerrain = new NaturalTerrainSettings();
         public const string StylizedProfileId = "terrain.stylized.v2";
+        public const string NaturalProfileId = "terrain.natural.v1";
         public Color baselineColor=new Color(234f/255,223f/255,198f/255);
         public string[] palette={"#EADFC6","#A6B88C","#B8A6D8","#D9A6AC","#9EBCCB"};
         public Vector3 spawnDirection=Vector3.up, spawnForward=Vector3.forward;
@@ -23,14 +25,14 @@ namespace B612
         [Range(0,2)] public int subdivisions=1;
         [Range(4,96)] public int candidatesPerCell=32;
         public float maxSpawnSlope=55f;
-        [Tooltip("Continuous regional terrain and shallow rivers; fixed-size features are omitted when they cannot fit safely.")]
+        [Tooltip("Generate a continuous spherical surface and shallow rivers using the selected profile.")]
         public bool proceduralTerrain;
         [Range(0,2)] public int terrainFeatureBudget=2;
         public bool chapterCampaign;
         public ChapterTerrainDefinition[] chapters;
         public ChapterTerrainDefinition Chapter(int index)=>chapters!=null&&index>=1&&index<=chapters.Length?chapters[index-1]:null;
         public const float MinimumScale=.7f, MaximumScale=2f;
-        public const int GeneratorVersion=6;
+        public const int GeneratorVersion=9;
         public static PlanetSizeClass Classify(float scale)
         {
             if(float.IsNaN(scale)||float.IsInfinity(scale)||scale<MinimumScale||scale>MaximumScale)

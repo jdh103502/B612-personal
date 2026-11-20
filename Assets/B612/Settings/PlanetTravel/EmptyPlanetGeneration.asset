@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3a58739290784b74bb99a14b1c27a897, type: 3}
   m_Name: EmptyPlanetGeneration
   m_EditorClassIdentifier: Assembly-CSharp::B612.PlanetGenerationSettings
-  profileId: terrain.stylized.v2
+  profileId: terrain.natural.v1
   groundTemplate: {fileID: 6001805088334103870, guid: eeb4c83c52a823a488cd47c8ac6ad47b, type: 3}
   baselineScale: {x: 1, y: 1, z: 1}
   nominalRadius: 5.3
@@ -40,6 +40,8 @@ MonoBehaviour:
     hillRadii: {x: 7.6, y: 8}
     basinDepths: {x: 0.55, y: 0.8}
     basinRadii: {x: 6.3, y: 7}
+    normalPlanetHillHeights: {x: 2.5, y: 3}
+    normalPlanetBasinDepths: {x: 1, y: 1.5}
     residualMacroMeters: 0.24
     residualHillMeters: 0.07
     ridgeShare: 0
@@ -54,6 +56,24 @@ MonoBehaviour:
     paletteStrength: 0.7
     vegetationRemap: {x: 0.35, y: 0.63}
     heightColorRange: 1.05
+  naturalTerrain:
+    broadScaleMeters: 12
+    mediumScaleMeters: 5
+    broadAmplitudeMeters: 1.4
+    mediumAmplitudeMeters: 0.3
+    generateRiver: 1
+    riverLengthMeters: {x: 8, y: 18}
+    riverWidthMeters: 0.9
+    equalAngleMesh: 1
+    riverDepthMeters: {x: 0.12, y: 0.2}
+    bankTransitionMeters: 1.2
+    riverSourceAttempts: 64
+    riverTraceSteps: 256
+    analysisSpacingMeters: 0.6
+    maxAnalysisNodes: 30000
+    minConnectedAreaRatio: 0.6
+    siteSpacingMeters: 2
+    siteCandidateLimit: 64
   baselineColor: {r: 0.91764706, g: 0.8745098, b: 0.7764706, a: 1}
   palette:
   - '#EADFC6'

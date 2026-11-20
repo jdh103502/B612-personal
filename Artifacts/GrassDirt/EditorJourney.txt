@@ -1,0 +1,18 @@
+passed=True
+error=
+Scene Assets/B612/Scenes/B612_ChapterJourney.unity, build index 0, run seed 612101
+Fresh campaign locks abilities independently of developer allow flags
+Chapter 1: planet seed 395484021, kind 0, layout 0, fixed False, builds 1, basic bypass 9.12s
+Chapter 1: ability used and stable landing at (3.10, 0.00), height 0.00m, 3.18s
+Chapter 1: actual E unlock, reachable sites, immutable terrain and no repeated grant
+A summoned sheep claimed and ate an active root on a normal campaign planet
+Failed next-chapter preparation preserves current world, chapter, path and unlocks
+Chapter 2: planet seed 1798197590, kind 1, layout 0, fixed False, builds 1, basic bypass 9.88s
+Chapter 2: ability used and stable landing at (2.22, 0.00), height 1.98m, 3.84s
+Chapter 2: actual E unlock, reachable sites, immutable terrain and no repeated grant
+Chapter 3: planet seed 558768094, kind 2, layout 0, fixed False, builds 1, basic bypass 12.78s
+Chapter 3: ability used and stable landing at (6.19, 0.00), height 0.40m, 5.42s
+Chapter 3: actual E unlock, reachable sites, immutable terrain and no repeated grant
+Three chapters, alternate DAG routes, 11 transitions, persistent unlocks, complete history, terminal state and single EventSystem
+Shared textures and two-meter tiling verified after R and at each transition.
+Departed ground and water meshes and owned ground materials released on every transition

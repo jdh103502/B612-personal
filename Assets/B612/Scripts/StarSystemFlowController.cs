@@ -57,9 +57,9 @@ namespace B612
             if(index==0&&Current.spec.unlock!=TraversalCapability.None)
             {
                 Progress.unlocked|=Current.spec.unlock;player.GetComponent<PlayerTraversalAbilities>().SetUnlocked(Progress.unlocked);
-                ShowNotice(ChapterTerrainDefinition.AbilityName(Current.spec.unlock)+" 해금! 같은 지형의 지름길을 사용해 보세요.");
+                ShowNotice(ChapterTerrainDefinition.AbilityName(Current.spec.unlock)+" 해금! 행성에서 사용해 보세요.");
             }
-            else ShowNotice(index==1?"작물 지점 조사 완료 · 이동 시간을 기록했습니다.":"길 안내: 민트색 통로는 기본 이동으로 이어집니다.");
+            else ShowNotice(index==1?"작물 지점 조사 완료 · 이동 시간을 기록했습니다.":"만남 완료 · 이동 시간을 기록했습니다.");
             Changed?.Invoke();
         }
         bool mapRequested,notified;
@@ -222,6 +222,7 @@ namespace B612
             if(failure!=null)
             {
                 // No current world/data/inventory has been changed before this point.
+                Debug.LogWarning($"Planet preparation at {id}: {failure.Message}", this);
                 Progress.pendingDestinationId=null;IsTravelling=false;IsMapOpen=true;Progress.mode=RunMode.SelectingRoute;
                 pause.AcquirePause(this,GamePauseReason.MapOverlay);pause.ReleasePause(worldHost);
                 Physics.SyncTransforms();view.ShowTransition(false);view.ShowMap(true);

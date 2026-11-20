@@ -1,0 +1,101 @@
+[
+  {
+    "size": 0.7,
+    "seed": 1076931390,
+    "test": "river both directions",
+    "direction": "(-0.02007, 0.99618, 0.08496)",
+    "attempts": 1,
+    "outbound": 1.8,
+    "back": 1.8,
+    "maxSlope": 30.35575,
+    "smallestDepth": 0.00394058228,
+    "greatestDepth": 0.103087425,
+    "clippedTips": 2
+  },
+  {
+    "size": 0.7,
+    "seed": 1076931390,
+    "test": "hill both directions",
+    "direction": "(0.74978, -0.32227, 0.57790)",
+    "delta": 0.4658184,
+    "outbound": 1.81999993,
+    "back": 1.83999991,
+    "maxSlope": 16.7790146
+  },
+  {
+    "size": 0.7,
+    "seed": 1076931390,
+    "test": "basin both directions",
+    "direction": "(-0.10252, -0.53320, -0.83975)",
+    "delta": -0.2737495,
+    "outbound": 1.62,
+    "back": 1.5999999,
+    "maxSlope": 13.9343338
+  },
+  {
+    "size": 1.0,
+    "seed": 1076931390,
+    "test": "river both directions",
+    "direction": "(-0.02007, 0.99618, 0.08495)",
+    "attempts": 1,
+    "outbound": 2.37999988,
+    "back": 2.37999988,
+    "maxSlope": 28.1511822,
+    "smallestDepth": 0.01576233,
+    "greatestDepth": 0.147499084,
+    "clippedTips": 2
+  },
+  {
+    "size": 1.0,
+    "seed": 1076931390,
+    "test": "hill both directions",
+    "direction": "(0.74978, -0.32227, 0.57790)",
+    "delta": 0.6653912,
+    "outbound": 2.62,
+    "back": 2.62,
+    "maxSlope": 17.79595
+  },
+  {
+    "size": 1.0,
+    "seed": 1076931390,
+    "test": "basin both directions",
+    "direction": "(-0.10252, -0.53320, -0.83975)",
+    "delta": -0.3892625,
+    "outbound": 2.32,
+    "back": 2.3,
+    "maxSlope": 14.4672165
+  },
+  {
+    "size": 2.0,
+    "seed": 1076931390,
+    "test": "river both directions",
+    "direction": "(0.78403, 0.21355, -0.58283)",
+    "attempts": 1,
+    "outbound": 2.34,
+    "back": 2.34,
+    "maxSlope": 29.25914,
+    "smallestDepth": 0.0321521759,
+    "greatestDepth": 0.160865784,
+    "clippedTips": 2
+  },
+  {
+    "size": 2.0,
+    "seed": 1076931390,
+    "test": "hill both directions",
+    "direction": "(0.90518, 0.38477, -0.18057)",
+    "delta": 1.02549338,
+    "outbound": 2.72,
+    "back": 2.72,
+    "maxSlope": 21.7574234
+  },
+  {
+    "size": 2.0,
+    "seed": 1076931390,
+    "test": "basin both directions",
+    "direction": "(-0.50713, -0.68555, -0.52234)",
+    "delta": -0.5405088,
+    "outbound": 2.52,
+    "back": 2.52,
+    "maxSlope": 17.7708931
+  }
+]

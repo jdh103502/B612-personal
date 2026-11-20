@@ -28,28 +28,18 @@
 | `B612_Turnaround` | 왕자·여우 3면도 |
 | `B612_EmptyPlanet` | 게임 방식 검증: 싹·양·위험도·이동 기술·F12 디버그·항성계 지도와 행성 이동 |
 | `B612_TraversalTest` | 이동 지형 1단계: 고정 골짜기·높은 턱·활공 구간과 기본 우회로, F12로 능력 전후 비교 |
-| `B612_ProceduralTerrainTest` | 지형 2단계: 반경 12m 기준, seed별 저주파 지형·검수 요소 배치·공통 지도 이동 |
-| `B612_ChapterJourney` | 기본 플레이 씬. 3챕터의 대표 지형, 현장 능력 해금과 분기 지도 |
+| `B612_ProceduralTerrainTest` | 반경 12m 기준 자연 지형과 강, seed별 생성 비교, 공통 지도 이동 |
+| `B612_ChapterJourney` | 기본 플레이 씬. 3챕터의 자연 지형, 현장 능력 해금과 분기 지도 |
 
-### 지역 지형과 3챕터 · 3~4단계
+### 자연 지형과 3챕터
 
-`Assets/B612/Scenes/B612_ChapterJourney.unity`를 열고 Play합니다. **금색 기둥에 다가가 E**로 1챕터 대쉬 → 2챕터 더블점프 → 3챕터 활공을 배웁니다. 해금 전에도 민트색 기본 통로와 요소별 우회로를 걸어서 이용할 수 있습니다. 초록색 작물 조사 지점·파란색 안내 지점도 E로 방문하며 이동 시간과 거리를 기록합니다.
-
-각 챕터의 시작 행성에는 순서대로 **4.2m 골짜기, 2m 턱, 7m 활공 구간**이 배치됩니다. 금색 기둥을 지나 민트색 갈림길을 따라가면 파란 출발 표시와 금색 착지 표시가 있습니다. 해금 전에는 옆길로 걷고, 해금 후에는 같은 구간에서 지름길을 시도할 수 있습니다.
+`Assets/B612/Scenes/B612_ChapterJourney.unity`를 열고 Play합니다. **금색 기둥에 다가가 E**로 1챕터 대쉬 → 2챕터 더블점프 → 3챕터 활공을 배웁니다. 초록색 작물 조사 지점과 파란색 만남 지점도 E로 방문하며 이동 시간과 거리를 기록합니다.
 
 바오밥 생성 종료 후 **M**으로 연결된 다음 행성을 선택합니다. 각 챕터의 도착 행성에서 생성 종료 후 지도 아래 **다음 챕터** 버튼을 누릅니다. 빠른 비교는 **F12 → 바오밥 페이즈 스킵 → 닫기 → M**입니다. F12 능력 체크박스는 이미 배운 능력만 제어합니다. R·행성 이동은 해금과 개발 허용값을 유지하며 새 Play/패배 재시도는 새 여정입니다.
 
-지역은 평지·언덕·골짜기 가중치와 독립 노이즈, 이웃 타일 확장으로 연결됩니다. 강은 곡면을 따르는 얕은 물길이며 물속 보행 속도는 65%, 기본 통로에는 얕은 여울이 있습니다. 일반 행성의 선택 지형과 물길은 크기와 이동 검사 결과에 따라 생략될 수 있습니다.
+두 층의 연속 높이장이 구면 전체에 언덕과 분지를 만들고, 강은 지형이 낮아지는 방향으로 흐릅니다. 물속 보행 속도는 65%입니다. 완성된 지면에서 기본 보행으로 연결된 영역을 찾아 스폰·상호작용·바오밥 후보를 배치합니다. 잔디·흙 텍스처와 행성별 색상을 적용합니다. [지형과 이동 검증](Docs/NaturalPlanetTerrainImplementationResults.md) · [잔디·흙 적용 결과](Docs/GrassDirtTextureAssetImplementationResults.md)
 
-절차적 지면은 큰 높이층과 완만한 평탄부에 연속 색상과 약한 종이 질감을 적용합니다. 검수 코스의 핵심 단면과 착지대를 유지하면서 바깥쪽을 주변 지면으로 잇습니다. [전후 화면과 이동 검증](Docs/TerrainAppearanceImplementationResults.md)
-
-이번 챕터 시제품은 챕터당 6노드 항성계 하나를 사용합니다. 작물 조사·안내 상호작용은 이동 검증용이며 작물 수확·양털·NPC 퀘스트 경제와 중간 저장은 후속 범위입니다. [설정과 검증 기록](Docs/ProceduralTerrainStages34Results.md)을 참고하세요.
-
-### 지형 생성 · 2단계
-
-공통 행성 생성에 **저주파 평지·언덕과 골짜기/높은 턱 최대 1~2개**를 연결했습니다. 위치·방향은 seed에 따라 달라지며 스폰·기본 통로를 보호합니다. 실제 모터로 최종 Collider의 우회·복귀·능력 지름길을 검사한 뒤 바오밥 후보를 만듭니다. 작은 행성에는 큰 요소를 억지로 넣지 않습니다.
-
-`B612_ProceduralTerrainTest`에서 기존 F12·바오밥 스킵·M 지도를 사용할 수 있습니다. 다른 seed는 Edit 모드의 `StarSystemFlow.runSeed`에서 정하고 새 Play로 확인하세요. 실행 중 `ActivePlanetWorld`의 `ProceduralPlanetTerrain` Inspector와 Scene Gizmos로 생성 결과·보호 길을 볼 수 있습니다. [현재 적용 범위와 검증](Docs/ProceduralTerrainStage2Results.md)을 참고하세요.
+챕터당 6노드 항성계 하나를 사용합니다. 작물 수확·양털·NPC 퀘스트 경제와 중간 저장은 후속 범위입니다. 지형과 강은 각 생성 에셋의 **Natural Terrain**에서 조절합니다. 같은 시드를 비교하려면 씬의 `StarSystemFlowController`에서 `randomizeRunSeed`를 끄고 `runSeed`를 지정한 뒤 새로 Play합니다. 실행 중에는 `ActivePlanetWorld`의 `ProceduralPlanetTerrain`에서 실제 적용값과 배치 결과를 확인할 수 있습니다.
 
 ### 이동 지형 실험실 · 1단계
 
@@ -63,7 +53,7 @@
 
 행성에 가려진 싹은 해당 방향의 지평선 근처에 싹 아이콘 말풍선으로 표시됩니다. 싹이 보이면 표시를 숨깁니다. 지평선이 화면 밖인 방향은 화면 가장자리에 표시합니다. 6개가 차면 생성을 건너뛰며, 양이 싹을 먹으면 다음 생성 시점에 빈자리를 채웁니다.
 
-단독 스폰 검증에서는 `Baobab Surge` Inspector의 시간·생성 기회·동시 상한·간격·seed를 사용합니다. 공통 항성계 경로는 확정된 행성 데이터가 해당 값을 주입합니다. `PlanetSurfaceGrid`를 선택하고 Scene 뷰의 Gizmos를 켜면 논리 구역 경계가 보입니다. 기본 1배는 80개, 1.5배는 180개, 2배는 320개로 늘어납니다. 논리 구역과 지형 메시 해상도는 별개이며 현재 공통 경로는 2단계 생성 메시를 사용합니다.
+단독 스폰 검증에서는 `Baobab Surge` Inspector의 시간·생성 기회·동시 상한·간격·seed를 사용합니다. 공통 항성계 경로는 확정된 행성 데이터가 해당 값을 주입합니다. `PlanetSurfaceGrid`를 선택하고 Scene 뷰의 Gizmos를 켜면 논리 구역 경계가 보입니다. 기본 1배는 80개, 1.5배는 180개, 2배는 320개로 늘어납니다. 논리 구역과 지형 메시 해상도는 별개입니다.
 
 기준 밀도는 `EmptyPlanetGeneration.asset`의 `subdivisions`(기본 1)로 설정합니다. `PlanetSurfaceGrid` Inspector에는 준비된 frequency·구역·후보 수가 읽기 전용으로 표시됩니다. 구역당 후보는 최대 32개이며 구역 증가로 바오밥 수량이 늘지는 않습니다. [타일 밀도 구현·검증](Docs/PlanetTileDensityImplementationSpec.md)을 참고하세요.
 
@@ -116,7 +106,7 @@
 
 남은 바오밥을 두고 출발할 수 있지만 위험도 100%의 게임오버가 우선합니다. 이동하면 배치했던 양은 같은 카드로 돌아오고 새 행성의 생성 타이머가 시작됩니다. F12 허용 설정은 유지됩니다. 마지막 행성의 생성 종료 후에는 테스트 항성계 완료를 표시하며, 남은 바오밥은 계속 성장합니다. R은 현재 행성의 리스폰이고 게임오버 재시도는 새 여정입니다.
 
-`StarSystemFlow`의 seed/전환 시간과 `Assets/B612/Settings/PlanetTravel/EmptyPlanetGeneration.asset`의 팔레트·지형 설정을 확인할 수 있습니다. 생성 시간과 수량은 행성 데이터의 기본값을 사용하므로 120초·40회·동시 6개를 유지합니다. 저주파 지형 생성은 연결했으며 NPC·작물·소행성 다리는 아직 추가하지 않았습니다. 지도는 [구현·검증 기록](Docs/StarSystemMapTravelImplementationSpec.md), 지형은 [2단계 결과](Docs/ProceduralTerrainStage2Results.md)를 참고하세요.
+`StarSystemFlow`의 seed/전환 시간과 `Assets/B612/Settings/PlanetTravel/EmptyPlanetGeneration.asset`의 팔레트·지형 설정을 확인할 수 있습니다. 생성 시간과 수량은 행성 데이터의 기본값을 사용하므로 120초·40회·동시 6개를 유지합니다. 지도는 [구현·검증 기록](Docs/StarSystemMapTravelImplementationSpec.md), 지형은 [자연 지형 적용 결과](Docs/NaturalPlanetTerrainImplementationResults.md)를 참고하세요.
 
 ### 개발자 디버그 모드
 
@@ -167,4 +157,5 @@ AgentScripts/  씬과 모델을 생성하는 스크립트
 ## 크레딧
 
 - 왕자 3D 모델: Meshy AI로 생성
+- 행성 지면 텍스처는 JulioVII의 [Stylized Grass & Dirt](https://juliovii.itch.io/ftpgrass-dirt)를 사용합니다. [에셋 고지](Assets/StreamingAssets/ThirdPartyNotices/JulioVII-GrassDirt.txt)는 플레이어 빌드에 포함됩니다.
 - 그 외 모델·코드: Unity, Blender 스크립트로 제작 (Claude 활용)

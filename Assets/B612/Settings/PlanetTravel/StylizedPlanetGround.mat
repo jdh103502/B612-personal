@@ -23,18 +23,49 @@ Material:
   m_SavedProperties:
     serializedVersion: 3
     m_TexEnvs:
+    - _DirtAlbedo:
+        m_Texture: {fileID: 2800000, guid: 3639c6f200b4ae744a620d8aba74b673, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _DirtNormal:
+        m_Texture: {fileID: 2800000, guid: 9c8409d545bbe9f4690c438e07ccb79e, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _GrassAlbedo:
+        m_Texture: {fileID: 2800000, guid: 4bbb34ab569f3dd4baa096645a29789f, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _GrassNormal:
+        m_Texture: {fileID: 2800000, guid: 153d5328c4cef424898af534f0fb38ac, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     - _Paper:
         m_Texture: {fileID: 2800000, guid: cc035fb833934e04eb9bfaa8397005c6, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
+    - _DiagnosticLegacy: 0
+    - _DiagnosticUnlit: 0
+    - _DirtNormalStrength: 0.2
+    - _DirtTileMeters: 2
+    - _GrassNormalStrength: 0.2
+    - _GrassTileMeters: 2
+    - _GroundTextureStrength: 0.5
+    - _GroundTexturesEnabled: 1
     - _HeightColorRange: 0.65
+    - _PaletteStrength: 0.7
     - _PaperContrast: 0.05
     - _PaperScale: 1.4
     - _Radius: 12
     - _Smoothness: 0.1
     m_Colors:
     - _BaseColor: {r: 1, g: 1, b: 1, a: 1}
+    - _DirtAlbedoMean: {r: 0.53231174, g: 0.32865384, b: 0.10913072, a: 0}
+    - _EarthColor: {r: 0.83, g: 0.56999993, b: 0.41999996, a: 1}
+    - _GrassAlbedoMean: {r: 0.4316761, g: 0.584219, b: 0.03742448, a: 0}
+    - _RockColor: {r: 0.69, g: 0.61, b: 0.76, a: 1}
+    - _VegetationColor: {r: 0.56999993, g: 0.8, b: 0.49, a: 1}
+    - _VegetationRemap: {r: 0.35, g: 0.63, b: 0, a: 0}
   m_BuildTextureStacks: []
   m_AllowLocking: 1

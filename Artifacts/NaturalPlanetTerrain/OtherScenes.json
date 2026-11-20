@@ -1,0 +1,20 @@
+[
+  {
+    "scene": "B612_EmptyPlanet",
+    "profileId": "terrain.natural.v1",
+    "seed": 1836527477,
+    "radius": 5.3,
+    "hasRiver": true,
+    "connectedAreaRatio": 1,
+    "slots": 2560
+  },
+  {
+    "scene": "B612_ProceduralTerrainTest",
+    "profileId": "terrain.natural.v1",
+    "seed": 395484021,
+    "radius": 12,
+    "hasRiver": true,
+    "connectedAreaRatio": 0.9968674,
+    "slots": 2560
+  }
+]

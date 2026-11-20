@@ -63,7 +63,7 @@ namespace B612
                     Add(Vector3.Slerp(patch.centre, adjacent, .38f).normalized);
                 }
                 candidates.Sort((a, b) => b.score.CompareTo(a.score));
-                Vector2 heights = basin ? settings.basinDepths : settings.hillHeights;
+                Vector2 heights = basin ? plan.BasinDepths : plan.HillHeights;
                 Vector2 radii = basin ? settings.basinRadii : settings.hillRadii;
                 int placed = 0;
                 foreach (var candidate in candidates)
