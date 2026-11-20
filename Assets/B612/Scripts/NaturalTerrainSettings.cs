@@ -6,6 +6,9 @@ namespace B612
     /// <summary>Value: v9 lattice value noise (comparison only). Simplex: v10 gradient noise.</summary>
     public enum NaturalNoiseBasis { Value, Simplex }
 
+    /// <summary>Trace: v10 steepest-descent tracer from a high source (comparison and fallback). Flow: v11 flow-accumulation river into a pond.</summary>
+    public enum NaturalRiverMode { Trace, Flow }
+
     [Serializable]
     public sealed class NaturalTerrainSettings
     {
@@ -29,6 +32,13 @@ namespace B612
         [Min(.75f)] public float bankTransitionMeters = 1.2f;
         [Range(1, 64)] public int riverSourceAttempts = 64;
         [Range(32, 256)] public int riverTraceSteps = 256;
+        [Tooltip("Generator v11 default: follow the largest inflow of a basin down into a shallow, walkable pond. Trace reproduces v10 and is the fallback.")]
+        public NaturalRiverMode riverMode = NaturalRiverMode.Flow;
+        [Tooltip("Cell spacing of the flow-routing graph.")]
+        [Range(.4f, 1.2f)] public float flowSpacingMeters = .6f;
+        [Tooltip("Deepest point of the pond below its surface. The pond floor is the natural ground and stays walkable.")]
+        [Range(.08f, .4f)] public float pondMaxDepthMeters = .25f;
+        [Range(1f, 8f)] public float pondMaxRadiusMeters = 3.5f;
 
         [Range(.35f, 1f)] public float analysisSpacingMeters = .6f;
         [Range(1000, 30000)] public int maxAnalysisNodes = 30000;
@@ -47,6 +57,8 @@ namespace B612
                 !Valid(riverWidthMeters, .6f, 2) || !Valid(riverDepthMeters.x, .08f, .3f) ||
                 !Valid(riverDepthMeters.y, riverDepthMeters.x, .3f) || !Valid(bankTransitionMeters, .75f, 4) ||
                 riverSourceAttempts < 1 || riverSourceAttempts > 64 || riverTraceSteps < 32 || riverTraceSteps > 256 ||
+                !Enum.IsDefined(typeof(NaturalRiverMode), riverMode) || !Valid(flowSpacingMeters, .4f, 1.2f) ||
+                !Valid(pondMaxDepthMeters, .08f, .4f) || !Valid(pondMaxRadiusMeters, 1, 8) ||
                 !Valid(analysisSpacingMeters, .35f, 1) || maxAnalysisNodes < 1000 || maxAnalysisNodes > 30000 ||
                 !Valid(minConnectedAreaRatio, .1f, 1) || !Valid(siteSpacingMeters, 1.5f, 8) ||
                 siteCandidateLimit < 8 || siteCandidateLimit > 64)
@@ -67,6 +79,9 @@ namespace B612
             used.riverWidthMeters *= scale;
             used.riverDepthMeters *= scale;
             used.bankTransitionMeters *= scale;
+            used.flowSpacingMeters *= scale;
+            used.pondMaxDepthMeters *= scale;
+            used.pondMaxRadiusMeters *= scale;
             return used;
         }
     }

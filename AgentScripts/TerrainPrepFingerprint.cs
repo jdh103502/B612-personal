@@ -25,6 +25,23 @@ public static class TerrainPrepFingerprint
 #endif
     }
 
+    /// <summary>Same as Run with the v10 traced river (no flow routing, no pond).</summary>
+    public static object RunV10River(int journey, int chapter, string planetId, float size)
+    {
+#if UNITY_EDITOR
+        var settings = UnityEditor.AssetDatabase.LoadAssetAtPath<PlanetGenerationSettings>("Assets/B612/Settings/Chapters/ChapterJourneyGeneration.asset");
+        string original = JsonUtility.ToJson(settings.naturalTerrain);
+        try
+        {
+            settings.naturalTerrain.riverMode = NaturalRiverMode.Trace;
+            return Run(journey, chapter, planetId, size);
+        }
+        finally { JsonUtility.FromJsonOverwrite(original, settings.naturalTerrain); }
+#else
+        throw new InvalidOperationException("Editor only");
+#endif
+    }
+
     public static object Run(int journey, int chapter, string planetId, float size)
     {
         if (!Application.isPlaying) throw new InvalidOperationException("Use Play mode");

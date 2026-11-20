@@ -14,6 +14,31 @@ namespace B612
             public List<float> lengths = new List<float>();
             public float bankWidth;
             public Vector3 centre;public float bound,width=.9f;public int fordIndex=10;
+
+            // v11 flow river. flowFit: the channel only lowers the ground. pond: the river ends in a
+            // shallow pond whose water fills all ground below pondLevel within pondRadius (metres).
+            public bool flowFit, pond;
+            public Vector3 pondDirection;
+            public float pondLevel, pondRadius, pondBowl;
+        }
+
+        /// <summary>
+        /// Depth removed to deepen a shallow basin into a pond. It fades out with the height above the water
+        /// (so the new shore follows the terrain's contours instead of a circle) and radially to zero, with
+        /// zero slope, at the pond rim, so the rim keeps its height.
+        /// </summary>
+        public static float PondCarve(Vector3 pondDirection, float pondRadius, float pondBowl, float pondLevel,
+            float planetRadius, Vector3 direction, float elevation)
+        {
+            if (pondBowl <= 0f) return 0f;
+            // cos(x) >= 1 - x^2/2, so a smaller dot product is certainly outside the rim; skips Acos per vertex.
+            float x = pondRadius / planetRadius, dot = Vector3.Dot(direction, pondDirection);
+            if (dot < 1f - .5f * x * x) return 0f;
+            float t = Mathf.Acos(Mathf.Clamp(dot, -1f, 1f)) * planetRadius / pondRadius;
+            if (t >= 1f) return 0f;
+            float k = 1f - t * t;
+            float above = Mathf.Clamp01((elevation - pondLevel) / Mathf.Max(.05f, 1.5f * pondBowl));
+            return pondBowl * k * k * (1f - above * above * (3f - 2f * above));
         }
         public static void Plan(ProceduralPlanetTerrain.Plan plan)
         {
@@ -71,6 +96,9 @@ namespace B612
         }
         public static float Height(ProceduralPlanetTerrain.Plan plan,Vector3 n,float original)
         {
+            if (plan.natural != null && plan.river != null && plan.river.pond)
+                original -= PondCarve(plan.river.pondDirection, plan.river.pondRadius, plan.river.pondBowl, plan.river.pondLevel,
+                    plan.radius, n, original);
             if(!Sample(plan,n,out float distance,out float level,out float bed,out float along))return original;
             if (plan.natural != null)
             {
@@ -94,6 +122,11 @@ namespace B612
         public static bool IsWet(ProceduralPlanetTerrain.Plan plan, Vector3 direction, float margin, out float surface)
         {
             surface = 0f;
+            if (plan.natural != null && plan.river != null && plan.river.pond && PondWet(plan, direction, margin))
+            {
+                surface = plan.river.pondLevel;
+                return true;
+            }
             if (!Sample(plan, direction, out float distance, out float level, out float bed, out float along)) return false;
             if (plan.natural == null)
             {
@@ -117,17 +150,98 @@ namespace B612
             float channel = distance <= halfWidth
                 ? Mathf.Lerp(bed, level, Mathf.SmoothStep(0, 1, distance / halfWidth))
                 : Mathf.Lerp(level, original, Mathf.SmoothStep(0, 1, (distance - halfWidth) / river.bankWidth));
+            // Near the pond the ground can already lie below the channel level; never raise it.
+            if (river.flowFit) channel = Mathf.Min(channel, original);
             return Mathf.Lerp(original, channel, fade);
         }
 
         static float EndFade(River river, float along)
-            => Mathf.SmoothStep(0, 1, Mathf.Min(along, river.lengths[river.lengths.Count - 1] - along) /
+        {
+            // A river that ends in a pond keeps its full width into the water; only the spring fades.
+            if (river.pond) return Mathf.SmoothStep(0, 1, along / Mathf.Max(.001f, river.width * .85f));
+            return Mathf.SmoothStep(0, 1, Mathf.Min(along, river.lengths[river.lengths.Count - 1] - along) /
                 Mathf.Max(.001f, river.width * .85f));
+        }
+
+        static float Ground(ProceduralPlanetTerrain.Plan plan, Vector3 direction)
+            => Height(plan, direction, ProceduralPlanetTerrain.FreeHeight(plan, direction));
+
+        static float PondArc(River river, Vector3 direction, float radius)
+            => Mathf.Acos(Mathf.Clamp(Vector3.Dot(direction, river.pondDirection), -1f, 1f)) * radius;
+
+        /// <summary>Pond water covers the final ground below pondLevel inside pondRadius; margin widens the test sideways.</summary>
+        static bool PondWet(ProceduralPlanetTerrain.Plan plan, Vector3 direction, float margin)
+        {
+            var river = plan.river;
+            if (PondArc(river, direction, plan.radius) > river.pondRadius + margin) return false;
+            if (Ground(plan, direction) < river.pondLevel) return true;
+            if (margin <= 0f) return false;
+            var tangent = Vector3.Cross(direction, Mathf.Abs(direction.y) < .8f ? Vector3.up : Vector3.right).normalized;
+            float angle = margin / plan.radius;
+            for (int k = 0; k < 6; k++)
+            {
+                var heading = Quaternion.AngleAxis(60f * k, direction) * tangent;
+                var probe = (direction * Mathf.Cos(angle) + heading * Mathf.Sin(angle)).normalized;
+                if (PondArc(river, probe, plan.radius) <= river.pondRadius && Ground(plan, probe) < river.pondLevel) return true;
+            }
+            return false;
+        }
+
+        /// <summary>0..1 wet-shore tint around the pond, from the pre-carve elevation.</summary>
+        public static float PondShore(ProceduralPlanetTerrain.Plan plan, Vector3 direction, float elevation)
+        {
+            var river = plan.river;
+            if (river == null || !river.pond || PondArc(river, direction, plan.radius) > river.pondRadius + river.bankWidth) return 0f;
+            float rise = elevation - PondCarve(river.pondDirection, river.pondRadius, river.pondBowl, river.pondLevel,
+                plan.radius, direction, elevation) - river.pondLevel;
+            return 1f - Mathf.SmoothStep(0, 1, Mathf.Clamp01(rise / Mathf.Max(.01f, river.bankWidth * .12f)));
+        }
 
         static float ChannelHalfWidth(River river, float fade)
             => river.width * .5f * Mathf.Lerp(.22f, 1f, fade);
 
         static float ShoreInset(River river) => Mathf.Min(.009f, river.width * .012f);
+
+        /// <summary>
+        /// Flat pond surface: a polar disc at the pond level. The ground above the level hides the rest of
+        /// the disc, and planning guarantees the ground at the rim stays above the water.
+        /// </summary>
+        static void AppendPond(ProceduralPlanetTerrain.Plan plan, List<Vector3> vertices, List<int> triangles)
+        {
+            const int Rings = 10, Segments = 64;
+            var river = plan.river;
+            var centre = river.pondDirection;
+            var tangent = Vector3.Cross(centre, Mathf.Abs(centre.y) < .8f ? Vector3.up : Vector3.right).normalized;
+            var bitangent = Vector3.Cross(centre, tangent);
+            float height = plan.radius + river.pondLevel + ShoreInset(river);
+            int first = vertices.Count;
+            vertices.Add(centre * height);
+            for (int ring = 1; ring <= Rings; ring++)
+            {
+                float angle = river.pondRadius * ring / Rings / plan.radius;
+                for (int s = 0; s < Segments; s++)
+                {
+                    float theta = s * Mathf.PI * 2f / Segments;
+                    var heading = tangent * Mathf.Cos(theta) + bitangent * Mathf.Sin(theta);
+                    vertices.Add((centre * Mathf.Cos(angle) + heading * Mathf.Sin(angle)).normalized * height);
+                }
+            }
+            int Index(int ring, int s) => ring == 0 ? first : first + 1 + (ring - 1) * Segments + (s % Segments);
+            void Face(int a, int b, int c)
+            {
+                // Visible from above: Cross(b - a, c - a) points away from the planet, like the river ribbon.
+                if (Vector3.Dot(Vector3.Cross(vertices[b] - vertices[a], vertices[c] - vertices[a]), vertices[a]) < 0f)
+                { int t = b; b = c; c = t; }
+                triangles.Add(a); triangles.Add(b); triangles.Add(c);
+            }
+            for (int s = 0; s < Segments; s++) Face(Index(0, 0), Index(1, s), Index(1, s + 1));
+            for (int ring = 1; ring < Rings; ring++)
+            for (int s = 0; s < Segments; s++)
+            {
+                Face(Index(ring, s), Index(ring + 1, s), Index(ring + 1, s + 1));
+                Face(Index(ring, s), Index(ring + 1, s + 1), Index(ring, s + 1));
+            }
+        }
 
         public static Mesh CreateMesh(ProceduralPlanetTerrain.Plan plan)
         {
@@ -155,6 +269,7 @@ namespace B612
                 // Only the radial top surface is visible, even at the horizon.
                 triangles.AddRange(new[]{c,b,a,c,d,b});
             }
+            if (river.pond) AppendPond(plan, vertices, triangles);
             var mesh=new Mesh{name="Connected shallow river"};mesh.SetVertices(vertices);mesh.SetTriangles(triangles,0);mesh.SetNormals(vertices.ConvertAll(v=>v.normalized));mesh.RecalculateBounds();return mesh;
         }
     }

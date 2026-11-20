@@ -32,7 +32,7 @@ namespace B612
         public ChapterTerrainDefinition[] chapters;
         public ChapterTerrainDefinition Chapter(int index)=>chapters!=null&&index>=1&&index<=chapters.Length?chapters[index-1]:null;
         public const float MinimumScale=.7f, MaximumScale=2f;
-        public const int GeneratorVersion=10;
+        public const int GeneratorVersion=11;
         public static PlanetSizeClass Classify(float scale)
         {
             if(float.IsNaN(scale)||float.IsInfinity(scale)||scale<MinimumScale||scale>MaximumScale)

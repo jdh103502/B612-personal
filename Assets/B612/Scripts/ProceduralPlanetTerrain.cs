@@ -456,7 +456,12 @@ namespace B612
             plan.noiseOffset = NoiseOffset(plan.surfaceSeed);
             plan.roughnessOffset = NoiseOffset(plan.roughnessSeed);
             var watch = System.Diagnostics.Stopwatch.StartNew();
-            NaturalTerrainRiver.Plan(plan);
+            if (natural.riverMode != NaturalRiverMode.Flow || !NaturalTerrainFlow.Plan(plan))
+            {
+                string flowStatus = natural.riverMode == NaturalRiverMode.Flow ? plan.riverStatus : null;
+                NaturalTerrainRiver.Plan(plan);
+                if (flowStatus != null) plan.riverStatus = flowStatus + " Fallback trace: " + plan.riverStatus;
+            }
             plan.riverPlanMilliseconds = (float)watch.Elapsed.TotalMilliseconds;
             watch.Restart();
             AssignMesh(filter, collider);
@@ -698,6 +703,7 @@ namespace B612
             float bank = 0f;
             if (TerrainWater.Sample(plan, direction, out float distance, out _, out _))
                 bank = 1f - Smooth(plan.river.width * .5f, plan.river.width * .5f + plan.river.bankWidth, distance);
+            if (plan.river != null && plan.river.pond) bank = Mathf.Max(bank, TerrainWater.PondShore(plan, direction, elevation));
             float tone = Noise(direction * (plan.radius / plan.natural.mediumScaleMeters) + plan.noiseOffset, plan.surfaceSeed);
             return new Color(Smooth(-.3f, .45f, high), Smooth(-.25f, .45f, -high), bank, tone);
         }

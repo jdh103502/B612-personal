@@ -72,6 +72,10 @@ MonoBehaviour:
     bankTransitionMeters: 1.2
     riverSourceAttempts: 64
     riverTraceSteps: 256
+    riverMode: 1
+    flowSpacingMeters: 0.6
+    pondMaxDepthMeters: 0.25
+    pondMaxRadiusMeters: 3.5
     analysisSpacingMeters: 0.6
     maxAnalysisNodes: 30000
     minConnectedAreaRatio: 0.6

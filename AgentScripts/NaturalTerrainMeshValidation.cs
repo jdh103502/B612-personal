@@ -143,6 +143,16 @@ public static class NaturalTerrainMeshValidation
                     Run($"river{fraction:F2}AB", new List<Vector3> { a, n, b });
                     Run($"river{fraction:F2}BA", new List<Vector3> { b, n, a });
                 }
+                if (river.pond)
+                {
+                    // Wade from dry ground beyond the rim (away from the inflow) to the pond centre and back.
+                    var inflow = Vector3.ProjectOnPlane(river.directions[river.directions.Count - 1] - river.pondDirection,
+                        river.pondDirection).normalized;
+                    float angle = (river.pondRadius + 1f) / radius;
+                    var shore = (river.pondDirection * Mathf.Cos(angle) - inflow * Mathf.Sin(angle)).normalized;
+                    Run("pondIn", Path(shore, river.pondDirection));
+                    Run("pondOut", Path(river.pondDirection, shore));
+                }
             }
             return new { planetId, radius, equalAngle = plan.natural.equalAngleMesh, highMeters = highH, lowMeters = lowH, maxSlope, routes = rows };
         }

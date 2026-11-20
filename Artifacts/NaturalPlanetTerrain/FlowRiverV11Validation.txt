@@ -1,0 +1,58 @@
+# Generator v11 flow river + pond validation (2026-11-21, Unity 6000.3.23f1 Editor Play mode)
+# riverMode Flow: steepest descent over a ~0.6m triangle-cell graph (9-neighbour), catchment accumulation, basin flood fill to spill / 0.25m / 3.5m, bowl to 0.15m for shallow basins, largest inflow followed upstream 8-18m; Trace = v10.
+
+## Trace mode reproduces v10 bit for bit (TerrainPrepFingerprint.RunV10River vs v10 tree at e37c0fb): 8/8 identical
+
+## Generation sweep, v11 defaults (36 planets, journeys 612101 and 77, chapters 1-3)
+j=612101 system_01_Start R=12.0 river=True conn=1.0000 cand=2560 | Flow river into pond: 16.2m, pond radius 3.8m (3920 cells, 5 basins, 3 candidates, 0 unfit).
+j=612101 system_01_B R=10.9 river=True conn=1.0000 cand=2560 | Flow river into pond: 13.0m, pond radius 3.4m (3920 cells, 6 basins, 4 candidates, 0 unfit).
+j=612101 system_01_C R=15.1 river=True conn=1.0000 cand=5760 | Flow river into pond: 14.7m, pond radius 4.2m (6480 cells, 11 basins, 3 candidates, 0 unfit).
+j=612101 system_01_D R=23.5 river=True conn=0.9998 cand=10240 | Flow river into pond: 14.4m, pond radius 3.9m (15680 cells, 24 basins, 2 candidates, 0 unfit).
+j=612101 system_01_E R=15.1 river=True conn=1.0000 cand=5760 | Flow river into pond: 15.0m, pond radius 3.8m (6480 cells, 11 basins, 3 candidates, 0 unfit).
+j=612101 system_01_Destination R=13.7 river=True conn=1.0000 cand=5760 | Flow river into pond: 15.6m, pond radius 4.2m (5120 cells, 6 basins, 3 candidates, 0 unfit).
+j=612101 system_02_Start R=12.0 river=True conn=1.0000 cand=2560 | Flow river into pond: 15.3m, pond radius 4.0m (3920 cells, 7 basins, 2 candidates, 0 unfit).
+j=612101 system_02_B R=19.5 river=True conn=1.0000 cand=10227 | Flow river into pond: 15.6m, pond radius 3.9m (10580 cells, 13 basins, 4 candidates, 0 unfit).
+j=612101 system_02_C R=8.9 river=True conn=0.9998 cand=2560 | Flow river into pond: 11.6m, pond radius 2.2m (3920 cells, 7 basins, 4 candidates, 0 unfit).
+j=612101 system_02_D R=22.1 river=True conn=1.0000 cand=10240 | Flow river into pond: 15.0m, pond radius 4.0m (13520 cells, 22 basins, 7 candidates, 0 unfit).
+j=612101 system_02_E R=15.3 river=True conn=1.0000 cand=5760 | Flow river into pond: 13.5m, pond radius 4.5m (6480 cells, 8 basins, 4 candidates, 0 unfit).
+j=612101 system_02_Destination R=22.9 river=True conn=0.9999 cand=10235 | Flow river into pond: 15.6m, pond radius 3.9m (14580 cells, 26 basins, 11 candidates, 0 unfit).
+j=612101 system_03_Start R=12.0 river=True conn=1.0000 cand=2560 | Flow river into pond: 8.4m, pond radius 3.9m (3920 cells, 10 basins, 1 candidates, 0 unfit).
+j=612101 system_03_B R=21.1 river=True conn=1.0000 cand=10240 | Flow river into pond: 15.3m, pond radius 4.1m (12500 cells, 15 basins, 4 candidates, 0 unfit).
+j=612101 system_03_C R=8.7 river=True conn=0.9997 cand=2560 | Flow river into pond: 10.6m, pond radius 2.9m (3920 cells, 5 basins, 2 candidates, 0 unfit).
+j=612101 system_03_D R=23.3 river=True conn=1.0000 cand=10240 | Flow river into pond: 15.6m, pond radius 4.1m (14580 cells, 20 basins, 6 candidates, 0 unfit).
+j=612101 system_03_E R=21.4 river=True conn=1.0000 cand=10234 | Flow river into pond: 15.3m, pond radius 4.2m (12500 cells, 22 basins, 10 candidates, 0 unfit).
+j=612101 system_03_Destination R=18.0 river=True conn=1.0000 cand=5760 | Flow river into pond: 15.9m, pond radius 4.0m (8820 cells, 13 basins, 4 candidates, 0 unfit).
+j=77 system_01_Start R=12.0 river=True conn=1.0000 cand=2560 | Flow river into pond: 15.9m, pond radius 4.0m (3920 cells, 5 basins, 3 candidates, 0 unfit).
+j=77 system_01_B R=12.2 river=True conn=1.0000 cand=5739 | Flow river into pond: 15.9m, pond radius 3.9m (4500 cells, 10 basins, 2 candidates, 0 unfit).
+j=77 system_01_C R=9.7 river=True conn=1.0000 cand=2560 | Flow river into pond: 12.4m, pond radius 2.5m (3920 cells, 5 basins, 3 candidates, 0 unfit).
+j=77 system_01_D R=18.9 river=True conn=1.0000 cand=10240 | Flow river into pond: 12.0m, pond radius 4.0m (9680 cells, 16 basins, 5 candidates, 0 unfit).
+j=77 system_01_E R=10.6 river=True conn=1.0000 cand=2560 | Flow river into pond: 13.2m, pond radius 3.4m (3920 cells, 5 basins, 2 candidates, 0 unfit).
+j=77 system_01_Destination R=13.5 river=True conn=0.9998 cand=5760 | Flow river into pond: 15.3m, pond radius 3.8m (5120 cells, 12 basins, 6 candidates, 0 unfit).
+j=77 system_02_Start R=12.0 river=True conn=1.0000 cand=2560 | Flow river into pond: 15.3m, pond radius 3.5m (3920 cells, 7 basins, 1 candidates, 0 unfit).
+j=77 system_02_B R=15.5 river=True conn=0.9999 cand=5760 | Flow river into pond: 13.5m, pond radius 4.2m (6480 cells, 9 basins, 3 candidates, 0 unfit).
+j=77 system_02_C R=21.1 river=True conn=1.0000 cand=10240 | Flow river into pond: 15.0m, pond radius 1.8m (12500 cells, 19 basins, 7 candidates, 0 unfit).
+j=77 system_02_D R=17.3 river=True conn=1.0000 cand=5753 | Flow river into pond: 14.7m, pond radius 3.9m (8820 cells, 11 basins, 3 candidates, 0 unfit).
+j=77 system_02_E R=18.7 river=True conn=0.9998 cand=10240 | Flow river into pond: 15.3m, pond radius 3.8m (9680 cells, 10 basins, 5 candidates, 0 unfit).
+j=77 system_02_Destination R=23.8 river=True conn=0.9999 cand=10240 | Flow river into pond: 15.3m, pond radius 3.9m (15680 cells, 27 basins, 6 candidates, 0 unfit).
+j=77 system_03_Start R=12.0 river=True conn=1.0000 cand=2560 | Flow river into pond: 13.8m, pond radius 3.8m (3920 cells, 8 basins, 3 candidates, 0 unfit).
+j=77 system_03_B R=11.4 river=True conn=1.0000 cand=2560 | Flow river into pond: 11.1m, pond radius 3.9m (3920 cells, 6 basins, 2 candidates, 0 unfit).
+j=77 system_03_C R=9.2 river=True conn=1.0000 cand=2560 | Flow river into pond: 11.7m, pond radius 3.2m (3920 cells, 8 basins, 1 candidates, 0 unfit).
+j=77 system_03_D R=9.5 river=True conn=1.0000 cand=2560 | Flow river into pond: 12.1m, pond radius 3.1m (3920 cells, 6 basins, 4 candidates, 0 unfit).
+j=77 system_03_E R=23.9 river=True conn=1.0000 cand=10240 | Flow river into pond: 14.7m, pond radius 4.0m (15680 cells, 21 basins, 9 candidates, 0 unfit).
+j=77 system_03_Destination R=10.2 river=True conn=1.0000 cand=2542 | Flow river into pond: 13.6m, pond radius 3.3m (3920 cells, 8 basins, 3 candidates, 0 unfit).
+
+## Walk, v11 defaults (real GravityWalker, basic movement; pondIn/pondOut wade from 1m outside the rim to the centre)
+walk system_02_B R=8.4 routes=10 maxSlope=30.6 hillUp:4.80 hillDown:4.82 basinIn:10.86 basinOut:10.86 river0.35AB:1.88 river0.35BA:1.86 river0.65AB:1.82 river0.65BA:1.82 pondIn:2.14 pondOut:2.20
+walk system_02_B R=12.0 routes=10 maxSlope=29.5 hillUp:7.04 hillDown:7.04 basinIn:15.32 basinOut:15.30 river0.35AB:2.44 river0.35BA:2.44 river0.65AB:2.36 river0.65BA:2.36 pondIn:2.82 pondOut:2.84
+walk system_02_B R=24.0 routes=10 maxSlope=29.8 hillUp:22.04 hillDown:22.02 basinIn:28.96 basinOut:28.94 river0.35AB:2.48 river0.35BA:2.48 river0.65AB:2.46 river0.65BA:2.44 pondIn:3.02 pondOut:3.04
+walk system_01_Start R=12.0 routes=10 maxSlope=28.1 hillUp:4.58 hillDown:4.58 basinIn:10.18 basinOut:10.16 river0.35AB:2.44 river0.35BA:2.44 river0.65AB:2.40 river0.65BA:2.38 pondIn:2.94 pondOut:3.00
+walk system_01_D R=23.5 routes=10 maxSlope=28.2 hillUp:2.98 hillDown:2.98 basinIn:19.68 basinOut:19.68 river0.35AB:2.48 river0.35BA:2.48 river0.65AB:2.44 river0.65BA:2.46 pondIn:3.20 pondOut:3.24
+walk system_03_E R=21.4 routes=10 maxSlope=30.5 hillUp:11.26 hillDown:11.26 basinIn:20.62 basinOut:20.58 river0.35AB:2.52 river0.35BA:2.52 river0.65AB:2.50 river0.65BA:2.48 pondIn:3.34 pondOut:3.38
+walk system_01_C R=9.7 routes=10 maxSlope=31.9 hillUp:10.60 hillDown:10.64 basinIn:6.26 basinOut:6.26 river0.35AB:2.10 river0.35BA:2.10 river0.65AB:2.04 river0.65BA:2.06 pondIn:1.96 pondOut:2.00
+walk system_03_D R=9.5 routes=10 maxSlope=27.5 hillUp:8.14 hillDown:8.16 basinIn:6.38 basinOut:6.36 river0.35AB:2.06 river0.35BA:2.06 river0.65AB:2.04 river0.65BA:2.06 pondIn:2.54 pondOut:2.60
+
+## Pond checks (journey 612101 chapter 2)
+system_02_B pond level -1.183 floor -1.343 depth 0.160 bowl 0.000 movement 0.65 spawnMovement 1 spawnWet False | wet sites 0, wet baobab slots 0/10227;
+system_02_C pond level -0.479 floor -0.658 depth 0.178 bowl 0.000 movement 0.65 spawnMovement 1 spawnWet False | wet sites 0, wet baobab slots 0/2560;
+system_02_D pond level -0.843 floor -0.993 depth 0.150 bowl 0.014 movement 0.65 spawnMovement 1 spawnWet False | wet sites 0, wet baobab slots 0/10240;
+
