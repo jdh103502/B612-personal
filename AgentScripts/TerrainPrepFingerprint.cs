@@ -7,6 +7,24 @@ using UnityEngine;
 //   unity command run_script --file AgentScripts/TerrainPrepFingerprint.cs --entry TerrainPrepFingerprint.Run --args "[612101,2,\"system_02_B\",1]"
 public static class TerrainPrepFingerprint
 {
+    /// <summary>Same as Run with the v9 noise (value basis, no roughness mask), for checking that v9 is reproducible.</summary>
+    public static object RunV9Noise(int journey, int chapter, string planetId, float size)
+    {
+#if UNITY_EDITOR
+        var settings = UnityEditor.AssetDatabase.LoadAssetAtPath<PlanetGenerationSettings>("Assets/B612/Settings/Chapters/ChapterJourneyGeneration.asset");
+        string original = JsonUtility.ToJson(settings.naturalTerrain);
+        try
+        {
+            settings.naturalTerrain.noiseBasis = NaturalNoiseBasis.Value;
+            settings.naturalTerrain.roughnessRange = Vector2.one;
+            return Run(journey, chapter, planetId, size);
+        }
+        finally { JsonUtility.FromJsonOverwrite(original, settings.naturalTerrain); }
+#else
+        throw new InvalidOperationException("Editor only");
+#endif
+    }
+
     public static object Run(int journey, int chapter, string planetId, float size)
     {
         if (!Application.isPlaying) throw new InvalidOperationException("Use Play mode");
@@ -33,9 +51,9 @@ public static class TerrainPrepFingerprint
             var terrain = world.Terrain;
             var plan = terrain.GenerationPlan;
             var mesh = terrain.OwnedMesh;
-            ulong ground = Fnv();
-            foreach (var v in mesh.vertices) ground = Mix(Mix(Mix(ground, v.x), v.y), v.z);
-            foreach (var c in mesh.colors) ground = Mix(Mix(Mix(Mix(ground, c.r), c.g), c.b), c.a);
+            ulong ground = Fnv(), positions = Fnv(), tints = Fnv();
+            foreach (var v in mesh.vertices) { ground = Mix(Mix(Mix(ground, v.x), v.y), v.z); positions = Mix(Mix(Mix(positions, v.x), v.y), v.z); }
+            foreach (var c in mesh.colors) { ground = Mix(Mix(Mix(Mix(ground, c.r), c.g), c.b), c.a); tints = Mix(Mix(Mix(Mix(tints, c.r), c.g), c.b), c.a); }
             foreach (var n in mesh.normals) ground = Mix(Mix(Mix(ground, n.x), n.y), n.z);
             foreach (int i in mesh.triangles) ground = Mix(ground, i);
             ulong water = Fnv();
@@ -51,7 +69,8 @@ public static class TerrainPrepFingerprint
                 slots = Mix(Mix(Mix(slots, slot.localPoint.x), slot.localPoint.y), slot.localPoint.z);
             return new
             {
-                planetId, plan.radius, vertices = mesh.vertexCount, ground = ground.ToString("x16"), water = water.ToString("x16"),
+                planetId, plan.radius, vertices = mesh.vertexCount, ground = ground.ToString("x16"),
+                positions = positions.ToString("x16"), tints = tints.ToString("x16"), water = water.ToString("x16"),
                 placement = placement.ToString("x16"), slots = slots.ToString("x16"), world.surface.SlotCount,
                 plan.meshMilliseconds, report.analysisMilliseconds, report.candidateMilliseconds
             };

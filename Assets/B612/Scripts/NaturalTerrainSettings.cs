@@ -3,6 +3,9 @@ using UnityEngine;
 
 namespace B612
 {
+    /// <summary>Value: v9 lattice value noise (comparison only). Simplex: v10 gradient noise.</summary>
+    public enum NaturalNoiseBasis { Value, Simplex }
+
     [Serializable]
     public sealed class NaturalTerrainSettings
     {
@@ -10,6 +13,12 @@ namespace B612
         [Min(1f)] public float mediumScaleMeters = 5f;
         [Min(0f)] public float broadAmplitudeMeters = 1.4f;
         [Min(0f)] public float mediumAmplitudeMeters = .3f;
+        [Tooltip("Generator v10 default: gradient (simplex) noise for both height layers. Value reproduces v9 for comparison.")]
+        public NaturalNoiseBasis noiseBasis = NaturalNoiseBasis.Simplex;
+        [Tooltip("Size of the low-frequency mask that varies the medium layer between calm and rough areas.")]
+        [Min(5f)] public float roughnessScaleMeters = 18f;
+        [Tooltip("Medium-layer multiplier from calm (x) to rough (y) areas, y up to 2 within the height budget. (1, 1) disables the mask, as in v9.")]
+        public Vector2 roughnessRange = new Vector2(.2f, 1.6f);
 
         public bool generateRiver = true;
         public Vector2 riverLengthMeters = new Vector2(8f, 18f);
@@ -30,7 +39,9 @@ namespace B612
         internal NaturalTerrainSettings Snapshot(float radius)
         {
             static bool Valid(float value, float min, float max) => value >= min && value <= max;
-            if (!Valid(broadScaleMeters, 2, 60) || !Valid(mediumScaleMeters, 1, broadScaleMeters) ||
+            if (!Enum.IsDefined(typeof(NaturalNoiseBasis), noiseBasis) || !Valid(roughnessScaleMeters, 5, 60) ||
+                !Valid(roughnessRange.x, .1f, 1) || !Valid(roughnessRange.y, roughnessRange.x, 2) ||
+                !Valid(broadScaleMeters, 2, 60) || !Valid(mediumScaleMeters, 1, broadScaleMeters) ||
                 !Valid(broadAmplitudeMeters, 0, 8) || !Valid(mediumAmplitudeMeters, 0, 8) ||
                 !Valid(riverLengthMeters.x, 2, 30) || !Valid(riverLengthMeters.y, riverLengthMeters.x, 40) ||
                 !Valid(riverWidthMeters, .6f, 2) || !Valid(riverDepthMeters.x, .08f, .3f) ||
@@ -45,7 +56,9 @@ namespace B612
             var used = (NaturalTerrainSettings)MemberwiseClone();
             used.broadScaleMeters *= scale;
             used.mediumScaleMeters *= scale;
-            float amplitude = (broadAmplitudeMeters + mediumAmplitudeMeters) * scale;
+            used.roughnessScaleMeters *= scale;
+            // The budget bounds the peak: rough patches may raise the medium layer above its base amplitude.
+            float amplitude = (broadAmplitudeMeters + mediumAmplitudeMeters * Mathf.Max(1f, roughnessRange.y)) * scale;
             float budget = Mathf.Min(2f, .17f * radius);
             float amplitudeScale = amplitude > budget ? scale * budget / amplitude : scale;
             used.broadAmplitudeMeters *= amplitudeScale;

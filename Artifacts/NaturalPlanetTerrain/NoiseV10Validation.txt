@@ -1,0 +1,101 @@
+# Generator v10 noise validation (2026-11-21, Unity 6000.3.23f1 Editor Play mode)
+# v9 = noiseBasis Value + roughnessRange (1,1); v10 = Simplex (gain 2.26, frequency 0.40) + roughness mask 18m, 0.2-1.6x.
+
+## Noise calibration (NaturalTerrainMeshValidation.NoiseSpread, 400k / 200k points)
+{"value": {"p10": -0.492337525, "p50": 0.0005476475, "p90": 0.4923246, "min": -0.9942051, "max": 0.989577651, "std": 0.3698242462666842}, "simplex": {"p10": -0.217240021, "p50": 0.000350945018, "p90": 0.217817426, "min": -0.4160798, "max": 0.415291369, "std": 0.1631257771508616}, "valueRmsGradient": 1.150323832967883, "simplexRmsGradient": 1.265292372519598}
+
+## v9 settings reproduce v9 output bit for bit (TerrainPrepFingerprint.RunV9Noise vs commit 5c226bb hashes): 8/8 identical
+
+## Relief, v9 (calm/rough split uses the v10 mask areas; relief = |h - mean of 6 heights 2.5m away|)
+v9  system_02_B R=8.4 river=True conn=1.0000 spread/q=1.14 p10/50/90=-0.45/-0.03/0.35 min/max=-0.76/0.64 regions=20 minRange=0.36 slope%=99.7/0.3/0.00 maxSlope=31.0 calm=0.36@69mm rough=0.34@52mm
+v9  system_02_B R=12.0 river=True conn=1.0000 spread/q=1.14 p10/50/90=-0.64/-0.04/0.50 min/max=-1.09/0.92 regions=20 minRange=0.51 slope%=99.7/0.3/0.00 maxSlope=31.2 calm=0.36@56mm rough=0.34@44mm
+v9  system_02_B R=24.0 river=True conn=1.0000 spread/q=1.29 p10/50/90=-0.62/0.01/0.66 min/max=-1.13/1.35 regions=20 minRange=0.89 slope%=99.4/0.6/0.00 maxSlope=35.6 calm=0.17@57mm rough=0.20@51mm
+v9  system_01_Start R=12.0 river=True conn=1.0000 spread/q=1.34 p10/50/90=-0.72/-0.10/0.62 min/max=-1.27/1.02 regions=20 minRange=0.42 slope%=96.0/4.0/0.00 maxSlope=28.4 calm=0.24@58mm rough=0.43@46mm
+v9  system_01_D R=23.5 river=True conn=0.9999 spread/q=1.32 p10/50/90=-0.61/-0.04/0.71 min/max=-1.25/1.45 regions=20 minRange=1.05 slope%=99.1/0.9/0.00 maxSlope=39.8 calm=0.30@50mm rough=0.18@58mm
+v9  system_03_E R=21.4 river=True conn=1.0000 spread/q=1.49 p10/50/90=-0.79/-0.01/0.70 min/max=-1.41/1.38 regions=20 minRange=1.12 slope%=99.7/0.3/0.00 maxSlope=25.4 calm=0.40@55mm rough=0.17@60mm
+v9  system_01_C R=9.7 river=True conn=1.0000 spread/q=1.60 p10/50/90=-0.78/-0.27/0.51 min/max=-1.12/1.10 regions=20 minRange=0.58 slope%=97.4/2.6/0.01 maxSlope=30.7 calm=0.19@59mm rough=0.15@51mm
+v9  system_03_D R=9.5 river=True conn=1.0000 spread/q=1.47 p10/50/90=-0.56/-0.03/0.60 min/max=-1.21/1.10 regions=20 minRange=0.60 slope%=95.8/4.2/0.00 maxSlope=32.2 calm=0.32@67mm rough=0.27@78mm
+
+## Relief, first simplex attempt without frequency calibration (rejected: slopes too steep)
+new system_02_B R=8.4 river=True conn=0.9947 spread/q=1.35 p10/50/90=-0.42/0.03/0.53 min/max=-0.95/1.03 regions=20 minRange=0.98 slope%=53.4/44.6/2.00 maxSlope=43.9 calm=0.30@14.1 rough=0.29@15.1
+new system_02_B R=12.0 river=True conn=0.9962 spread/q=1.35 p10/50/90=-0.59/0.04/0.75 min/max=-1.36/1.48 regions=20 minRange=1.39 slope%=53.4/44.6/2.00 maxSlope=43.9 calm=0.30@14.1 rough=0.29@15.1
+new system_02_B R=24.0 river=True conn=0.9964 spread/q=1.36 p10/50/90=-0.64/0.07/0.72 min/max=-1.33/1.44 regions=20 minRange=1.97 slope%=56.8/41.5/1.72 maxSlope=45.2 calm=0.27@13.8 rough=0.30@14.8
+new system_01_Start R=12.0 river=True conn=0.9981 spread/q=1.35 p10/50/90=-0.62/0.10/0.73 min/max=-1.39/1.32 regions=20 minRange=0.97 slope%=61.7/36.6/1.71 maxSlope=37.7 calm=0.26@14.6 rough=0.33@14.0
+new system_01_D R=23.5 river=True conn=0.9974 spread/q=1.34 p10/50/90=-0.72/-0.02/0.62 min/max=-1.41/1.42 regions=20 minRange=1.82 slope%=58.2/40.0/1.85 maxSlope=40.4 calm=0.30@13.9 rough=0.23@14.9
+new system_03_E R=21.4 river=True conn=0.9962 spread/q=1.44 p10/50/90=-0.74/0.02/0.70 min/max=-1.41/1.44 regions=20 minRange=1.98 slope%=54.7/42.7/2.56 maxSlope=41.6 calm=0.24@13.9 rough=0.29@15.4
+new system_01_C R=9.7 river=True conn=0.9944 spread/q=1.49 p10/50/90=-0.66/-0.03/0.55 min/max=-1.15/1.03 regions=20 minRange=1.12 slope%=50.4/46.3/3.26 maxSlope=39.1 calm=0.27@16.2 rough=0.19@15.6
+new system_03_D R=9.5 river=True conn=0.9913 spread/q=1.42 p10/50/90=-0.59/-0.01/0.53 min/max=-1.07/1.11 regions=20 minRange=1.02 slope%=53.4/43.3/3.29 maxSlope=41.3 calm=0.25@15.8 rough=0.29@14.4
+
+## Relief, v10 with mask 0.35-1.0x (proposal value; weak effect)
+new system_02_B R=8.4 river=True conn=0.9994 spread/q=1.37 p10/50/90=-0.45/0.09/0.51 min/max=-0.95/0.86 regions=20 minRange=0.39 slope%=97.9/2.1/0.00 maxSlope=26.9 calm=0.34@63mm rough=0.34@69mm
+new system_02_B R=12.0 river=True conn=1.0000 spread/q=1.37 p10/50/90=-0.65/0.13/0.72 min/max=-1.35/1.22 regions=20 minRange=0.56 slope%=97.9/2.1/0.00 maxSlope=28.5 calm=0.34@47mm rough=0.34@55mm
+new system_02_B R=24.0 river=True conn=1.0000 spread/q=1.26 p10/50/90=-0.52/0.09/0.75 min/max=-1.35/1.38 regions=20 minRange=0.83 slope%=99.7/0.3/0.00 maxSlope=34.0 calm=0.16@37mm rough=0.20@49mm
+new system_01_Start R=12.0 river=True conn=1.0000 spread/q=1.15 p10/50/90=-0.73/-0.13/0.42 min/max=-1.28/0.87 regions=20 minRange=0.60 slope%=99.4/0.6/0.00 maxSlope=33.0 calm=0.22@35mm rough=0.44@50mm
+new system_01_D R=23.5 river=True conn=0.9999 spread/q=1.51 p10/50/90=-0.77/-0.03/0.75 min/max=-1.38/1.43 regions=20 minRange=1.17 slope%=98.3/1.7/0.00 maxSlope=34.6 calm=0.30@42mm rough=0.19@57mm
+new system_03_E R=21.4 river=True conn=1.0000 spread/q=1.35 p10/50/90=-0.70/0.04/0.65 min/max=-1.33/1.31 regions=20 minRange=1.04 slope%=99.8/0.2/0.00 maxSlope=28.7 calm=0.40@34mm rough=0.17@46mm
+new system_01_C R=9.7 river=True conn=1.0000 spread/q=1.67 p10/50/90=-0.71/-0.03/0.65 min/max=-1.17/1.07 regions=20 minRange=0.32 slope%=98.5/1.5/0.00 maxSlope=28.7 calm=0.18@70mm rough=0.15@66mm
+new system_03_D R=9.5 river=True conn=1.0000 spread/q=1.32 p10/50/90=-0.64/-0.15/0.40 min/max=-1.06/1.07 regions=20 minRange=0.49 slope%=99.3/0.7/0.00 maxSlope=34.2 calm=0.35@56mm rough=0.25@55mm
+
+## Relief, v10 with mask 0.2-1.6x (adopted, 8 planets)
+new system_02_B R=8.4 river=True conn=1.0000 spread/q=1.40 p10/50/90=-0.46/0.08/0.52 min/max=-0.93/0.86 regions=20 minRange=0.40 slope%=96.9/3.1/0.00 maxSlope=27.6 calm=0.30@63mm rough=0.30@92mm
+new system_02_B R=12.0 river=True conn=1.0000 spread/q=1.40 p10/50/90=-0.66/0.11/0.74 min/max=-1.34/1.24 regions=20 minRange=0.57 slope%=97.0/3.0/0.00 maxSlope=30.2 calm=0.30@46mm rough=0.30@76mm
+new system_02_B R=24.0 river=True conn=1.0000 spread/q=1.29 p10/50/90=-0.54/0.09/0.75 min/max=-1.44/1.37 regions=20 minRange=0.86 slope%=99.1/0.9/0.00 maxSlope=31.9 calm=0.10@36mm rough=0.12@62mm
+new system_01_Start R=12.0 river=True conn=1.0000 spread/q=1.20 p10/50/90=-0.75/-0.14/0.45 min/max=-1.21/0.88 regions=20 minRange=0.64 slope%=99.4/0.6/0.00 maxSlope=31.1 calm=0.20@34mm rough=0.36@68mm
+new system_01_D R=23.5 river=True conn=0.9998 spread/q=1.52 p10/50/90=-0.77/-0.02/0.75 min/max=-1.47/1.48 regions=20 minRange=1.22 slope%=97.1/2.9/0.00 maxSlope=35.4 calm=0.22@44mm rough=0.15@77mm
+new system_03_E R=21.4 river=True conn=1.0000 spread/q=1.35 p10/50/90=-0.71/0.05/0.65 min/max=-1.34/1.29 regions=20 minRange=1.03 slope%=99.6/0.4/0.00 maxSlope=28.8 calm=0.31@32mm rough=0.14@62mm
+new system_01_C R=9.7 river=True conn=1.0000 spread/q=1.68 p10/50/90=-0.70/-0.04/0.65 min/max=-1.27/1.05 regions=20 minRange=0.34 slope%=98.8/1.2/0.00 maxSlope=28.5 calm=0.15@73mm rough=0.09@87mm
+new system_03_D R=9.5 river=True conn=1.0000 spread/q=1.36 p10/50/90=-0.66/-0.15/0.41 min/max=-1.15/1.09 regions=20 minRange=0.53 slope%=98.6/1.4/0.00 maxSlope=34.7 calm=0.30@53mm rough=0.18@73mm
+
+## Relief, first 4-planet check of 0.2-1.6x (in-memory setting)
+new system_02_B R=12.0 river=True conn=1.0000 spread/q=1.40 p10/50/90=-0.66/0.11/0.74 min/max=-1.34/1.24 regions=20 minRange=0.57 slope%=97.0/3.0/0.00 maxSlope=30.2 calm=0.30@46mm rough=0.30@76mm
+new system_01_Start R=12.0 river=True conn=1.0000 spread/q=1.20 p10/50/90=-0.75/-0.14/0.45 min/max=-1.21/0.88 regions=20 minRange=0.64 slope%=99.4/0.6/0.00 maxSlope=31.1 calm=0.20@34mm rough=0.36@68mm
+new system_03_E R=21.4 river=True conn=1.0000 spread/q=1.35 p10/50/90=-0.71/0.05/0.65 min/max=-1.34/1.29 regions=20 minRange=1.03 slope%=99.6/0.4/0.00 maxSlope=28.8 calm=0.31@32mm rough=0.14@62mm
+new system_03_D R=9.5 river=True conn=1.0000 spread/q=1.36 p10/50/90=-0.66/-0.15/0.41 min/max=-1.15/1.09 regions=20 minRange=0.53 slope%=98.6/1.4/0.00 maxSlope=34.7 calm=0.30@53mm rough=0.18@73mm
+
+## Generation sweep, v10 defaults (Compare: equal-angle vs normalized mapping on the same v10 heights)
+j=612101 system_01_Start R=12.0 river=True conn=1.0000 cand=2560 maxErr=12.9mm | Downhill channel accepted.
+j=612101 system_01_B R=10.9 river=True conn=1.0000 cand=2560 maxErr=20.1mm | Downhill channel accepted.
+j=612101 system_01_C R=15.1 river=True conn=0.9998 cand=5760 maxErr=16.0mm | Downhill channel accepted.
+j=612101 system_01_D R=23.5 river=True conn=0.9998 cand=10240 maxErr=12.9mm | Downhill channel accepted.
+j=612101 system_01_E R=15.1 river=True conn=1.0000 cand=5760 maxErr=8.3mm | Downhill channel accepted.
+j=612101 system_01_Destination R=13.7 river=True conn=1.0000 cand=5760 maxErr=15.0mm | Downhill channel accepted.
+j=612101 system_02_Start R=12.0 river=True conn=1.0000 cand=2560 maxErr=12.8mm | Downhill channel accepted.
+j=612101 system_02_B R=19.5 river=True conn=0.9999 cand=10240 maxErr=11.2mm | Downhill channel accepted.
+j=612101 system_02_C R=8.9 river=True conn=0.9998 cand=2560 maxErr=21.2mm | Downhill channel accepted.
+j=612101 system_02_D R=22.1 river=True conn=1.0000 cand=10240 maxErr=8.7mm | Downhill channel accepted.
+j=612101 system_02_E R=15.3 river=True conn=1.0000 cand=5760 maxErr=10.4mm | Downhill channel accepted.
+j=612101 system_02_Destination R=22.9 river=True conn=0.9999 cand=10240 maxErr=5.1mm | Downhill channel accepted.
+j=612101 system_03_Start R=12.0 river=True conn=1.0000 cand=2560 maxErr=14.0mm | Downhill channel accepted.
+j=612101 system_03_B R=21.1 river=True conn=1.0000 cand=10240 maxErr=8.8mm | Downhill channel accepted.
+j=612101 system_03_C R=8.7 river=True conn=0.9997 cand=2560 maxErr=11.3mm | Downhill channel accepted.
+j=612101 system_03_D R=23.3 river=True conn=1.0000 cand=10240 maxErr=14.4mm | Downhill channel accepted.
+j=612101 system_03_E R=21.4 river=True conn=1.0000 cand=10240 maxErr=9.6mm | Downhill channel accepted.
+j=612101 system_03_Destination R=18.0 river=True conn=1.0000 cand=5760 maxErr=13.6mm | Downhill channel accepted.
+j=77 system_01_Start R=12.0 river=True conn=1.0000 cand=2560 maxErr=10.7mm | Downhill channel accepted.
+j=77 system_01_B R=12.2 river=True conn=1.0000 cand=5760 maxErr=15.6mm | Downhill channel accepted.
+j=77 system_01_C R=9.7 river=True conn=1.0000 cand=2560 maxErr=8.5mm | Downhill channel accepted.
+j=77 system_01_D R=18.9 river=True conn=1.0000 cand=10240 maxErr=12.4mm | Downhill channel accepted.
+j=77 system_01_E R=10.6 river=True conn=1.0000 cand=2560 maxErr=12.1mm | Downhill channel accepted.
+j=77 system_01_Destination R=13.5 river=True conn=0.9998 cand=5760 maxErr=6.0mm | Downhill channel accepted.
+j=77 system_02_Start R=12.0 river=True conn=1.0000 cand=2560 maxErr=11.4mm | Downhill channel accepted.
+j=77 system_02_B R=15.5 river=True conn=0.9999 cand=5760 maxErr=3.7mm | Downhill channel accepted.
+j=77 system_02_C R=21.1 river=True conn=1.0000 cand=10240 maxErr=13.6mm | Downhill channel accepted.
+j=77 system_02_D R=17.3 river=True conn=1.0000 cand=5760 maxErr=6.3mm | Downhill channel accepted.
+j=77 system_02_E R=18.7 river=True conn=0.9998 cand=10240 maxErr=13.6mm | Downhill channel accepted.
+j=77 system_02_Destination R=23.8 river=True conn=0.9998 cand=10240 maxErr=10.4mm | Downhill channel accepted.
+j=77 system_03_Start R=12.0 river=True conn=1.0000 cand=2560 maxErr=9.8mm | Downhill channel accepted.
+j=77 system_03_B R=11.4 river=True conn=1.0000 cand=2560 maxErr=10.8mm | Downhill channel accepted.
+j=77 system_03_C R=9.2 river=True conn=1.0000 cand=2560 maxErr=12.4mm | Downhill channel accepted.
+j=77 system_03_D R=9.5 river=True conn=1.0000 cand=2560 maxErr=10.2mm | Downhill channel accepted.
+j=77 system_03_E R=23.9 river=True conn=1.0000 cand=10240 maxErr=11.8mm | Downhill channel accepted.
+j=77 system_03_Destination R=10.2 river=True conn=1.0000 cand=2560 maxErr=13.7mm | Downhill channel accepted.
+
+## Walk, v10 defaults
+walk system_02_B R=8.4 routes=8 maxSlope=26.9 hillUp:4.88 hillDown:4.88 basinIn:9.54 basinOut:9.52 river0.35AB:2.02 river0.35BA:2.02 river0.65AB:1.98 river0.65BA:1.96
+walk system_02_B R=12.0 routes=8 maxSlope=29.3 hillUp:7.02 hillDown:7.04 basinIn:13.64 basinOut:13.58 river0.35AB:2.64 river0.35BA:2.64 river0.65AB:2.56 river0.65BA:2.56
+walk system_02_B R=24.0 routes=8 maxSlope=33.5 hillUp:22.04 hillDown:22.02 basinIn:28.00 basinOut:28.00 river0.35AB:2.54 river0.35BA:2.56 river0.65AB:2.48 river0.65BA:2.48
+walk system_01_Start R=12.0 routes=8 maxSlope=28.3 hillUp:4.56 hillDown:4.58 basinIn:5.96 basinOut:5.96 river0.35AB:2.52 river0.35BA:2.52 river0.65AB:2.46 river0.65BA:2.44
+walk system_01_D R=23.5 routes=8 maxSlope=29.7 hillUp:2.98 hillDown:2.98 basinIn:19.70 basinOut:19.68 river0.35AB:2.52 river0.35BA:2.52 river0.65AB:2.46 river0.65BA:2.48
+walk system_03_E R=21.4 routes=8 maxSlope=28.7 hillUp:11.00 hillDown:11.00 basinIn:20.62 basinOut:20.58 river0.35AB:2.56 river0.35BA:2.56 river0.65AB:2.48 river0.65BA:2.48
+walk system_01_C R=9.7 routes=8 maxSlope=28.1 hillUp:10.60 hillDown:10.64 basinIn:3.66 basinOut:3.64 river0.35AB:2.20 river0.35BA:2.20 river0.65AB:2.08 river0.65BA:2.08
+walk system_03_D R=9.5 routes=8 maxSlope=33.4 hillUp:8.14 hillDown:8.16 basinIn:6.38 basinOut:6.36 river0.35AB:2.10 river0.35BA:2.12 river0.65AB:2.00 river0.65BA:2.02

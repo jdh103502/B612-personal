@@ -26,7 +26,8 @@ public static class NaturalTerrainMeshValidation
             {
                 var a = equal.placement;
                 var b = normal.placement;
-                Check(equal.version == 9 && equal.natural.equalAngleMesh && !normal.natural.equalAngleMesh, "Plan version/mapping snapshot");
+                Check(equal.version == PlanetGenerationSettings.GeneratorVersion && equal.version >= 9 &&
+                    equal.natural.equalAngleMesh && !normal.natural.equalAngleMesh, "Plan version/mapping snapshot");
                 float spacing = equal.river != null ? Mathf.Min(.18f, equal.river.width * .3f) : .18f;
                 int frequency = Mathf.CeilToInt(Mathf.PI * equal.radius / (2f * spacing));
                 int vertices = equalWorld.Terrain.OwnedMesh.vertexCount;
@@ -48,7 +49,7 @@ public static class NaturalTerrainMeshValidation
                 Check(errorA.max < .03f, $"Equal-angle surface error {errorA.max:F4}m");
                 return new
                 {
-                    planetId, radius = equal.radius, verticesEqual = vertices, verticesNormal = normalWorld.Terrain.OwnedMesh.vertexCount,
+                    planetId, radius = equal.radius, river = equal.river != null, equal.riverStatus, verticesEqual = vertices, verticesNormal = normalWorld.Terrain.OwnedMesh.vertexCount,
                     meshMsEqual = equal.meshMilliseconds, meshMsNormal = normal.meshMilliseconds,
                     connected = a.connectedAreaRatio, a.candidates, candidatesNormal = b.candidates, spawnShift, siteShifts,
                     meanErrorMmEqual = errorA.mean * 1000f, maxErrorMmEqual = errorA.max * 1000f,
@@ -153,6 +154,154 @@ public static class NaturalTerrainMeshValidation
         }
     }
 
+    /// <summary>P10-P90 spread and standard deviation of the two noise bases over the same random points.</summary>
+    public static object NoiseSpread(int count)
+    {
+        var random = new System.Random(612);
+        var value = new float[count];
+        var simplex = new float[count];
+        double valueGradient = 0, simplexGradient = 0;
+        const float h = .001f;
+        for (int i = 0; i < count; i++)
+        {
+            var p = new Vector3((float)random.NextDouble() * 200f - 100f, (float)random.NextDouble() * 200f - 100f,
+                (float)random.NextDouble() * 200f - 100f);
+            value[i] = 2f * ProceduralPlanetTerrain.Noise(p, 1234) - 1f;
+            simplex[i] = ProceduralPlanetTerrain.Simplex(p, 1234);
+            // Squared gradient magnitude by central differences on all three axes.
+            foreach (var axis in new[] { Vector3.right, Vector3.up, Vector3.forward })
+            {
+                double dv = (2f * ProceduralPlanetTerrain.Noise(p + axis * h, 1234) - 2f * ProceduralPlanetTerrain.Noise(p - axis * h, 1234)) / (2f * h);
+                double ds = (ProceduralPlanetTerrain.Simplex(p + axis * h, 1234) - ProceduralPlanetTerrain.Simplex(p - axis * h, 1234)) / (2f * h);
+                valueGradient += dv * dv;
+                simplexGradient += ds * ds;
+            }
+        }
+        object Stats(float[] data)
+        {
+            var sorted = (float[])data.Clone();
+            Array.Sort(sorted);
+            double mean = 0, square = 0;
+            foreach (float v in data) { mean += v; square += v * v; }
+            mean /= data.Length;
+            return new
+            {
+                p10 = sorted[data.Length / 10], p50 = sorted[data.Length / 2], p90 = sorted[data.Length * 9 / 10],
+                min = sorted[0], max = sorted[data.Length - 1], std = Math.Sqrt(square / data.Length - mean * mean)
+            };
+        }
+        return new
+        {
+            value = Stats(value), simplex = Stats(simplex),
+            valueRmsGradient = Math.Sqrt(valueGradient / count), simplexRmsGradient = Math.Sqrt(simplexGradient / count)
+        };
+    }
+
+    /// <summary>Height/slope statistics of the final collider for the v9 noise (legacy=true) or the current settings.</summary>
+    public static object Relief(int journey, int chapter, string planetId, float size, bool legacy)
+    {
+        var settings = Settings();
+        var watch = System.Diagnostics.Stopwatch.StartNew();
+        var plan = Prepare(settings, journey, chapter, planetId, size, natural =>
+        {
+            if (!legacy) return;
+            natural.noiseBasis = NaturalNoiseBasis.Value;
+            natural.roughnessRange = Vector2.one;
+        }, legacy ? -3000 : 3000, out var world);
+        watch.Stop();
+        try
+        {
+            float q = Mathf.Min(1f, plan.radius / 12f);
+            var regions = PlanetSurfaceGrid.CreateTopology(1);
+            var low = new float[regions.Count];
+            var high = new float[regions.Count];
+            for (int r = 0; r < regions.Count; r++) { low[r] = float.PositiveInfinity; high[r] = float.NegativeInfinity; }
+            var heights = new List<float>();
+            var centre = world.surface.transform.position;
+            foreach (var d in Directions(4096))
+            {
+                if (!world.surface.TryProject(d, out var point, out _)) throw new InvalidOperationException("Collider hole");
+                float h = (point - centre).magnitude - plan.radius;
+                heights.Add(h);
+                for (int r = 0; r < regions.Count; r++)
+                {
+                    var cell = regions[r];
+                    if (Vector3.Dot(Vector3.Cross(cell.a, cell.b), d) < 0 || Vector3.Dot(Vector3.Cross(cell.b, cell.c), d) < 0 ||
+                        Vector3.Dot(Vector3.Cross(cell.c, cell.a), d) < 0) continue;
+                    low[r] = Mathf.Min(low[r], h); high[r] = Mathf.Max(high[r], h);
+                    break;
+                }
+            }
+            heights.Sort();
+            float p10 = heights[heights.Count / 10], p50 = heights[heights.Count / 2], p90 = heights[heights.Count * 9 / 10];
+            int regionsOk = 0;
+            float minRegionRange = float.PositiveInfinity;
+            for (int r = 0; r < regions.Count; r++)
+            {
+                float range = high[r] - low[r];
+                minRegionRange = Mathf.Min(minRegionRange, range);
+                if (range >= .35f * q) regionsOk++;
+            }
+
+            // Area-weighted slope bands of the final ground mesh, and mean slope in calm vs rough mask areas.
+            var mesh = world.Terrain.OwnedMesh;
+            var vertices = mesh.vertices;
+            var triangles = mesh.triangles;
+            double total = 0, gentle = 0, moderate = 0, steep = 0;
+            float maxSlope = 0f;
+            for (int i = 0; i < triangles.Length; i += 3)
+            {
+                Vector3 a = vertices[triangles[i]], b = vertices[triangles[i + 1]], c = vertices[triangles[i + 2]];
+                var face = Vector3.Cross(b - a, c - a);
+                double area = face.magnitude * .5;
+                var mid = (a + b + c) / 3f;
+                float slope = Vector3.Angle(face, mid);
+                total += area;
+                if (slope <= 15f) gentle += area; else if (slope <= 30f) moderate += area; else steep += area;
+                maxSlope = Mathf.Max(maxSlope, slope);
+            }
+
+            // Local relief: |h - mean of six heights 2.5m away|, the small bumps the mask is meant to vary.
+            // Split by the current settings' mask so v9 and v10 are compared on the same areas.
+            var maskSettings = JsonUtility.FromJson<NaturalTerrainSettings>(JsonUtility.ToJson(settings.naturalTerrain));
+            maskSettings.roughnessScaleMeters *= q;
+            var maskPlan = new ProceduralPlanetTerrain.Plan
+            {
+                natural = maskSettings, roughnessSeed = plan.roughnessSeed, roughnessOffset = plan.roughnessOffset
+            };
+            double calmRelief = 0, roughRelief = 0;
+            int calmCount = 0, roughCount = 0;
+            foreach (var d in Directions(4096))
+            {
+                if (TerrainWater.IsWet(plan, d, 1f, out _)) continue;
+                var tangent = Vector3.Cross(d, Mathf.Abs(d.y) < .8f ? Vector3.up : Vector3.right).normalized;
+                float around = 0f;
+                for (int k = 0; k < 6; k++)
+                {
+                    var heading = Quaternion.AngleAxis(60f * k, d) * tangent;
+                    float angle = 2.5f / plan.radius;
+                    around += ProceduralPlanetTerrain.Height(plan, d * Mathf.Cos(angle) + heading * Mathf.Sin(angle));
+                }
+                float relief = Mathf.Abs(ProceduralPlanetTerrain.Height(plan, d) - around / 6f);
+                float rough = ProceduralPlanetTerrain.Roughness(maskPlan, d * plan.radius);
+                var range = maskPlan.natural.roughnessRange;
+                if (rough <= range.x + .1f) { calmRelief += relief; calmCount++; }
+                else if (rough >= range.y - .1f) { roughRelief += relief; roughCount++; }
+            }
+            return new
+            {
+                planetId, radius = plan.radius, legacy, plan.version, prepareMs = watch.Elapsed.TotalMilliseconds,
+                river = plan.river != null, plan.riverStatus, connected = plan.placement.connectedAreaRatio, plan.placement.candidates,
+                p10, p50, p90, spreadOverQ = (p90 - p10) / q, min = heights[0], max = heights[heights.Count - 1],
+                regionsOk, minRegionRange,
+                slopePercent = new[] { 100 * gentle / total, 100 * moderate / total, 100 * steep / total }, maxSlope,
+                calmShare = calmCount / 4096f, calmReliefMm = calmCount > 0 ? 1000 * calmRelief / calmCount : 0,
+                roughShare = roughCount / 4096f, roughReliefMm = roughCount > 0 ? 1000 * roughRelief / roughCount : 0
+            };
+        }
+        finally { UnityEngine.Object.DestroyImmediate(world.transform.root.gameObject); }
+    }
+
     static PlanetGenerationSettings Settings()
     {
         Check(Application.isPlaying, "Use Play mode");
@@ -165,9 +314,14 @@ public static class NaturalTerrainMeshValidation
         return settings;
     }
 
-    // Prepares one planet off to the side; the mapping is switched only for this call and restored.
     static ProceduralPlanetTerrain.Plan Prepare(PlanetGenerationSettings settings, int journey, int chapter, string planetId,
         float size, bool equalAngle, out PlanetWorldInstance world)
+        => Prepare(settings, journey, chapter, planetId, size, natural => natural.equalAngleMesh = equalAngle,
+            equalAngle ? 1000 : -1000, out world);
+
+    // Prepares one planet off to the side; the settings are changed only for this call and restored.
+    static ProceduralPlanetTerrain.Plan Prepare(PlanetGenerationSettings settings, int journey, int chapter, string planetId,
+        float size, Action<NaturalTerrainSettings> configure, float offset, out PlanetWorldInstance world)
     {
         var flow = UnityEngine.Object.FindFirstObjectByType<StarSystemFlowController>();
         var data = StarSystemFactory.Create(StarSystemFactory.DeriveSeed(journey, 50, chapter), settings, chapter)
@@ -179,14 +333,14 @@ public static class NaturalTerrainMeshValidation
             data.spec.terrain.radius = settings.nominalRadius * size;
             data.spec.sizeClass = PlanetGenerationSettings.Classify(size);
         }
-        var root = new GameObject("Natural mesh validation " + (equalAngle ? "equal" : "normal"));
-        root.transform.position = new Vector3(equalAngle ? 1000 : -1000, 0, 0);
+        var root = new GameObject("Natural mesh validation " + offset);
+        root.transform.position = new Vector3(offset, 0, 0);
         var host = root.AddComponent<PlanetWorldHost>();
         host.settings = settings;
-        bool original = settings.naturalTerrain.equalAngleMesh;
+        string original = JsonUtility.ToJson(settings.naturalTerrain);
         try
         {
-            settings.naturalTerrain.equalAngleMesh = equalAngle;
+            configure(settings.naturalTerrain);
             world = host.Prepare(data, flow.player.GetComponent<CapsuleCollider>());
         }
         catch
@@ -194,7 +348,7 @@ public static class NaturalTerrainMeshValidation
             UnityEngine.Object.DestroyImmediate(root);
             throw;
         }
-        finally { settings.naturalTerrain.equalAngleMesh = original; }
+        finally { JsonUtility.FromJsonOverwrite(original, settings.naturalTerrain); }
         return world.Terrain.GenerationPlan;
     }
 

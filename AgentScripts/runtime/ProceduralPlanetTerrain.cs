@@ -33,10 +33,10 @@ namespace B612
             public int riverSeed, placementSeed, riverSourceAttempts, riverShortTraces, riverRejectedBanks;
             public string riverStatus;
             public float riverPlanMilliseconds, meshMilliseconds;
-            public int macroSeed, hillSeed, warpSeed, ridgeSeed, surfaceSeed;
+            public int macroSeed, hillSeed, warpSeed, ridgeSeed, surfaceSeed, roughnessSeed;
             public int landformSeed, landformAttempts;
             public List<TerrainLandforms.Landform> landforms = new List<TerrainLandforms.Landform>();
-            public Vector3 macroOffset, hillOffset;
+            public Vector3 macroOffset, hillOffset, roughnessOffset;
             public bool safeFallback, fixedPlacement, useNormalPlanetRelief;
             public Vector2 HillHeights => useNormalPlanetRelief ? appearance.normalPlanetHillHeights : appearance.hillHeights;
             public Vector2 BasinDepths => useNormalPlanetRelief ? appearance.normalPlanetBasinDepths : appearance.basinDepths;
@@ -209,12 +209,21 @@ namespace B612
         public static float FreeHeight(Plan plan, Vector3 direction)
         {
             if (plan.amplitude == 0f) return 0f;
-            if (plan.natural != null)
+            if (plan.natural != null && plan.natural.noiseBasis == NaturalNoiseBasis.Value && plan.natural.roughnessRange.x >= 1f)
             {
+                // v9 comparison path, kept textually identical so the JIT rounds exactly as before.
                 Vector3 metres = direction * plan.radius;
                 float broad = 2f * Noise(metres / plan.natural.broadScaleMeters + plan.macroOffset, plan.macroSeed) - 1f;
                 float medium = 2f * Noise(metres / plan.natural.mediumScaleMeters + plan.hillOffset, plan.hillSeed) - 1f;
                 return broad * plan.natural.broadAmplitudeMeters + medium * plan.natural.mediumAmplitudeMeters;
+            }
+            if (plan.natural != null)
+            {
+                var natural = plan.natural;
+                Vector3 metres = direction * plan.radius;
+                float broad = Basis(metres / natural.broadScaleMeters + plan.macroOffset, plan.macroSeed, natural.noiseBasis);
+                float medium = Basis(metres / natural.mediumScaleMeters + plan.hillOffset, plan.hillSeed, natural.noiseBasis);
+                return broad * natural.broadAmplitudeMeters + medium * natural.mediumAmplitudeMeters * Roughness(plan, metres);
             }
             var settings = plan.appearance;
             Vector3 sample = direction;
@@ -244,6 +253,67 @@ namespace B612
             float ridge = 1f - Mathf.Abs(2f * Noise(sample * (plan.radius / scale) + plan.macroOffset, plan.ridgeSeed) - 1f);
             return elevation + shapeBudget * settings.ridgeShare * mountain * ridge * ridge;
         }
+        /// <summary>Signed noise around 0. Value keeps the v9 expression exactly; Simplex is scaled to the same spread.</summary>
+        static float Basis(Vector3 p, int seed, NaturalNoiseBasis basis)
+            => basis == NaturalNoiseBasis.Value ? 2f * Noise(p, seed) - 1f : SimplexGain * Simplex(p * SimplexFrequency, seed);
+
+        /// <summary>Medium-layer multiplier: calm meadows to rough patches. Exactly 1 when the mask is disabled.</summary>
+        public static float Roughness(Plan plan, Vector3 metres)
+        {
+            var natural = plan.natural;
+            if (natural.roughnessRange.x >= 1f) return 1f;
+            float mask = Basis(metres / natural.roughnessScaleMeters + plan.roughnessOffset, plan.roughnessSeed, natural.noiseBasis);
+            return Mathf.Lerp(natural.roughnessRange.x, natural.roughnessRange.y, Smooth(-.45f, .45f, mask));
+        }
+
+        // Calibrated against 2*Noise-1 (NaturalTerrainMeshValidation.NoiseSpread) so the same scale and
+        // amplitude settings keep their meaning: gain matches the P10-P90 spread (0.983 / 0.436; the
+        // scaled range stays within about +-0.94) and frequency matches the RMS gradient
+        // (1.150 / (2.26 * 1.265)), i.e. the same typical slope and feature size.
+        const float SimplexGain = 2.26f, SimplexFrequency = .40f;
+        static readonly Vector3[] SimplexGradients =
+        {
+            new Vector3(1,1,0), new Vector3(-1,1,0), new Vector3(1,-1,0), new Vector3(-1,-1,0),
+            new Vector3(1,0,1), new Vector3(-1,0,1), new Vector3(1,0,-1), new Vector3(-1,0,-1),
+            new Vector3(0,1,1), new Vector3(0,-1,1), new Vector3(0,1,-1), new Vector3(0,-1,-1)
+        };
+
+        /// <summary>3D simplex gradient noise, roughly -1..1. Kernel radius^2 0.5 keeps it continuous across simplices.</summary>
+        public static float Simplex(Vector3 p, int seed)
+        {
+            const float F3 = 1f / 3f, G3 = 1f / 6f;
+            float s = (p.x + p.y + p.z) * F3;
+            int i = Mathf.FloorToInt(p.x + s), j = Mathf.FloorToInt(p.y + s), k = Mathf.FloorToInt(p.z + s);
+            float t = (i + j + k) * G3;
+            float x0 = p.x - (i - t), y0 = p.y - (j - t), z0 = p.z - (k - t);
+            int i1, j1, k1, i2, j2, k2;
+            if (x0 >= y0)
+            {
+                if (y0 >= z0) { i1 = 1; j1 = 0; k1 = 0; i2 = 1; j2 = 1; k2 = 0; }
+                else if (x0 >= z0) { i1 = 1; j1 = 0; k1 = 0; i2 = 1; j2 = 0; k2 = 1; }
+                else { i1 = 0; j1 = 0; k1 = 1; i2 = 1; j2 = 0; k2 = 1; }
+            }
+            else
+            {
+                if (y0 < z0) { i1 = 0; j1 = 0; k1 = 1; i2 = 0; j2 = 1; k2 = 1; }
+                else if (x0 < z0) { i1 = 0; j1 = 1; k1 = 0; i2 = 0; j2 = 1; k2 = 1; }
+                else { i1 = 0; j1 = 1; k1 = 0; i2 = 1; j2 = 1; k2 = 0; }
+            }
+            return 32f * (Corner(i, j, k, x0, y0, z0, seed)
+                + Corner(i + i1, j + j1, k + k1, x0 - i1 + G3, y0 - j1 + G3, z0 - k1 + G3, seed)
+                + Corner(i + i2, j + j2, k + k2, x0 - i2 + 2f * G3, y0 - j2 + 2f * G3, z0 - k2 + 2f * G3, seed)
+                + Corner(i + 1, j + 1, k + 1, x0 - 1f + 3f * G3, y0 - 1f + 3f * G3, z0 - 1f + 3f * G3, seed));
+        }
+
+        static float Corner(int i, int j, int k, float x, float y, float z, int seed)
+        {
+            float t = .5f - x * x - y * y - z * z;
+            if (t <= 0f) return 0f;
+            var g = SimplexGradients[Mathf.Min(11, (int)(Hash(i, j, k, seed) * 12f))];
+            t *= t;
+            return t * t * (g.x * x + g.y * y + g.z * z);
+        }
+
         public static float BaseHeight(Plan plan,Vector3 direction)
         {
             if (plan.natural != null) return FreeHeight(plan, direction);
@@ -378,11 +448,13 @@ namespace B612
                 hillSeed = StarSystemFactory.DeriveSeed(seed, 82, 0),
                 riverSeed = StarSystemFactory.DeriveSeed(seed, 83, 0),
                 placementSeed = StarSystemFactory.DeriveSeed(seed, 84, 0),
-                surfaceSeed = StarSystemFactory.DeriveSeed(seed, 85, 0)
+                surfaceSeed = StarSystemFactory.DeriveSeed(seed, 85, 0),
+                roughnessSeed = StarSystemFactory.DeriveSeed(seed, 86, 0)
             };
             plan.macroOffset = NoiseOffset(plan.macroSeed);
             plan.hillOffset = NoiseOffset(plan.hillSeed);
             plan.noiseOffset = NoiseOffset(plan.surfaceSeed);
+            plan.roughnessOffset = NoiseOffset(plan.roughnessSeed);
             var watch = System.Diagnostics.Stopwatch.StartNew();
             NaturalTerrainRiver.Plan(plan);
             plan.riverPlanMilliseconds = (float)watch.Elapsed.TotalMilliseconds;
