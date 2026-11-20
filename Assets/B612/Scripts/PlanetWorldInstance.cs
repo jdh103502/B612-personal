@@ -75,6 +75,14 @@ namespace B612
                 material.SetFloat("_PaletteStrength", appearance.paletteStrength);
                 material.SetVector("_VegetationRemap", new Vector4(appearance.vegetationRemap.x, appearance.vegetationRemap.y, 0, 0));
                 material.SetFloat("_HeightColorRange", appearance.heightColorRange);
+                var naturalSettings = Terrain.GenerationPlan.natural;
+                if (naturalSettings != null)
+                {
+                    material.SetFloat("_FacetSize", naturalSettings.facetSizeMeters);
+                    material.SetFloat("_FacetStrength", naturalSettings.facetStrength);
+                    material.SetFloat("_FacetRoughness", naturalSettings.facetRoughness);
+                    material.SetVector("_FacetOffset", Terrain.GenerationPlan.facetOffset);
+                }
                 gravity.terrainPlan=Terrain.GenerationPlan;
                 surface.CandidateFilter=Terrain.AllowsSpawn;
             }

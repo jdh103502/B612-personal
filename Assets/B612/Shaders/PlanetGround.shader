@@ -28,6 +28,10 @@ Shader "B612/Planet Ground"
         [HideInInspector] _DiagnosticUnlit("Diagnostic color", Float) = 0
         [HideInInspector] _DiagnosticLegacy("Diagnostic previous palette", Float) = 0
         _Smoothness("Smoothness", Range(0, 1)) = 0.1
+        _FacetSize("Facet size (m)", Float) = 1.2
+        _FacetStrength("Facet shading strength", Range(0, 1)) = 0
+        _FacetRoughness("Facet tilt (share of size)", Range(0, 0.5)) = 0.3
+        _FacetOffset("Facet lattice offset", Vector) = (0, 0, 0, 0)
     }
     SubShader
     {
@@ -52,6 +56,8 @@ Shader "B612/Planet Ground"
             float _PaletteStrength, _DiagnosticUnlit, _DiagnosticLegacy;
             float _GroundTexturesEnabled, _DirtTileMeters, _GrassTileMeters, _GroundTextureStrength;
             float _DirtNormalStrength, _GrassNormalStrength;
+            float4 _FacetOffset;
+            float _FacetSize, _FacetStrength, _FacetRoughness;
         CBUFFER_END
 
         struct GroundSurface
@@ -151,6 +157,42 @@ Shader "B612/Planet Ground"
             // Project onto the mesh tangent plane so a flat map leaves the geometric normal intact.
             perturbation -= normalOS * dot(perturbation, normalOS);
             return normalize(normalOS + perturbation);
+        }
+
+        float FacetJitter(int3 corner)
+        {
+            uint h = (uint)corner.x * 0x9e3779b9u ^ (uint)corner.y * 0x85ebca6bu ^ (uint)corner.z * 0xc2b2ae35u;
+            h ^= h >> 16; h *= 0x7feb352du; h ^= h >> 15; h *= 0x846ca68bu; h ^= h >> 16;
+            return (h & 0xffffff) / 16777215.0 * 2 - 1;
+        }
+
+        // Low-poly rock look for lighting only. Space is cut into the tetrahedra of a simplex lattice about
+        // _FacetSize across; each lattice corner gets a random height (+-_FacetRoughness x size). Inside one
+        // tetrahedron that height is linear, so its gradient tilts the normal by one constant amount: the
+        // surface reads as irregular flat facets with crisp edges, independent of the mesh resolution.
+        float3 ApplyFacets(float3 positionOS, float3 normalOS)
+        {
+            if (_FacetStrength <= 0) return normalOS;
+            const float F3 = 1.0 / 3.0, G3 = 1.0 / 6.0;
+            float3 p = positionOS / max(_FacetSize, 0.01) + _FacetOffset.xyz;
+            float3 cell = floor(p + dot(p, F3));
+            float3 x0 = p - (cell - dot(cell, G3));
+            float3 g = step(x0.yzx, x0.xyz);
+            float3 l = 1 - g;
+            float3 i1 = min(g, l.zxy);
+            float3 i2 = max(g, l.zxy);
+            int3 c0 = (int3)cell;
+            float v0 = FacetJitter(c0);
+            float v1 = FacetJitter(c0 + (int3)i1);
+            float v2 = FacetJitter(c0 + (int3)i2);
+            float v3 = FacetJitter(c0 + int3(1, 1, 1));
+            // Corner offsets in unskewed lattice units (the skew of a unit step is G3 per summed axis).
+            float3 e1 = i1 - G3, e2 = i2 - 2 * G3, e3 = 1 - 3 * G3;
+            float3 c23 = cross(e2, e3);
+            float3 gradient = ((v1 - v0) * c23 + (v2 - v0) * cross(e3, e1) + (v3 - v0) * cross(e1, e2)) / dot(e1, c23);
+            gradient *= _FacetRoughness;
+            gradient -= normalOS * dot(gradient, normalOS);
+            return normalize(normalOS - _FacetStrength * gradient);
         }
 
         struct GroundAttributes
@@ -254,7 +296,8 @@ Shader "B612/Planet Ground"
                 InputData lighting = (InputData)0;
                 lighting.positionWS = input.positionWS;
                 lighting.positionCS = input.positionCS;
-                lighting.normalWS = TransformObjectToWorldNormal(GetGroundNormalOS(input.positionOS, normalOS, ground, blend));
+                lighting.normalWS = TransformObjectToWorldNormal(GetGroundNormalOS(input.positionOS,
+                    ApplyFacets(input.positionOS, normalOS), ground, blend));
                 lighting.viewDirectionWS = GetWorldSpaceNormalizeViewDir(input.positionWS);
                 #if defined(_MAIN_LIGHT_SHADOWS_SCREEN)
                     lighting.shadowCoord = ComputeScreenPos(TransformWorldToHClip(input.positionWS));
