@@ -109,6 +109,22 @@ unity command run_script --file AgentScripts/NaturalTerrainMeshValidation.cs --e
 - 기록: [시험 측정](../Artifacts/NaturalPlanetTerrain/EqualAngleMesh.txt) · [채택 검증](../Artifacts/NaturalPlanetTerrain/EqualAngleValidation.txt)
 - 확인하지 않은 것: 플레이어 빌드, 손으로 하는 장시간 플레이, 실제 여정 흐름 전체(지도 이동·챕터 전환)의 재실행.
 
+## 준비 성능 개선 (2026-11-21, 결과 동일)
+
+생성 결과를 바꾸지 않는 코드 정리다. 생성기 버전은 9 그대로다. 행성 8곳(반경 8.4~24m)에서 지면 정점·색·법선·인덱스, 물 메시, 스폰·상호작용 지점, 바오밥 후보의 비트 해시가 변경 전과 모두 같았다. [해시 기록](../Artifacts/NaturalPlanetTerrain/PrepPerformanceFingerprints.txt)
+
+- **지면 메시:** 위상(정점 공유·인덱스)과 높이 계산을 두 단계로 나눴다. 자연 지형의 높이·색 계산은 읽기 전용 Plan에 대한 순수 함수라서 4,096정점 단위로 병렬 실행한다. WebGL 빌드에서는 순차 실행한다. 정점 공유 사전의 키도 `Vector3Int` 대신 충돌 없는 정수로 묶었다.
+- **배치 분석의 위상:** `PlanetSurfaceGrid`의 변(edge) 사전은 `(작은 인덱스 << 32) | 큰 인덱스` 키를 썼다. .NET의 `long` 해시가 두 절반을 XOR하므로 인접 정점끼리 충돌이 심했다. 비트를 섞는 비교자를 붙여 2배 행성의 분석 격자(21,780셀) 생성이 약 190ms에서 10ms로 줄었다. 키와 결과는 같다.
+- 같은 Editor 세션의 `system_02_B` 측정이다(3회 평균, `AgentScripts/TerrainPrepProfile.cs`).
+
+| 크기 | 전체 준비 | 메시·Collider | 연결 분석 | 후보 |
+| --- | ---: | ---: | ---: | ---: |
+| 1배 | 228 → 159ms | 142 → 80ms | 61 → 53ms | 22 → 25ms |
+| 2배 | 1,140 → 612ms | 667 → 323ms | 381 → 192ms | 93 → 96ms |
+
+- 2배에서 남은 큰 비용은 PhysX 메시 쿠킹(약 180ms), 연결 분석의 Raycast·캡슐 검사(약 190ms), 높이 병렬 계산을 포함한 메시 생성(약 140ms)이다. 해석적 높이 계산은 Collider Raycast보다 크게 빠르지 않았다(노드당 0.8µs 대 1.3µs). 그래서 배치 검사를 계산식으로 바꾸는 안은 보류했다.
+- 재검사 도구: `AgentScripts/TerrainPrepFingerprint.cs`(결과 해시), `AgentScripts/TerrainPrepProfile.cs`(단계별 비용).
+
 ## 남은 검증과 튜닝
 
 - 연결 영역은 경사·지면·캡슐 검사를 표본화한 추정치다. 임의의 두 지점 사이를 모든 실제 입력과 카메라 조건에서 걸을 수 있음을 보장하지 않는다.

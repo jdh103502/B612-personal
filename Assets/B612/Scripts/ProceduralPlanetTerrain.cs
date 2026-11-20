@@ -487,51 +487,82 @@ namespace B612
             int frequency = equalAngle ? Mathf.CeilToInt(Mathf.PI * plan.radius / (2f * spacing))
                 : Mathf.CeilToInt(2 * plan.radius / spacing);
             float angleStep = Mathf.PI * .25f / frequency;
-            var vertices=new List<Vector3>();
-            var colors = new List<Color>();
-            var indices = new List<int>();
-            var shared=new Dictionary<Vector3Int,int>();
+            // Pass 1: topology only. Face-edge vertices are shared through their integer cube key.
+            int expected = 6 * frequency * frequency + 2;
+            var directions = new List<Vector3>(expected);
+            var indices = new int[6 * frequency * frequency * 6];
+            int written = 0;
+            // Pack the cube key into one integer: unique (and collision-free as a hash) while
+            // (2f+1)^3 fits in 32 bits. Vector3Int's own hash collides often on this lattice.
+            long span = 2L * frequency + 1;
+            var shared=new Dictionary<long,int>(expected);
             var ns=new[]{Vector3Int.right,Vector3Int.left,Vector3Int.up,Vector3Int.down,new Vector3Int(0,0,1),new Vector3Int(0,0,-1)};
             var rs=new[]{new Vector3Int(0,0,-1),new Vector3Int(0,0,1),Vector3Int.right,Vector3Int.right,Vector3Int.right,Vector3Int.left};
             var ups=new[]{Vector3Int.up,Vector3Int.up,new Vector3Int(0,0,-1),new Vector3Int(0,0,1),Vector3Int.up,Vector3Int.up};
+            var grid=new int[(frequency+1)*(frequency+1)];
             for(int face=0;face<6;face++)
             {
-                var grid=new int[(frequency+1)*(frequency+1)];
                 for(int j=0;j<=frequency;j++)for(int i=0;i<=frequency;i++)
                 {
                     var key=ns[face]*frequency+rs[face]*(2*i-frequency)+ups[face]*(2*j-frequency);
-                    if(!shared.TryGetValue(key,out int id))
+                    long packed = ((key.x + frequency) * span + (key.y + frequency)) * span + (key.z + frequency);
+                    if(!shared.TryGetValue(packed,out int id))
                     {
-                        id=vertices.Count;shared.Add(key,id);
-                        var n = equalAngle
+                        id=directions.Count;shared.Add(packed,id);
+                        directions.Add(equalAngle
                             ? new Vector3(Mathf.Tan(key.x * angleStep), Mathf.Tan(key.y * angleStep), Mathf.Tan(key.z * angleStep)).normalized
-                            : ((Vector3)key).normalized;
-                        if (plan.natural != null)
-                        {
-                            float elevation = FreeHeight(plan, n);
-                            vertices.Add(n * (plan.radius + TerrainWater.Height(plan, n, elevation)));
-                            colors.Add(NaturalSurfaceWeights(plan, n, elevation));
-                        }
-                        else
-                        {
-                            vertices.Add(n*(plan.radius+Height(plan,n)));
-                            colors.Add(SurfaceWeights(plan, n));
-                        }
+                            : ((Vector3)key).normalized);
                     }
                     grid[j*(frequency+1)+i]=id;
                 }
                 for(int j=0;j<frequency;j++)for(int i=0;i<frequency;i++)
                 {
                     int a=grid[j*(frequency+1)+i],b=grid[j*(frequency+1)+i+1],c=grid[(j+1)*(frequency+1)+i],d=grid[(j+1)*(frequency+1)+i+1];
-                    indices.Add(a);indices.Add(b);indices.Add(d);indices.Add(a);indices.Add(d);indices.Add(c);
+                    indices[written++]=a;indices[written++]=b;indices[written++]=d;indices[written++]=a;indices[written++]=d;indices[written++]=c;
                 }
             }
+
+            // Pass 2: heights and surface weights. The natural profile is a pure function of the
+            // read-only plan, so it runs in parallel with bit-identical results per vertex.
+            var vertices = new Vector3[directions.Count];
+            var colors = new Color[directions.Count];
+            if (plan.natural != null)
+                ForEachRange(directions.Count, (from, to) =>
+                {
+                    for (int v = from; v < to; v++)
+                    {
+                        var n = directions[v];
+                        float elevation = FreeHeight(plan, n);
+                        vertices[v] = n * (plan.radius + TerrainWater.Height(plan, n, elevation));
+                        colors[v] = NaturalSurfaceWeights(plan, n, elevation);
+                    }
+                });
+            else
+                for (int v = 0; v < directions.Count; v++)
+                {
+                    var n = directions[v];
+                    vertices[v] = n * (plan.radius + Height(plan, n));
+                    colors[v] = SurfaceWeights(plan, n);
+                }
             var mesh=new Mesh{name="Seeded terrain "+plan.seed,indexFormat=IndexFormat.UInt32};
             mesh.SetVertices(vertices);
             mesh.SetColors(colors);
             mesh.SetTriangles(indices,0);
             mesh.RecalculateNormals();
             return mesh;
+        }
+
+        /// <summary>Runs pure, read-only work over [0, count) in fixed ranges; sequential where threads are unavailable.</summary>
+        internal static void ForEachRange(int count, Action<int, int> body)
+        {
+            const int RangeSize = 4096;
+#if UNITY_WEBGL && !UNITY_EDITOR
+            body(0, count);
+#else
+            int ranges = (count + RangeSize - 1) / RangeSize;
+            if (ranges <= 1) { body(0, count); return; }
+            System.Threading.Tasks.Parallel.For(0, ranges, r => body(r * RangeSize, Mathf.Min(count, (r + 1) * RangeSize)));
+#endif
         }
         static Mesh BuildReviewedMesh(Plan plan)
         {

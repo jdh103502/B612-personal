@@ -144,7 +144,7 @@ namespace B612
             else
             {
                 // Keep the original recursive order and float operations for powers of two, including 1x.
-                var midpoints = new Dictionary<long, int>();
+                var midpoints = new Dictionary<long, int>(MixedLongComparer.Instance);
                 for (int resolution = 1; resolution < frequency; resolution *= 2)
                 {
                     var next = new List<int[]>(faces.Count * 4);
@@ -160,7 +160,7 @@ namespace B612
                 }
             }
             result.Clear();
-            var edges = new Dictionary<long, KeyValuePair<int, int>>();
+            var edges = new Dictionary<long, KeyValuePair<int, int>>(faces.Count * 3 / 2 + 1, MixedLongComparer.Instance);
             foreach (var face in faces)
             {
                 var a = vertices[face[0]]; var b = vertices[face[1]]; var c = vertices[face[2]];
@@ -188,7 +188,7 @@ namespace B612
         static List<int[]> FrequencyFaces(int frequency, List<Vector3> vertices, List<int[]> originalFaces)
         {
             var faces = new List<int[]>(20 * frequency * frequency);
-            var edgeVertices = new Dictionary<long, int>();
+            var edgeVertices = new Dictionary<long, int>(MixedLongComparer.Instance);
             foreach (var face in originalFaces)
             {
                 var grid = new int[frequency + 1, frequency + 1];
@@ -232,6 +232,27 @@ namespace B612
         }
 
         static long EdgeKey(int a, int b) => ((long)Mathf.Min(a, b) << 32) | (uint)Mathf.Max(a, b);
+
+        /// <summary>
+        /// long.GetHashCode XORs the two halves, so packed (low, high) keys of nearby vertices
+        /// collide heavily. Mixing the bits keeps lookups O(1) without changing key equality.
+        /// </summary>
+        sealed class MixedLongComparer : IEqualityComparer<long>
+        {
+            public static readonly MixedLongComparer Instance = new MixedLongComparer();
+            public bool Equals(long x, long y) => x == y;
+            public int GetHashCode(long value)
+            {
+                unchecked
+                {
+                    ulong x = (ulong)value;
+                    x ^= x >> 33; x *= 0xff51afd7ed558ccdUL;
+                    x ^= x >> 33; x *= 0xc4ceb9fe1a85ec53UL;
+                    x ^= x >> 33;
+                    return (int)x;
+                }
+            }
+        }
 
         static int Midpoint(int a, int b, List<Vector3> vertices, Dictionary<long, int> cache)
         {

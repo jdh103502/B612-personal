@@ -1,0 +1,20 @@
+# Preparation performance refactor fingerprints (2026-11-21). before = generator v9 at f3872e4; after = parallel height pass + hashed keys.
+# Fields are FNV hashes of ground vertices/colors/normals/indices, water vertices, spawn/sites/placement stats and baobab slots.
+## before
+planetId=system_02_B radius=8.4 vertices=32858 ground=de895a77b7f6380e water=bb17b4e8316ad632 placement=b7eec86c1786394b slots=0a0ec34c19cf88b4 SlotCount=2560 meshMilliseconds=69.3 analysisMilliseconds=32.0 candidateMilliseconds=21.3
+planetId=system_02_B radius=12 vertices=66152 ground=73239d476b08759e water=f2e906719d7f7509 placement=30f54aed740470aa slots=dbaf3771b3621bdd SlotCount=2560 meshMilliseconds=141.9 analysisMilliseconds=77.8 candidateMilliseconds=31.2
+planetId=system_02_B radius=24 vertices=264602 ground=ddc8d198f43f3653 water=e95120fc125547e6 placement=78708bebe7429036 slots=43a97a2732b81593 SlotCount=10240 meshMilliseconds=618.1 analysisMilliseconds=369.3 candidateMilliseconds=88.9
+planetId=system_01_Start radius=12 vertices=66152 ground=0b46e2f3d6767983 water=f3f93635a284c200 placement=81a62b44f6f0a6d0 slots=cd1a2884357d6c44 SlotCount=2560 meshMilliseconds=163.5 analysisMilliseconds=63.0 candidateMilliseconds=23.7
+planetId=system_01_D radius=23.5 vertices=254618 ground=22b3c5af97f87aae water=19e724886cf31208 placement=0b1235f6f28f80eb slots=b278c2e8b65179d2 SlotCount=10240 meshMilliseconds=608.6 analysisMilliseconds=365.7 candidateMilliseconds=90.2
+planetId=system_03_E radius=21.4 vertices=209816 ground=b0d86c98f1365cd6 water=8bc70a2209210d2b placement=c539a51439577a96 slots=e6c255340e59d86b SlotCount=10240 meshMilliseconds=531.6 analysisMilliseconds=279.5 candidateMilliseconds=89.3
+planetId=system_01_C radius=9.7 vertices=43352 ground=80ab2defb75de656 water=cbcb9040c7669503 placement=4140ec88cacd2140 slots=41b5eb7740988d64 SlotCount=2560 meshMilliseconds=110.6 analysisMilliseconds=38.4 candidateMilliseconds=21.8
+planetId=system_03_D radius=9.5 vertices=41336 ground=9ac4e4d096b14688 water=51bb4db6faf99084 placement=9892a90df04ca159 slots=1aabe2066ee7cf05 SlotCount=2560 meshMilliseconds=135.6 analysisMilliseconds=33.6 candidateMilliseconds=22.6
+## after
+planetId=system_02_B radius=8.4 vertices=32858 ground=de895a77b7f6380e water=bb17b4e8316ad632 placement=b7eec86c1786394b slots=0a0ec34c19cf88b4 SlotCount=2560 meshMilliseconds=39.7 analysisMilliseconds=32.1 candidateMilliseconds=21.9
+planetId=system_02_B radius=12 vertices=66152 ground=73239d476b08759e water=f2e906719d7f7509 placement=30f54aed740470aa slots=dbaf3771b3621bdd SlotCount=2560 meshMilliseconds=72.2 analysisMilliseconds=47.8 candidateMilliseconds=22.2
+planetId=system_02_B radius=24 vertices=264602 ground=ddc8d198f43f3653 water=e95120fc125547e6 placement=78708bebe7429036 slots=43a97a2732b81593 SlotCount=10240 meshMilliseconds=403.1 analysisMilliseconds=246.8 candidateMilliseconds=98.7
+planetId=system_01_Start radius=12 vertices=66152 ground=0b46e2f3d6767983 water=f3f93635a284c200 placement=81a62b44f6f0a6d0 slots=cd1a2884357d6c44 SlotCount=2560 meshMilliseconds=84.1 analysisMilliseconds=54.2 candidateMilliseconds=22.6
+planetId=system_01_D radius=23.5 vertices=254618 ground=22b3c5af97f87aae water=19e724886cf31208 placement=0b1235f6f28f80eb slots=b278c2e8b65179d2 SlotCount=10240 meshMilliseconds=283.5 analysisMilliseconds=179.7 candidateMilliseconds=89.6
+planetId=system_03_E radius=21.4 vertices=209816 ground=b0d86c98f1365cd6 water=8bc70a2209210d2b placement=c539a51439577a96 slots=e6c255340e59d86b SlotCount=10240 meshMilliseconds=298.9 analysisMilliseconds=154.3 candidateMilliseconds=88.1
+planetId=system_01_C radius=9.7 vertices=43352 ground=80ab2defb75de656 water=cbcb9040c7669503 placement=4140ec88cacd2140 slots=41b5eb7740988d64 SlotCount=2560 meshMilliseconds=62.3 analysisMilliseconds=33.8 candidateMilliseconds=21.7
+planetId=system_03_D radius=9.5 vertices=41336 ground=9ac4e4d096b14688 water=51bb4db6faf99084 placement=9892a90df04ca159 slots=1aabe2066ee7cf05 SlotCount=2560 meshMilliseconds=60.3 analysisMilliseconds=33.3 candidateMilliseconds=23.7
