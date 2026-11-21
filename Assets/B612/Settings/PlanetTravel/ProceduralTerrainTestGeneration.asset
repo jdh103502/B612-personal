@@ -64,9 +64,6 @@ MonoBehaviour:
     noiseBasis: 1
     roughnessScaleMeters: 18
     roughnessRange: {x: 0.2, y: 1.6}
-    facetSizeMeters: 1.2
-    facetStrength: 0.5
-    facetRoughness: 0.3
     generateRiver: 1
     riverLengthMeters: {x: 8, y: 18}
     riverWidthMeters: 0.9

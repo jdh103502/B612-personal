@@ -22,12 +22,6 @@ namespace B612
         [Min(5f)] public float roughnessScaleMeters = 18f;
         [Tooltip("Medium-layer multiplier from calm (x) to rough (y) areas, y up to 2 within the height budget. (1, 1) disables the mask, as in v9.")]
         public Vector2 roughnessRange = new Vector2(.2f, 1.6f);
-        [Tooltip("Rendering only: size of the low-poly facets in the ground shading. Heights and collision are unchanged.")]
-        [Range(.5f, 4f)] public float facetSizeMeters = 1.2f;
-        [Tooltip("Rendering only: 0 keeps smooth shading, 1 shades each facet flat like a low-poly rock.")]
-        [Range(0f, 1f)] public float facetStrength = .5f;
-        [Tooltip("Rendering only: random height jitter of the facet corners as a share of the facet size. Tilts neighbouring facets apart like chipped rock.")]
-        [Range(0f, .5f)] public float facetRoughness = .3f;
 
         public bool generateRiver = true;
         public Vector2 riverLengthMeters = new Vector2(8f, 18f);
@@ -57,7 +51,6 @@ namespace B612
             static bool Valid(float value, float min, float max) => value >= min && value <= max;
             if (!Enum.IsDefined(typeof(NaturalNoiseBasis), noiseBasis) || !Valid(roughnessScaleMeters, 5, 60) ||
                 !Valid(roughnessRange.x, .1f, 1) || !Valid(roughnessRange.y, roughnessRange.x, 2) ||
-                !Valid(facetSizeMeters, .5f, 4) || !Valid(facetStrength, 0, 1) || !Valid(facetRoughness, 0, .5f) ||
                 !Valid(broadScaleMeters, 2, 60) || !Valid(mediumScaleMeters, 1, broadScaleMeters) ||
                 !Valid(broadAmplitudeMeters, 0, 8) || !Valid(mediumAmplitudeMeters, 0, 8) ||
                 !Valid(riverLengthMeters.x, 2, 30) || !Valid(riverLengthMeters.y, riverLengthMeters.x, 40) ||
@@ -76,7 +69,6 @@ namespace B612
             used.broadScaleMeters *= scale;
             used.mediumScaleMeters *= scale;
             used.roughnessScaleMeters *= scale;
-            used.facetSizeMeters *= scale;
             // The budget bounds the peak: rough patches may raise the medium layer above its base amplitude.
             float amplitude = (broadAmplitudeMeters + mediumAmplitudeMeters * Mathf.Max(1f, roughnessRange.y)) * scale;
             float budget = Mathf.Min(2f, .17f * radius);

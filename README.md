@@ -37,7 +37,7 @@
 
 바오밥 생성 종료 후 **M**으로 연결된 다음 행성을 선택합니다. 각 챕터의 도착 행성에서 생성 종료 후 지도 아래 **다음 챕터** 버튼을 누릅니다. 빠른 비교는 **F12 → 바오밥 페이즈 스킵 → 닫기 → M**입니다. F12 능력 체크박스는 이미 배운 능력만 제어합니다. R·행성 이동은 해금과 개발 허용값을 유지하며 새 Play/패배 재시도는 새 여정입니다.
 
-두 층의 연속 높이장(gradient noise)이 구면 전체에 언덕과 분지를 만들고, 지역마다 잔잔한 초원과 울퉁불퉁한 구역이 나뉩니다. 강은 물이 모이는 경로를 따라 흘러 분지의 얕은 연못으로 들어갑니다. 강과 연못의 물속 보행 속도는 65%입니다. 완성된 지면에서 기본 보행으로 연결된 영역을 찾아 스폰·상호작용·바오밥 후보를 배치합니다. 잔디·흙 텍스처와 행성별 색상을 적용하고, 지면 음영은 저폴리 바위처럼 조각난 면으로 나뉘어 보입니다(지형 모양은 그대로). [지형과 이동 검증](Docs/NaturalPlanetTerrainImplementationResults.md) · [잔디·흙 적용 결과](Docs/GrassDirtTextureAssetImplementationResults.md)
+두 층의 연속 높이장(gradient noise)이 구면 전체에 언덕과 분지를 만들고, 지역마다 잔잔한 초원과 울퉁불퉁한 구역이 나뉩니다. 강은 물이 모이는 경로를 따라 흘러 분지의 얕은 연못으로 들어갑니다. 강과 연못의 물속 보행 속도는 65%입니다. 완성된 지면에서 기본 보행으로 연결된 영역을 찾아 스폰·상호작용·바오밥 후보를 배치합니다. 잔디·흙 텍스처와 행성별 색상을 적용합니다. [지형과 이동 검증](Docs/NaturalPlanetTerrainImplementationResults.md) · [잔디·흙 적용 결과](Docs/GrassDirtTextureAssetImplementationResults.md)
 
 챕터당 6노드 항성계 하나를 사용합니다. 작물 수확·양털·NPC 퀘스트 경제와 중간 저장은 후속 범위입니다. 지형과 강은 각 생성 에셋의 **Natural Terrain**에서 조절합니다. 같은 시드를 비교하려면 씬의 `StarSystemFlowController`에서 `randomizeRunSeed`를 끄고 `runSeed`를 지정한 뒤 새로 Play합니다. 실행 중에는 `ActivePlanetWorld`의 `ProceduralPlanetTerrain`에서 실제 적용값과 배치 결과를 확인할 수 있습니다.
 

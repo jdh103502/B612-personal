@@ -36,7 +36,7 @@ namespace B612
             public int macroSeed, hillSeed, warpSeed, ridgeSeed, surfaceSeed, roughnessSeed;
             public int landformSeed, landformAttempts;
             public List<TerrainLandforms.Landform> landforms = new List<TerrainLandforms.Landform>();
-            public Vector3 macroOffset, hillOffset, roughnessOffset, facetOffset;
+            public Vector3 macroOffset, hillOffset, roughnessOffset;
             public bool safeFallback, fixedPlacement, useNormalPlanetRelief;
             public Vector2 HillHeights => useNormalPlanetRelief ? appearance.normalPlanetHillHeights : appearance.hillHeights;
             public Vector2 BasinDepths => useNormalPlanetRelief ? appearance.normalPlanetBasinDepths : appearance.basinDepths;
@@ -455,8 +455,6 @@ namespace B612
             plan.hillOffset = NoiseOffset(plan.hillSeed);
             plan.noiseOffset = NoiseOffset(plan.surfaceSeed);
             plan.roughnessOffset = NoiseOffset(plan.roughnessSeed);
-            // Rendering only: offsets the ground shader's facet lattice per planet.
-            plan.facetOffset = NoiseOffset(StarSystemFactory.DeriveSeed(seed, 87, 0));
             var watch = System.Diagnostics.Stopwatch.StartNew();
             if (natural.riverMode != NaturalRiverMode.Flow || !NaturalTerrainFlow.Plan(plan))
             {
