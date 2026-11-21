@@ -36,6 +36,8 @@ namespace B612
         public bool generateRiver = true;
         public Vector2 riverLengthMeters = new Vector2(8f, 18f);
         [Min(.6f)] public float riverWidthMeters = .9f;
+        [Tooltip("Generator v13: channel width where a flow river meets its pond (at most 80% of the pond radius). The river widens from riverWidthMeters at the spring. 0 or narrower than the spring keeps a constant width (v12).")]
+        [Range(0f, 5f)] public float riverMouthWidthMeters = 3f;
         [Tooltip("Generator v9 default: equal-angle cube-sphere ground mesh. Keeps the coarsest vertex spacing and removes the face-corner oversampling of the normalized cube. Off reproduces the v8 normalized mapping for comparison only.")]
         public bool equalAngleMesh = true;
         public Vector2 riverDepthMeters = new Vector2(.12f, .20f);
@@ -66,7 +68,7 @@ namespace B612
                 !Valid(broadScaleMeters, 2, 60) || !Valid(mediumScaleMeters, 1, broadScaleMeters) ||
                 !Valid(broadAmplitudeMeters, 0, 8) || !Valid(mediumAmplitudeMeters, 0, 8) ||
                 !Valid(riverLengthMeters.x, 2, 30) || !Valid(riverLengthMeters.y, riverLengthMeters.x, 40) ||
-                !Valid(riverWidthMeters, .6f, 2) || !Valid(riverDepthMeters.x, .08f, .3f) ||
+                !Valid(riverWidthMeters, .6f, 2) || !Valid(riverMouthWidthMeters, 0, 5) || !Valid(riverDepthMeters.x, .08f, .3f) ||
                 !Valid(riverDepthMeters.y, riverDepthMeters.x, .3f) || !Valid(bankTransitionMeters, .75f, 4) ||
                 riverSourceAttempts < 1 || riverSourceAttempts > 64 || riverTraceSteps < 32 || riverTraceSteps > 256 ||
                 !Enum.IsDefined(typeof(NaturalRiverMode), riverMode) || !Valid(flowSpacingMeters, .4f, 1.2f) ||
@@ -92,6 +94,7 @@ namespace B612
             used.mediumAmplitudeMeters *= amplitudeScale;
             used.riverLengthMeters *= scale;
             used.riverWidthMeters *= scale;
+            used.riverMouthWidthMeters *= scale;
             used.riverDepthMeters *= scale;
             used.bankTransitionMeters *= scale;
             used.flowSpacingMeters *= scale;

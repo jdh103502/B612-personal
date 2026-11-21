@@ -25,6 +25,23 @@ public static class TerrainPrepFingerprint
 #endif
     }
 
+    /// <summary>Same as Run with a constant river width, which must reproduce v12.</summary>
+    public static object RunNoWiden(int journey, int chapter, string planetId, float size)
+    {
+#if UNITY_EDITOR
+        var settings = UnityEditor.AssetDatabase.LoadAssetAtPath<PlanetGenerationSettings>("Assets/B612/Settings/Chapters/ChapterJourneyGeneration.asset");
+        string original = JsonUtility.ToJson(settings.naturalTerrain);
+        try
+        {
+            settings.naturalTerrain.riverMouthWidthMeters = 0f;
+            return Run(journey, chapter, planetId, size);
+        }
+        finally { JsonUtility.FromJsonOverwrite(original, settings.naturalTerrain); }
+#else
+        throw new InvalidOperationException("Editor only");
+#endif
+    }
+
     /// <summary>Same as Run with the v12 gullies off, which must reproduce v11.</summary>
     public static object RunNoErosion(int journey, int chapter, string planetId, float size)
     {

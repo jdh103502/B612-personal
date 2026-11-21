@@ -732,8 +732,8 @@ namespace B612
         {
             float high = elevation / Mathf.Max(.001f, plan.amplitude);
             float bank = 0f;
-            if (TerrainWater.Sample(plan, direction, out float distance, out _, out _))
-                bank = 1f - Smooth(plan.river.width * .5f, plan.river.width * .5f + plan.river.bankWidth, distance);
+            if (TerrainWater.SampleWidth(plan, direction, out float distance, out float width))
+                bank = 1f - Smooth(width * .5f, width * .5f + plan.river.bankWidth, distance);
             if (plan.river != null && plan.river.pond) bank = Mathf.Max(bank, TerrainWater.PondShore(plan, direction, elevation));
             float tone = Noise(direction * (plan.radius / plan.natural.mediumScaleMeters) + plan.noiseOffset, plan.surfaceSeed);
             return new Color(Smooth(-.3f, .45f, high), Smooth(-.25f, .45f, -high), bank, tone);

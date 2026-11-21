@@ -14,6 +14,8 @@ namespace B612
             public List<float> lengths = new List<float>();
             public float bankWidth;
             public Vector3 centre;public float bound,width=.9f;public int fordIndex=10;
+            // v13: full channel width per point (source narrow, mouth wide). Empty keeps the constant width.
+            public List<float> widths = new List<float>();
 
             // v11 flow river. flowFit: the channel only lowers the ground. pond: the river ends in a
             // shallow pond whose water fills all ground below pondLevel within pondRadius (metres).
@@ -81,8 +83,19 @@ namespace B612
 
         static bool Sample(ProceduralPlanetTerrain.Plan plan, Vector3 n, out float distance, out float level,
             out float bed, out float along)
+            => Sample(plan, n, out distance, out level, out bed, out along, out _);
+
+        /// <summary>Nearest channel point: distance, local width (constant unless widths are set).</summary>
+        public static bool SampleWidth(ProceduralPlanetTerrain.Plan plan, Vector3 n, out float distance, out float width)
+            => Sample(plan, n, out distance, out _, out _, out _, out width);
+
+        /// <summary>Full channel width at river point i.</summary>
+        public static float WidthAt(River river, int i) => river.widths.Count != 0 ? river.widths[i] : river.width;
+
+        static bool Sample(ProceduralPlanetTerrain.Plan plan, Vector3 n, out float distance, out float level,
+            out float bed, out float along, out float width)
         {
-            distance=float.PositiveInfinity;level=bed=along=0;var river=plan.river;if(river==null)return false;var point=n*plan.radius;
+            distance=float.PositiveInfinity;level=bed=along=0;var river=plan.river;width=river!=null?river.width:0f;if(river==null)return false;var point=n*plan.radius;
             if((point-river.centre).sqrMagnitude>river.bound*river.bound)return false;
             float best=float.PositiveInfinity;
             for(int i=1;i<river.points.Count;i++)
@@ -91,6 +104,7 @@ namespace B612
                 float sq=(point-a-d*t).sqrMagnitude;if(sq>=best)continue;
                 best=sq;level=Mathf.Lerp(river.levels[i-1],river.levels[i],t);bed=Mathf.Lerp(river.beds[i-1],river.beds[i],t);
                 if (river.lengths.Count != 0) along = Mathf.Lerp(river.lengths[i - 1], river.lengths[i], t);
+                if (river.widths.Count != 0) width = Mathf.Lerp(river.widths[i - 1], river.widths[i], t);
             }
             distance=Mathf.Sqrt(best);return true;
         }
@@ -99,10 +113,10 @@ namespace B612
             if (plan.natural != null && plan.river != null && plan.river.pond)
                 original -= PondCarve(plan.river.pondDirection, plan.river.pondRadius, plan.river.pondBowl, plan.river.pondLevel,
                     plan.radius, n, original);
-            if(!Sample(plan,n,out float distance,out float level,out float bed,out float along))return original;
+            if(!Sample(plan,n,out float distance,out float level,out float bed,out float along,out float width))return original;
             if (plan.natural != null)
             {
-                return NaturalChannelHeight(plan.river, original, distance, level, bed, EndFade(plan.river, along));
+                return NaturalChannelHeight(plan.river, original, distance, level, bed, EndFade(plan.river, along), width);
             }
             float inner=plan.river.width*.5f;
             if(distance<=inner)return bed;
@@ -127,7 +141,7 @@ namespace B612
                 surface = plan.river.pondLevel;
                 return true;
             }
-            if (!Sample(plan, direction, out float distance, out float level, out float bed, out float along)) return false;
+            if (!Sample(plan, direction, out float distance, out float level, out float bed, out float along, out float width)) return false;
             if (plan.natural == null)
             {
                 surface = level;
@@ -135,17 +149,18 @@ namespace B612
             }
             float fade = EndFade(plan.river, along);
             surface = level;
-            float halfWidth = ChannelHalfWidth(plan.river, fade);
+            float halfWidth = ChannelHalfWidth(width, fade);
             if (fade <= 0f || distance > halfWidth * .94f + margin) return false;
             if (fade >= 1f) return true;
             float height = NaturalChannelHeight(plan.river, ProceduralPlanetTerrain.FreeHeight(plan, direction),
-                Mathf.Min(distance, halfWidth * .94f), level, bed, fade);
+                Mathf.Min(distance, halfWidth * .94f), level, bed, fade, width);
             return height < level + ShoreInset(plan.river);
         }
 
-        static float NaturalChannelHeight(River river, float original, float distance, float level, float bed, float fade)
+        static float NaturalChannelHeight(River river, float original, float distance, float level, float bed, float fade,
+            float width)
         {
-            float halfWidth = ChannelHalfWidth(river, fade);
+            float halfWidth = ChannelHalfWidth(width, fade);
             if (distance >= halfWidth + river.bankWidth) return original;
             float channel = distance <= halfWidth
                 ? Mathf.Lerp(bed, level, Mathf.SmoothStep(0, 1, distance / halfWidth))
@@ -197,8 +212,8 @@ namespace B612
             return 1f - Mathf.SmoothStep(0, 1, Mathf.Clamp01(rise / Mathf.Max(.01f, river.bankWidth * .12f)));
         }
 
-        static float ChannelHalfWidth(River river, float fade)
-            => river.width * .5f * Mathf.Lerp(.22f, 1f, fade);
+        static float ChannelHalfWidth(float width, float fade)
+            => width * .5f * Mathf.Lerp(.22f, 1f, fade);
 
         static float ShoreInset(River river) => Mathf.Min(.009f, river.width * .012f);
 
@@ -271,7 +286,7 @@ namespace B612
                 if (plan.natural != null)
                 {
                     float fade = EndFade(river, river.lengths[i]);
-                    halfWidth = ChannelHalfWidth(river, fade) * .94f / plan.radius;
+                    halfWidth = ChannelHalfWidth(WidthAt(river, i), fade) * .94f / plan.radius;
                     // The uncut ground hides the tips. Keep the actual surface on the
                     // same downhill levels all the way to both submerged ends.
                     height = plan.radius + river.levels[i] + ShoreInset(river);
@@ -306,7 +321,7 @@ namespace B612
                 var tangent = river.directions[Mathf.Min(i + 1, count - 1)] - river.directions[Mathf.Max(0, i - 1)];
                 var side = Vector3.Cross(n, tangent).normalized;
                 float fade = EndFade(river, river.lengths[i]);
-                float halfMeters = ChannelHalfWidth(river, fade) * .94f;
+                float halfMeters = ChannelHalfWidth(WidthAt(river, i), fade) * .94f;
                 // Same downhill surface as before, all the way to both ends.
                 float height = plan.radius + river.levels[i] + ShoreInset(river);
                 int upstream = Mathf.Max(0, i - 2), downstream = Mathf.Min(count - 1, i + 2);

@@ -137,7 +137,7 @@ public static class NaturalTerrainMeshValidation
                     int i = Mathf.Clamp(Mathf.RoundToInt(fraction * (river.directions.Count - 1)), 1, river.directions.Count - 2);
                     var n = river.directions[i];
                     var side = Vector3.Cross(n, river.directions[i + 1] - river.directions[i - 1]).normalized;
-                    float offset = river.width * .5f + river.bankWidth + .6f;
+                    float offset = TerrainWater.WidthAt(river, i) * .5f + river.bankWidth + .6f;
                     var a = (n * radius - side * offset).normalized;
                     var b = (n * radius + side * offset).normalized;
                     Run($"river{fraction:F2}AB", new List<Vector3> { a, n, b });

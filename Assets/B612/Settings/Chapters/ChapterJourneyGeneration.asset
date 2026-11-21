@@ -73,6 +73,7 @@ MonoBehaviour:
     generateRiver: 1
     riverLengthMeters: {x: 8, y: 18}
     riverWidthMeters: 0.9
+    riverMouthWidthMeters: 3
     equalAngleMesh: 1
     riverDepthMeters: {x: 0.12, y: 0.2}
     bankTransitionMeters: 1.2

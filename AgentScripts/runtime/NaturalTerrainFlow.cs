@@ -179,8 +179,10 @@ namespace B612
                 }
                 plan.river = river;
                 plan.riverPlanMilliseconds = (float)watch.Elapsed.TotalMilliseconds;
-                plan.riverStatus = $"Flow river into pond: {river.lengths[river.lengths.Count - 1]:F1}m, pond radius " +
-                    $"{river.pondRadius:F1}m ({count} cells, {pits.Count} basins, {candidates.Count} candidates, {rejected} unfit).";
+                float widest = river.width;
+                foreach (float w in river.widths) widest = Mathf.Max(widest, w);
+                plan.riverStatus = $"Flow river into pond: {river.lengths[river.lengths.Count - 1]:F1}m, width {river.width:F1}-{widest:F1}m, " +
+                    $"pond radius {river.pondRadius:F1}m ({count} cells, {pits.Count} basins, {candidates.Count} candidates, {rejected} unfit).";
                 return true;
             }
             var unfit = new List<string>();
@@ -413,6 +415,16 @@ namespace B612
             path = Resample(path, step, plan.radius);
             if (path.Count < 3) return "short";
 
+            // v13: the channel widens downstream, from the spring width to the mouth width (capped by the pond).
+            float total = 0f;
+            for (int i = 1; i < path.Count; i++) total += Vector3.Distance(path[i], path[i - 1]) * plan.radius;
+            float mouth = Mathf.Min(settings.riverMouthWidthMeters, .8f * candidate.pondRadius);
+            bool widen = mouth > settings.riverWidthMeters;
+            float travelled = 0f;
+            float WidthAlong(float metres) => widen
+                ? Mathf.Lerp(settings.riverWidthMeters, mouth, Mathf.Pow(Mathf.Clamp01(metres / Mathf.Max(.01f, total)), .7f))
+                : settings.riverWidthMeters;
+
             var result = new TerrainWater.River
             {
                 width = settings.riverWidthMeters, bankWidth = settings.bankTransitionMeters, flowFit = true, pond = true,
@@ -435,6 +447,8 @@ namespace B612
                 var direction = path[i];
                 var along = path[Mathf.Min(i + 1, path.Count - 1)] - path[Mathf.Max(0, i - 1)];
                 var side = Vector3.Cross(direction, along).normalized;
+                if (i > 0) travelled += Vector3.Distance(direction, path[i - 1]) * plan.radius;
+                float width = WidthAlong(travelled);
                 float original = Ground(direction);
                 float bankHeight = Mathf.Min(Bank(-1), Bank(1));
                 level = Mathf.Min(level, Mathf.Min(original, bankHeight) - margin);
@@ -446,12 +460,13 @@ namespace B612
                 result.points.Add(direction * plan.radius);
                 result.levels.Add(level);
                 result.lengths.Add(i == 0 ? 0f : result.lengths[i - 1] + Vector3.Distance(direction, path[i - 1]) * plan.radius);
+                if (widen) result.widths.Add(width);
                 // The channel ends where it reaches the shore band of the pond.
                 if (original < candidate.pondLevel + margin) break;
 
                 float Bank(float sign)
                 {
-                    var bank = (direction * plan.radius + side * (sign * (settings.riverWidthMeters * .55f +
+                    var bank = (direction * plan.radius + side * (sign * (width * .55f +
                         settings.bankTransitionMeters * .65f))).normalized;
                     return Ground(bank);
                 }
@@ -470,13 +485,36 @@ namespace B612
                 result.beds.Add(raised - depths[i]);
                 mean += result.directions[i];
             }
+            if (widen)
+            {
+                // A wide mouth would end in a straight cut beside the pond. Carry the channel on into the pond
+                // for one mouth width, just under the pond surface, so the pond water hides the end of the ribbon.
+                float mouthWidth = result.widths[last], extended = 0f;
+                for (int i = last + 1; i < path.Count && extended < mouthWidth; i++)
+                {
+                    float segment = Vector3.Distance(path[i], path[i - 1]) * plan.radius;
+                    extended += segment;
+                    result.directions.Add(path[i]);
+                    result.points.Add(path[i] * plan.radius);
+                    result.levels.Add(candidate.pondLevel - UnderPond);
+                    result.beds.Add(candidate.pondLevel - UnderPond - depths[last]);
+                    result.lengths.Add(result.lengths[result.lengths.Count - 1] + segment);
+                    result.widths.Add(mouthWidth);
+                    mean += path[i];
+                }
+            }
             result.centre = mean * (plan.radius / result.directions.Count);
             foreach (var point in result.points)
                 result.bound = Mathf.Max(result.bound, Vector3.Distance(point, result.centre));
-            result.bound += result.width * .5f + result.bankWidth;
+            float widest = result.width;
+            foreach (float w in result.widths) widest = Mathf.Max(widest, w);
+            result.bound += widest * .5f + result.bankWidth;
             river = result;
             return null;
         }
+
+        /// <summary>How far the underwater end of a widened channel sits below the pond surface (m).</summary>
+        const float UnderPond = .004f;
 
         static List<Vector3> Chaikin(List<Vector3> path)
         {
