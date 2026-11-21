@@ -37,6 +37,9 @@ namespace B612
             public int landformSeed, landformAttempts;
             public List<TerrainLandforms.Landform> landforms = new List<TerrainLandforms.Landform>();
             public Vector3 macroOffset, hillOffset, roughnessOffset;
+            // Rendering only: wetness from the flow field, sampled into the ground mesh's second UV channel.
+            [NonSerialized] internal NaturalTerrainFlow.Moisture moisture;
+            public float moistureMean;
             public bool safeFallback, fixedPlacement, useNormalPlanetRelief;
             public Vector2 HillHeights => useNormalPlanetRelief ? appearance.normalPlanetHillHeights : appearance.hillHeights;
             public Vector2 BasinDepths => useNormalPlanetRelief ? appearance.normalPlanetBasinDepths : appearance.basinDepths;
@@ -456,7 +459,10 @@ namespace B612
             plan.noiseOffset = NoiseOffset(plan.surfaceSeed);
             plan.roughnessOffset = NoiseOffset(plan.roughnessSeed);
             var watch = System.Diagnostics.Stopwatch.StartNew();
-            if (natural.riverMode != NaturalRiverMode.Flow || !NaturalTerrainFlow.Plan(plan))
+            var field = natural.riverMode == NaturalRiverMode.Flow || natural.moistureStrength > 0f
+                ? NaturalTerrainFlow.Build(plan) : null;
+            if (field != null && natural.moistureStrength > 0f) plan.moisture = new NaturalTerrainFlow.Moisture(plan, field);
+            if (natural.riverMode != NaturalRiverMode.Flow || !NaturalTerrainFlow.Plan(plan, field))
             {
                 string flowStatus = natural.riverMode == NaturalRiverMode.Flow ? plan.riverStatus : null;
                 NaturalTerrainRiver.Plan(plan);
@@ -603,6 +609,7 @@ namespace B612
             // read-only plan, so it runs in parallel with bit-identical results per vertex.
             var vertices = new Vector3[directions.Count];
             var colors = new Color[directions.Count];
+            var wetness = plan.moisture != null ? new Vector2[directions.Count] : null;
             if (plan.natural != null)
                 ForEachRange(directions.Count, (from, to) =>
                 {
@@ -612,6 +619,7 @@ namespace B612
                         float elevation = FreeHeight(plan, n);
                         vertices[v] = n * (plan.radius + TerrainWater.Height(plan, n, elevation));
                         colors[v] = NaturalSurfaceWeights(plan, n, elevation);
+                        if (wetness != null) wetness[v] = new Vector2(plan.moisture.Sample(n), 0f);
                     }
                 });
             else
@@ -624,6 +632,13 @@ namespace B612
             var mesh=new Mesh{name="Seeded terrain "+plan.seed,indexFormat=IndexFormat.UInt32};
             mesh.SetVertices(vertices);
             mesh.SetColors(colors);
+            if (wetness != null)
+            {
+                double sum = 0;
+                foreach (var w in wetness) sum += w.x;
+                plan.moistureMean = (float)(sum / wetness.Length);
+                mesh.SetUVs(1, wetness);
+            }
             mesh.SetTriangles(indices,0);
             mesh.RecalculateNormals();
             return mesh;

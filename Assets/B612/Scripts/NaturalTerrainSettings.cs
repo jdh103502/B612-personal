@@ -22,6 +22,10 @@ namespace B612
         [Min(5f)] public float roughnessScaleMeters = 18f;
         [Tooltip("Medium-layer multiplier from calm (x) to rough (y) areas, y up to 2 within the height budget. (1, 1) disables the mask, as in v9.")]
         public Vector2 roughnessRange = new Vector2(.2f, 1.6f);
+        [Tooltip("Rendering only: how strongly drainage lines and basins turn green and ridges dry out (0 keeps the v11 colours).")]
+        [Range(0f, 1.5f)] public float moistureStrength = 1f;
+        [Tooltip("Rendering only: softening radius of the moisture bands.")]
+        [Range(.4f, 3f)] public float moistureBlurMeters = 1.5f;
 
         public bool generateRiver = true;
         public Vector2 riverLengthMeters = new Vector2(8f, 18f);
@@ -51,6 +55,7 @@ namespace B612
             static bool Valid(float value, float min, float max) => value >= min && value <= max;
             if (!Enum.IsDefined(typeof(NaturalNoiseBasis), noiseBasis) || !Valid(roughnessScaleMeters, 5, 60) ||
                 !Valid(roughnessRange.x, .1f, 1) || !Valid(roughnessRange.y, roughnessRange.x, 2) ||
+                !Valid(moistureStrength, 0, 1.5f) || !Valid(moistureBlurMeters, .4f, 3) ||
                 !Valid(broadScaleMeters, 2, 60) || !Valid(mediumScaleMeters, 1, broadScaleMeters) ||
                 !Valid(broadAmplitudeMeters, 0, 8) || !Valid(mediumAmplitudeMeters, 0, 8) ||
                 !Valid(riverLengthMeters.x, 2, 30) || !Valid(riverLengthMeters.y, riverLengthMeters.x, 40) ||
@@ -69,6 +74,7 @@ namespace B612
             used.broadScaleMeters *= scale;
             used.mediumScaleMeters *= scale;
             used.roughnessScaleMeters *= scale;
+            used.moistureBlurMeters *= scale;
             // The budget bounds the peak: rough patches may raise the medium layer above its base amplitude.
             float amplitude = (broadAmplitudeMeters + mediumAmplitudeMeters * Mathf.Max(1f, roughnessRange.y)) * scale;
             float budget = Mathf.Min(2f, .17f * radius);

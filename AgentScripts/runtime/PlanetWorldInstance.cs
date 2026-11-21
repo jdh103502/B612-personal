@@ -75,6 +75,12 @@ namespace B612
                 material.SetFloat("_PaletteStrength", appearance.paletteStrength);
                 material.SetVector("_VegetationRemap", new Vector4(appearance.vegetationRemap.x, appearance.vegetationRemap.y, 0, 0));
                 material.SetFloat("_HeightColorRange", appearance.heightColorRange);
+                var generated = Terrain.GenerationPlan;
+                if (generated.natural != null && generated.moisture != null)
+                {
+                    material.SetFloat("_MoistureStrength", generated.natural.moistureStrength);
+                    material.SetFloat("_MoistureMean", generated.moistureMean);
+                }
                 gravity.terrainPlan=Terrain.GenerationPlan;
                 surface.CandidateFilter=Terrain.AllowsSpawn;
             }

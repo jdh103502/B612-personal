@@ -11,15 +11,20 @@ namespace B612
     /// </summary>
     internal static class NaturalTerrainFlow
     {
-        internal static bool Plan(ProceduralPlanetTerrain.Plan plan)
+        /// <summary>Flow routing over the sphere cell graph, shared by the river planner and the moisture colours.</summary>
+        internal sealed class Field
+        {
+            public List<PlanetSurfaceGrid.SurfaceCell> cells;
+            public Vector3[] direction;
+            public float[] height, area, accumulation;
+            public int[] receiver;
+            public List<int>[] donors;
+            public float spacing;
+        }
+
+        internal static Field Build(ProceduralPlanetTerrain.Plan plan)
         {
             var settings = plan.natural;
-            if (!settings.generateRiver)
-            {
-                plan.riverStatus = "River disabled by settings.";
-                return false;
-            }
-            var watch = System.Diagnostics.Stopwatch.StartNew();
             float radius = plan.radius;
             // Triangle-cell centres are about 0.694 R / f apart.
             int frequency = Mathf.Clamp(Mathf.CeilToInt(.694f * radius / settings.flowSpacingMeters), 4, 64);
@@ -71,6 +76,32 @@ namespace B612
                 accumulation[r] += accumulation[i];
                 (donors[r] ??= new List<int>()).Add(i);
             }
+            return new Field
+            {
+                cells = cells, direction = direction, height = height, area = area, accumulation = accumulation,
+                receiver = receiver, donors = donors, spacing = spacing
+            };
+        }
+
+        internal static bool Plan(ProceduralPlanetTerrain.Plan plan, Field field = null)
+        {
+            var settings = plan.natural;
+            if (!settings.generateRiver)
+            {
+                plan.riverStatus = "River disabled by settings.";
+                return false;
+            }
+            var watch = System.Diagnostics.Stopwatch.StartNew();
+            float radius = plan.radius;
+            field ??= Build(plan);
+            var cells = field.cells;
+            int count = cells.Count;
+            var direction = field.direction;
+            var height = field.height;
+            var receiver = field.receiver;
+            var accumulation = field.accumulation;
+            var donors = field.donors;
+            float spacing = field.spacing;
 
             var pits = new List<int>();
             for (int i = 0; i < count; i++) if (receiver[i] < 0) pits.Add(i);
@@ -158,6 +189,114 @@ namespace B612
                 $"{openRims} open rims, {shortStems} short stems, {rejected} unfit channels ({string.Join(", ", unfit)}).";
             return false;
         }
+
+        /// <summary>
+        /// Rendering-only wetness from the flow field, 0 (dry) to 1 (wet), mixed from three cues:
+        /// 40% water supply (log of the upstream cell count, MoistureCells.x to .y; drainage lines and basins),
+        /// 30% topographic position (hollows below the mean height within about 2 x blur radius are wetter,
+        /// crests drier) and 30% elevation (low ground is wetter than high ground across the planet).
+        /// The cues are blurred once on the cells (about the blur radius); vertices then interpolate the
+        /// nearest cells, which keeps the cost per vertex small.
+        /// </summary>
+        internal sealed class Moisture
+        {
+            readonly Vector3[] direction;
+            readonly float[] wetness;
+            readonly Dictionary<Vector3Int, List<int>> near;
+            readonly float radius, nearReach;
+
+            internal Moisture(ProceduralPlanetTerrain.Plan plan, Field field)
+            {
+                radius = plan.radius;
+                direction = field.direction;
+                int count = direction.Length;
+                float q = Mathf.Min(1f, plan.radius / 12f);
+                float reach = 2f * plan.natural.moistureBlurMeters;
+                var wide = Binned(direction, radius, reach);
+
+                float low = Mathf.Log(MoistureCells.x), high = Mathf.Log(MoistureCells.y);
+                var raw = new float[count];
+                ProceduralPlanetTerrain.ForEachRange(count, (from, to) =>
+                {
+                for (int i = from; i < to; i++)
+                {
+                    // Topographic position: mean height within `reach` minus own height (> 0 in hollows).
+                    float sum = 0f;
+                    int n = 0;
+                    var d = direction[i];
+                    var bin = Vector3Int.FloorToInt(d * (radius / reach));
+                    float limit = reach * reach / (radius * radius);
+                    for (int x = -1; x <= 1; x++)
+                    for (int y = -1; y <= 1; y++)
+                    for (int z = -1; z <= 1; z++)
+                    {
+                        if (!wide.TryGetValue(bin + new Vector3Int(x, y, z), out var list)) continue;
+                        foreach (int j in list)
+                            if (j != i && (direction[j] - d).sqrMagnitude <= limit) { sum += field.height[j]; n++; }
+                    }
+                    float position = n > 0 ? sum / n - field.height[i] : 0f;
+                    float valley = Mathf.Clamp01(.5f + .5f * position / (PositionMeters * q));
+                    float upstream = field.accumulation[i] / field.area[i];
+                    float supply = Mathf.Clamp01((Mathf.Log(Mathf.Max(1f, upstream)) - low) / (high - low));
+                    float lowland = Mathf.Clamp01(.5f - .5f * field.height[i] / Mathf.Max(.001f, plan.amplitude));
+                    raw[i] = .4f * supply + .3f * valley + .3f * lowland;
+                }
+                });
+
+                // Blur once on the cells with the smooth compact kernel (1 - r^2/reach^2)^2.
+                var smoothed = new float[count];
+                ProceduralPlanetTerrain.ForEachRange(count, (from, to) =>
+                {
+                    for (int i = from; i < to; i++) smoothed[i] = Average(raw, wide, reach, direction[i]);
+                });
+                wetness = smoothed;
+
+                nearReach = 1.5f * field.spacing;
+                near = Binned(direction, radius, nearReach);
+            }
+
+            static Dictionary<Vector3Int, List<int>> Binned(Vector3[] direction, float radius, float size)
+            {
+                var result = new Dictionary<Vector3Int, List<int>>();
+                for (int i = 0; i < direction.Length; i++)
+                {
+                    var key = Vector3Int.FloorToInt(direction[i] * (radius / size));
+                    if (!result.TryGetValue(key, out var list)) result.Add(key, list = new List<int>());
+                    list.Add(i);
+                }
+                return result;
+            }
+
+            float Average(float[] values, Dictionary<Vector3Int, List<int>> bins, float reach, Vector3 d)
+            {
+                var bin = Vector3Int.FloorToInt(d * (radius / reach));
+                float sum = 0f, weight = 0f, inverse = radius * radius / (reach * reach);
+                for (int x = -1; x <= 1; x++)
+                for (int y = -1; y <= 1; y++)
+                for (int z = -1; z <= 1; z++)
+                {
+                    if (!bins.TryGetValue(bin + new Vector3Int(x, y, z), out var list)) continue;
+                    foreach (int i in list)
+                    {
+                        float k = 1f - (direction[i] - d).sqrMagnitude * inverse;
+                        if (k <= 0f) continue;
+                        k *= k;
+                        sum += k * values[i];
+                        weight += k;
+                    }
+                }
+                return weight > 0f ? sum / weight : 0f;
+            }
+
+            /// <summary>Thread-safe read of the smoothed wetness at a unit direction.</summary>
+            internal float Sample(Vector3 d) => Average(wetness, near, nearReach, d);
+        }
+
+        /// <summary>Upstream cell counts mapped to supply wetness 0 and 1 (log scale).</summary>
+        static readonly Vector2 MoistureCells = new Vector2(3f, 60f);
+
+        /// <summary>Height below the surrounding mean that counts as a full hollow (scaled by q).</summary>
+        const float PositionMeters = .15f;
 
         sealed class Candidate
         {

@@ -28,6 +28,8 @@ Shader "B612/Planet Ground"
         [HideInInspector] _DiagnosticUnlit("Diagnostic color", Float) = 0
         [HideInInspector] _DiagnosticLegacy("Diagnostic previous palette", Float) = 0
         _Smoothness("Smoothness", Range(0, 1)) = 0.1
+        _MoistureStrength("Moisture colour strength", Range(0, 1.5)) = 0
+        _MoistureMean("Mean moisture of this planet", Range(0, 1)) = 0
     }
     SubShader
     {
@@ -52,6 +54,7 @@ Shader "B612/Planet Ground"
             float _PaletteStrength, _DiagnosticUnlit, _DiagnosticLegacy;
             float _GroundTexturesEnabled, _DirtTileMeters, _GrassTileMeters, _GroundTextureStrength;
             float _DirtNormalStrength, _GrassNormalStrength;
+            float _MoistureStrength, _MoistureMean;
         CBUFFER_END
 
         struct GroundSurface
@@ -61,14 +64,19 @@ Shader "B612/Planet Ground"
             half meadow;
         };
 
-        GroundSurface GetGroundSurface(float3 positionOS, float3 normalOS, half4 weights)
+        GroundSurface GetGroundSurface(float3 positionOS, float3 normalOS, half4 weights, half moisture)
         {
             GroundSurface surface;
             // Equivalent to a smooth transition from 18 to 46 degrees.
             surface.rock = 1 - smoothstep(0.694658, 0.951057, dot(normalOS, normalize(positionOS)));
             float height = length(positionOS) - _Radius;
             surface.highGround = smoothstep(-_HeightColorRange, _HeightColorRange, height);
-            half fertility = weights.a * 0.82 + weights.r * 0.23 - weights.g * 0.35 + surface.highGround * 0.14;
+            // The older height rule (high ground greener, basins bare) fades out as moisture takes over: water-fed
+            // ground (drainage lines, hollows, lowland) turns greener and dry crests turn to bare earth. Moisture is
+            // centred on the planet's mean so the overall grass share stays about the same.
+            half heightRule = weights.r * 0.23 - weights.g * 0.35 + surface.highGround * 0.14;
+            half fertility = weights.a * 0.82 + heightRule * (1 - saturate(_MoistureStrength))
+                + _MoistureStrength * (moisture - _MoistureMean);
             surface.meadow = smoothstep(_VegetationRemap.x, _VegetationRemap.y, fertility);
             surface.meadow *= (1 - surface.rock) * (1 - weights.b * 0.9);
             return surface;
@@ -158,6 +166,7 @@ Shader "B612/Planet Ground"
             float4 positionOS : POSITION;
             float3 normalOS : NORMAL;
             half4 surfaceWeights : COLOR;
+            float2 moisture : TEXCOORD1;
         };
         ENDHLSL
 
@@ -189,6 +198,7 @@ Shader "B612/Planet Ground"
                 half3 normalOS : TEXCOORD2;
                 half4 weights : TEXCOORD3;
                 half4 fogAndVertexLight : TEXCOORD4;
+                half moisture : TEXCOORD5;
             };
 
             Varyings Vert(GroundAttributes input)
@@ -200,6 +210,7 @@ Shader "B612/Planet Ground"
                 output.positionOS = input.positionOS.xyz;
                 output.normalOS = input.normalOS;
                 output.weights = input.surfaceWeights;
+                output.moisture = input.moisture.x;
                 output.fogAndVertexLight = half4(ComputeFogFactor(positions.positionCS.z),
                     VertexLighting(positions.positionWS, TransformObjectToWorldNormal(input.normalOS)));
                 return output;
@@ -208,7 +219,7 @@ Shader "B612/Planet Ground"
             half4 Frag(Varyings input) : SV_Target
             {
                 float3 normalOS = normalize(input.normalOS);
-                GroundSurface ground = GetGroundSurface(input.positionOS, normalOS, input.weights);
+                GroundSurface ground = GetGroundSurface(input.positionOS, normalOS, input.weights, input.moisture);
                 half3 blend = GetProjectionWeights(normalOS);
                 bool useColorDetail = GroundTexturesActive() && _GroundTextureStrength > 0;
                 half3 albedo;
@@ -321,6 +332,7 @@ Shader "B612/Planet Ground"
                 float3 positionOS : TEXCOORD0;
                 half3 normalOS : TEXCOORD1;
                 half4 weights : TEXCOORD2;
+                half moisture : TEXCOORD3;
                 UNITY_VERTEX_OUTPUT_STEREO
             };
 
@@ -332,6 +344,7 @@ Shader "B612/Planet Ground"
                 output.positionOS = input.positionOS.xyz;
                 output.normalOS = input.normalOS;
                 output.weights = input.surfaceWeights;
+                output.moisture = input.moisture.x;
                 return output;
             }
 
@@ -339,7 +352,7 @@ Shader "B612/Planet Ground"
             {
                 UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
                 float3 normalOS = normalize(input.normalOS);
-                GroundSurface ground = GetGroundSurface(input.positionOS, normalOS, input.weights);
+                GroundSurface ground = GetGroundSurface(input.positionOS, normalOS, input.weights, input.moisture);
                 float3 normalWS = TransformObjectToWorldNormal(
                     GetGroundNormalOS(input.positionOS, normalOS, ground, GetProjectionWeights(normalOS)));
                 #if defined(_GBUFFER_NORMALS_OCT)

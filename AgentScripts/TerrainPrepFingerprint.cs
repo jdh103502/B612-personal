@@ -25,6 +25,23 @@ public static class TerrainPrepFingerprint
 #endif
     }
 
+    /// <summary>Same as Run with the moisture colours off (no second UV channel), as in v11.</summary>
+    public static object RunNoMoisture(int journey, int chapter, string planetId, float size)
+    {
+#if UNITY_EDITOR
+        var settings = UnityEditor.AssetDatabase.LoadAssetAtPath<PlanetGenerationSettings>("Assets/B612/Settings/Chapters/ChapterJourneyGeneration.asset");
+        string original = JsonUtility.ToJson(settings.naturalTerrain);
+        try
+        {
+            settings.naturalTerrain.moistureStrength = 0f;
+            return Run(journey, chapter, planetId, size);
+        }
+        finally { JsonUtility.FromJsonOverwrite(original, settings.naturalTerrain); }
+#else
+        throw new InvalidOperationException("Editor only");
+#endif
+    }
+
     /// <summary>Same as Run with the v10 traced river (no flow routing, no pond).</summary>
     public static object RunV10River(int journey, int chapter, string planetId, float size)
     {
@@ -89,7 +106,8 @@ public static class TerrainPrepFingerprint
                 planetId, plan.radius, vertices = mesh.vertexCount, ground = ground.ToString("x16"),
                 positions = positions.ToString("x16"), tints = tints.ToString("x16"), water = water.ToString("x16"),
                 placement = placement.ToString("x16"), slots = slots.ToString("x16"), world.surface.SlotCount,
-                plan.meshMilliseconds, report.analysisMilliseconds, report.candidateMilliseconds
+                plan.meshMilliseconds, report.analysisMilliseconds, report.candidateMilliseconds, moistureMean = plan.moistureMean,
+                moistureChannel = mesh.uv2 != null && mesh.uv2.Length == mesh.vertexCount
             };
         }
         finally { UnityEngine.Object.DestroyImmediate(root); }
