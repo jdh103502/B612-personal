@@ -25,6 +25,23 @@ public static class TerrainPrepFingerprint
 #endif
     }
 
+    /// <summary>Same as Run with the v12 gullies off, which must reproduce v11.</summary>
+    public static object RunNoErosion(int journey, int chapter, string planetId, float size)
+    {
+#if UNITY_EDITOR
+        var settings = UnityEditor.AssetDatabase.LoadAssetAtPath<PlanetGenerationSettings>("Assets/B612/Settings/Chapters/ChapterJourneyGeneration.asset");
+        string original = JsonUtility.ToJson(settings.naturalTerrain);
+        try
+        {
+            settings.naturalTerrain.erosionDepthMeters = 0f;
+            return Run(journey, chapter, planetId, size);
+        }
+        finally { JsonUtility.FromJsonOverwrite(original, settings.naturalTerrain); }
+#else
+        throw new InvalidOperationException("Editor only");
+#endif
+    }
+
     /// <summary>Same as Run with the moisture colours off (no second UV channel), as in v11.</summary>
     public static object RunNoMoisture(int journey, int chapter, string planetId, float size)
     {
@@ -107,7 +124,8 @@ public static class TerrainPrepFingerprint
                 positions = positions.ToString("x16"), tints = tints.ToString("x16"), water = water.ToString("x16"),
                 placement = placement.ToString("x16"), slots = slots.ToString("x16"), world.surface.SlotCount,
                 plan.meshMilliseconds, report.analysisMilliseconds, report.candidateMilliseconds, moistureMean = plan.moistureMean,
-                moistureChannel = mesh.uv2 != null && mesh.uv2.Length == mesh.vertexCount
+                moistureChannel = mesh.uv2 != null && mesh.uv2.Length == mesh.vertexCount, gullies = plan.gullyCount,
+                gullyLength = plan.gullyLength, gullyDeepest = plan.gullyDeepest, gullyMean = plan.gullyMeanDepth, river = plan.riverStatus.Replace(" ", "_")
             };
         }
         finally { UnityEngine.Object.DestroyImmediate(root); }

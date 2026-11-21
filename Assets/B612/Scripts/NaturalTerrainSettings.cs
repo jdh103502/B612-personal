@@ -26,6 +26,12 @@ namespace B612
         [Range(0f, 1.5f)] public float moistureStrength = 1f;
         [Tooltip("Rendering only: softening radius of the moisture bands.")]
         [Range(.4f, 3f)] public float moistureBlurMeters = 1.5f;
+        [Tooltip("Generator v12: depth of the shallow dry gullies carved along the drainage network (0 reproduces v11).")]
+        [Range(0f, .4f)] public float erosionDepthMeters = .2f;
+        [Tooltip("Upstream flow cells (about 0.3 m2 each) a cell needs before a gully starts there. Larger means fewer, longer gullies.")]
+        [Range(5f, 200f)] public float erosionMinCells = 40f;
+        [Tooltip("Half width of a full-depth gully. Never narrower than 6.5 x its depth, which bounds the added slope.")]
+        [Range(.5f, 3f)] public float erosionWidthMeters = 1f;
 
         public bool generateRiver = true;
         public Vector2 riverLengthMeters = new Vector2(8f, 18f);
@@ -56,6 +62,7 @@ namespace B612
             if (!Enum.IsDefined(typeof(NaturalNoiseBasis), noiseBasis) || !Valid(roughnessScaleMeters, 5, 60) ||
                 !Valid(roughnessRange.x, .1f, 1) || !Valid(roughnessRange.y, roughnessRange.x, 2) ||
                 !Valid(moistureStrength, 0, 1.5f) || !Valid(moistureBlurMeters, .4f, 3) ||
+                !Valid(erosionDepthMeters, 0, .4f) || !Valid(erosionMinCells, 5, 200) || !Valid(erosionWidthMeters, .5f, 3) ||
                 !Valid(broadScaleMeters, 2, 60) || !Valid(mediumScaleMeters, 1, broadScaleMeters) ||
                 !Valid(broadAmplitudeMeters, 0, 8) || !Valid(mediumAmplitudeMeters, 0, 8) ||
                 !Valid(riverLengthMeters.x, 2, 30) || !Valid(riverLengthMeters.y, riverLengthMeters.x, 40) ||
@@ -75,6 +82,8 @@ namespace B612
             used.mediumScaleMeters *= scale;
             used.roughnessScaleMeters *= scale;
             used.moistureBlurMeters *= scale;
+            used.erosionDepthMeters *= scale;
+            used.erosionWidthMeters *= scale;
             // The budget bounds the peak: rough patches may raise the medium layer above its base amplitude.
             float amplitude = (broadAmplitudeMeters + mediumAmplitudeMeters * Mathf.Max(1f, roughnessRange.y)) * scale;
             float budget = Mathf.Min(2f, .17f * radius);

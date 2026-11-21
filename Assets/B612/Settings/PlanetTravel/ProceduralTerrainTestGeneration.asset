@@ -66,6 +66,9 @@ MonoBehaviour:
     roughnessRange: {x: 0.2, y: 1.6}
     moistureStrength: 1
     moistureBlurMeters: 1.5
+    erosionDepthMeters: 0.2
+    erosionMinCells: 40
+    erosionWidthMeters: 1
     generateRiver: 1
     riverLengthMeters: {x: 8, y: 18}
     riverWidthMeters: 0.9

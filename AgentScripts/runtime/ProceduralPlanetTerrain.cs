@@ -39,6 +39,10 @@ namespace B612
             public Vector3 macroOffset, hillOffset, roughnessOffset;
             // Rendering only: wetness from the flow field, sampled into the ground mesh's second UV channel.
             [NonSerialized] internal NaturalTerrainFlow.Moisture moisture;
+            // v12: shallow gullies along the drainage network; part of the height field once set.
+            [NonSerialized] internal NaturalTerrainErosion erosion;
+            public int gullyCount;
+            public float gullyLength, gullyDeepest, gullyMeanDepth;
             public float moistureMean;
             public bool safeFallback, fixedPlacement, useNormalPlanetRelief;
             public Vector2 HillHeights => useNormalPlanetRelief ? appearance.normalPlanetHillHeights : appearance.hillHeights;
@@ -226,7 +230,10 @@ namespace B612
                 Vector3 metres = direction * plan.radius;
                 float broad = Basis(metres / natural.broadScaleMeters + plan.macroOffset, plan.macroSeed, natural.noiseBasis);
                 float medium = Basis(metres / natural.mediumScaleMeters + plan.hillOffset, plan.hillSeed, natural.noiseBasis);
-                return broad * natural.broadAmplitudeMeters + medium * natural.mediumAmplitudeMeters * Roughness(plan, metres);
+                if (plan.erosion == null)
+                    return broad * natural.broadAmplitudeMeters + medium * natural.mediumAmplitudeMeters * Roughness(plan, metres);
+                return broad * natural.broadAmplitudeMeters + medium * natural.mediumAmplitudeMeters * Roughness(plan, metres) -
+                    plan.erosion.Carve(direction);
             }
             var settings = plan.appearance;
             Vector3 sample = direction;
@@ -459,6 +466,15 @@ namespace B612
             plan.noiseOffset = NoiseOffset(plan.surfaceSeed);
             plan.roughnessOffset = NoiseOffset(plan.roughnessSeed);
             var watch = System.Diagnostics.Stopwatch.StartNew();
+            if (natural.erosionDepthMeters > 0f)
+            {
+                // Gullies come from the uneroded drainage; everything below then sees the eroded heights.
+                plan.erosion = NaturalTerrainErosion.Build(plan, NaturalTerrainFlow.Build(plan));
+                plan.gullyCount = plan.erosion.gullies;
+                plan.gullyLength = plan.erosion.totalLength;
+                plan.gullyDeepest = plan.erosion.deepest;
+                plan.gullyMeanDepth = plan.erosion.meanDepth;
+            }
             var field = natural.riverMode == NaturalRiverMode.Flow || natural.moistureStrength > 0f
                 ? NaturalTerrainFlow.Build(plan) : null;
             if (field != null && natural.moistureStrength > 0f) plan.moisture = new NaturalTerrainFlow.Moisture(plan, field);
