@@ -25,6 +25,28 @@ public static class TerrainPrepFingerprint
 #endif
     }
 
+    /// <summary>Same as Run with the v13 river (short, shallow, basin-limited routing).</summary>
+    public static object RunV13River(int journey, int chapter, string planetId, float size)
+    {
+#if UNITY_EDITOR
+        var settings = UnityEditor.AssetDatabase.LoadAssetAtPath<PlanetGenerationSettings>("Assets/B612/Settings/Chapters/ChapterJourneyGeneration.asset");
+        string original = JsonUtility.ToJson(settings.naturalTerrain);
+        try
+        {
+            var n = settings.naturalTerrain;
+            n.riverLengthMeters = new Vector2(8f, 18f);
+            n.riverDepthMeters = new Vector2(.12f, .2f);
+            n.riverDepthPerWidth = 0f;
+            n.riverMaxCutMeters = 0f;
+            n.floodedRouting = false;
+            return Run(journey, chapter, planetId, size);
+        }
+        finally { JsonUtility.FromJsonOverwrite(original, settings.naturalTerrain); }
+#else
+        throw new InvalidOperationException("Editor only");
+#endif
+    }
+
     /// <summary>Same as Run with a constant river width, which must reproduce v12.</summary>
     public static object RunNoWiden(int journey, int chapter, string planetId, float size)
     {

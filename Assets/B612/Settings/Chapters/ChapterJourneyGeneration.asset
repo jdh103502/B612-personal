@@ -71,11 +71,14 @@ MonoBehaviour:
     erosionMinCells: 40
     erosionWidthMeters: 1
     generateRiver: 1
-    riverLengthMeters: {x: 8, y: 18}
+    riverLengthMeters: {x: 15, y: 40}
     riverWidthMeters: 0.9
     riverMouthWidthMeters: 3
     equalAngleMesh: 1
-    riverDepthMeters: {x: 0.12, y: 0.2}
+    riverDepthMeters: {x: 0.28, y: 0.38}
+    riverDepthPerWidth: 0.2
+    riverMaxCutMeters: 0.45
+    floodedRouting: 1
     bankTransitionMeters: 1.2
     riverSourceAttempts: 64
     riverTraceSteps: 256

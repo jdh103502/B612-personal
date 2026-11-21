@@ -34,13 +34,21 @@ namespace B612
         [Range(.5f, 3f)] public float erosionWidthMeters = 1f;
 
         public bool generateRiver = true;
-        public Vector2 riverLengthMeters = new Vector2(8f, 18f);
+        [Tooltip("Generator v14: 15-40 m (v13: 8-18 m). Flooded routing lets a river run on through shallow basins.")]
+        public Vector2 riverLengthMeters = new Vector2(15f, 40f);
         [Min(.6f)] public float riverWidthMeters = .9f;
         [Tooltip("Generator v13: channel width where a flow river meets its pond (at most 80% of the pond radius). The river widens from riverWidthMeters at the spring. 0 or narrower than the spring keeps a constant width (v12).")]
         [Range(0f, 5f)] public float riverMouthWidthMeters = 3f;
         [Tooltip("Generator v9 default: equal-angle cube-sphere ground mesh. Keeps the coarsest vertex spacing and removes the face-corner oversampling of the normalized cube. Off reproduces the v8 normalized mapping for comparison only.")]
         public bool equalAngleMesh = true;
-        public Vector2 riverDepthMeters = new Vector2(.12f, .20f);
+        [Tooltip("Channel depth below the water surface (v13: 0.12-0.2 m). v14 reaches the player's shins and knees in the wide lower river.")]
+        public Vector2 riverDepthMeters = new Vector2(.28f, .38f);
+        [Tooltip("v14: the centre depth never exceeds this share of the local width, so the narrow spring stays shallow. 0 turns the cap off (v13).")]
+        [Range(0f, .5f)] public float riverDepthPerWidth = .2f;
+        [Tooltip("v14: deepest gorge a river may cut through a low pass between basins. 0 keeps the v13 rule (85% of the maximum depth).")]
+        [Range(0f, .8f)] public float riverMaxCutMeters = .45f;
+        [Tooltip("v14: route water as if shallow basins were filled, so rivers can cross them and grow long. Off reproduces v13.")]
+        public bool floodedRouting = true;
         [Min(.75f)] public float bankTransitionMeters = 1.2f;
         [Range(1, 64)] public int riverSourceAttempts = 64;
         [Range(32, 256)] public int riverTraceSteps = 256;
@@ -68,8 +76,9 @@ namespace B612
                 !Valid(broadScaleMeters, 2, 60) || !Valid(mediumScaleMeters, 1, broadScaleMeters) ||
                 !Valid(broadAmplitudeMeters, 0, 8) || !Valid(mediumAmplitudeMeters, 0, 8) ||
                 !Valid(riverLengthMeters.x, 2, 30) || !Valid(riverLengthMeters.y, riverLengthMeters.x, 40) ||
-                !Valid(riverWidthMeters, .6f, 2) || !Valid(riverMouthWidthMeters, 0, 5) || !Valid(riverDepthMeters.x, .08f, .3f) ||
-                !Valid(riverDepthMeters.y, riverDepthMeters.x, .3f) || !Valid(bankTransitionMeters, .75f, 4) ||
+                !Valid(riverWidthMeters, .6f, 2) || !Valid(riverMouthWidthMeters, 0, 5) || !Valid(riverDepthMeters.x, .08f, .5f) ||
+                !Valid(riverDepthMeters.y, riverDepthMeters.x, .6f) || !Valid(bankTransitionMeters, .75f, 4) ||
+                !Valid(riverDepthPerWidth, 0, .5f) || !Valid(riverMaxCutMeters, 0, .8f) ||
                 riverSourceAttempts < 1 || riverSourceAttempts > 64 || riverTraceSteps < 32 || riverTraceSteps > 256 ||
                 !Enum.IsDefined(typeof(NaturalRiverMode), riverMode) || !Valid(flowSpacingMeters, .4f, 1.2f) ||
                 !Valid(pondMaxDepthMeters, .08f, .4f) || !Valid(pondMaxRadiusMeters, 1, 8) ||
@@ -96,6 +105,7 @@ namespace B612
             used.riverWidthMeters *= scale;
             used.riverMouthWidthMeters *= scale;
             used.riverDepthMeters *= scale;
+            used.riverMaxCutMeters *= scale;
             used.bankTransitionMeters *= scale;
             used.flowSpacingMeters *= scale;
             used.pondMaxDepthMeters *= scale;

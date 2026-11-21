@@ -16,6 +16,11 @@ namespace B612
             public Vector3 centre;public float bound,width=.9f;public int fordIndex=10;
             // v13: full channel width per point (source narrow, mouth wide). Empty keeps the constant width.
             public List<float> widths = new List<float>();
+            // v14: channel and bank meet the waterline with one shared slope (no flat shelf, no convex kink).
+            public bool smoothBank;
+            // v14: metres over which the spring fades in; 0 keeps 0.85 x the width. A spring that starts in a
+            // cut fades in over a longer run so its head is not a steep wall.
+            public float sourceFade;
 
             // v11 flow river. flowFit: the channel only lowers the ground. pond: the river ends in a
             // shallow pond whose water fills all ground below pondLevel within pondRadius (metres).
@@ -162,7 +167,8 @@ namespace B612
         {
             float halfWidth = ChannelHalfWidth(width, fade);
             if (distance >= halfWidth + river.bankWidth) return original;
-            float channel = distance <= halfWidth
+            float channel = river.smoothBank ? SmoothBankHeight(river.bankWidth, halfWidth, original, distance, level, bed)
+                : distance <= halfWidth
                 ? Mathf.Lerp(bed, level, Mathf.SmoothStep(0, 1, distance / halfWidth))
                 : Mathf.Lerp(level, original, Mathf.SmoothStep(0, 1, (distance - halfWidth) / river.bankWidth));
             // Near the pond the ground can already lie below the channel level; never raise it.
@@ -170,10 +176,67 @@ namespace B612
             return Mathf.Lerp(original, channel, fade);
         }
 
+        /// <summary>
+        /// v14 cross-section with the least convex bend: the slope grows linearly from 0 at the bed to S at xp
+        /// (constant concave curvature), then falls linearly back to 0 at the crest W (constant convex curvature).
+        /// A walker is thrown off a convex bend, so W is as wide as the bank allows and xp is solved so the ground
+        /// still meets the waterline exactly at the channel edge. Where the water lies only a little below the
+        /// natural ground, W shrinks instead; xp stays at or above 0.35 x the half width, so the bed stays a rounded
+        /// bowl rather than a V.
+        /// </summary>
+        static float SmoothBankHeight(float bankWidth, float halfWidth, float original, float distance, float level, float bed)
+        {
+            float depth = level - bed, rise = original - level, total = depth + rise, a = halfWidth;
+            if (depth <= 0f || rise <= 0f)
+                return distance <= a ? Mathf.Lerp(bed, level, Mathf.SmoothStep(0, 1, distance / a))
+                    : Mathf.Lerp(level, original, Mathf.SmoothStep(0, 1, (distance - a) / Mathf.Max(.001f, bankWidth)));
+            float floor = .35f * a, w = a + Mathf.Max(.001f, bankWidth), xp;
+            if (AtEdge(total, a, floor, w) >= depth)
+            {
+                // Solve AtEdge(xp) = depth for xp; past the edge it has a closed form.
+                float slope = 2f * total / w;
+                if (depth <= slope * a * .5f) xp = Mathf.Min(w * .999f, slope * a * a / (2f * depth));
+                else
+                {
+                    float lo = floor, hi = a;
+                    for (int i = 0; i < 18; i++)
+                    {
+                        float mid = (lo + hi) * .5f;
+                        if (AtEdge(total, a, mid, w) > depth) lo = mid; else hi = mid;
+                    }
+                    xp = (lo + hi) * .5f;
+                }
+            }
+            else
+            {
+                // Too little rise for the widest bank: narrow the bank with xp held at the floor.
+                xp = floor;
+                float lo = a * 1.0001f, hi = w;
+                for (int i = 0; i < 18; i++)
+                {
+                    float mid = (lo + hi) * .5f;
+                    if (AtEdge(total, a, floor, mid) > depth) lo = mid; else hi = mid;
+                }
+                w = (lo + hi) * .5f;
+            }
+            if (distance >= w) return original;
+            return bed + Rise(2f * total / w, xp, w, distance);
+        }
+
+        // Height above the bed at x of the quadratic-spline section with peak slope s at xp and crest at w.
+        static float Rise(float s, float xp, float w, float x)
+        {
+            if (x <= xp) return s * x * x / (2f * xp);
+            float over = x - xp;
+            return s * xp * .5f + s * over - s * over * over / (2f * (w - xp));
+        }
+
+        static float AtEdge(float total, float a, float xp, float w) => Rise(2f * total / w, xp, w, a);
+
         static float EndFade(River river, float along)
         {
             // A river that ends in a pond keeps its full width into the water; only the spring fades.
-            if (river.pond) return Mathf.SmoothStep(0, 1, along / Mathf.Max(.001f, river.width * .85f));
+            if (river.pond) return Mathf.SmoothStep(0, 1, along / Mathf.Max(.001f, Mathf.Max(river.sourceFade, river.width * .85f)));
             return Mathf.SmoothStep(0, 1, Mathf.Min(along, river.lengths[river.lengths.Count - 1] - along) /
                 Mathf.Max(.001f, river.width * .85f));
         }

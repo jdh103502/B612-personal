@@ -113,10 +113,11 @@ namespace B612
 
             var random = new System.Random(plan.riverSeed);
             var candidates = new List<Candidate>();
-            int shallowPonds = 0, shortStems = 0, openRims = 0;
+            int shallowPonds = 0, shortStems = 0, openRims = 0, flooded = 0;
             var inLake = new bool[count];
             foreach (int pit in pits)
             {
+                if (settings.floodedRouting && flooded >= FloodedCandidates) break;
                 var lake = FillPond(cells, direction, height, pit, radius, settings, out float level, out float bowl);
                 if (lake == null) { shallowPonds++; continue; }
                 foreach (int c in lake) inLake[c] = true;
@@ -125,25 +126,43 @@ namespace B612
                     float rim = Rim(plan, direction, lake, pit, level, spacing);
                     if (rim <= 0f) { openRims++; continue; }
 
+                    // v14: route the whole planet into this pond as if every other basin were filled to its spill
+                    // point, so the river can run on through shallow basins and become much longer. Basins deeper
+                    // than most of the allowed cut are not crossed.
+                    var routeReceiver = receiver;
+                    var routeAccumulation = accumulation;
+                    var routeDonors = donors;
+                    float[] filled = null;
+                    if (settings.floodedRouting)
+                    {
+                        flooded++;
+                        Flood(field, lake, out routeReceiver, out routeAccumulation, out routeDonors, out filled);
+                    }
+                    float crossable = .8f * settings.riverMaxCutMeters;
+                    // Water cannot reach the pond from ground lower than the pond surface, and deep basins would
+                    // need a gorge deeper than allowed.
+                    bool Blocked(int cell) => inLake[cell] ||
+                        filled != null && (filled[cell] - height[cell] > crossable || height[cell] < level);
+
                     // Largest inflow that is not itself part of the pond.
                     int entry = -1;
                     foreach (int c in lake)
-                        if (donors[c] != null)
-                            foreach (int d in donors[c])
-                                if (!inLake[d] && (entry < 0 || accumulation[d] > accumulation[entry] ||
-                                    accumulation[d] == accumulation[entry] && d < entry)) entry = d;
+                        if (routeDonors[c] != null)
+                            foreach (int d in routeDonors[c])
+                                if (!Blocked(d) && (entry < 0 || routeAccumulation[d] > routeAccumulation[entry] ||
+                                    routeAccumulation[d] == routeAccumulation[entry] && d < entry)) entry = d;
                     if (entry < 0) { shortStems++; continue; }
 
                     // Follow the main stem upstream, up to the longest allowed river.
                     var stem = new List<int> { entry };
-                    float length = Arc(direction[entry], direction[receiver[entry]], radius);
+                    float length = Arc(direction[entry], direction[routeReceiver[entry]], radius);
                     int current = entry;
-                    while (donors[current] != null)
+                    while (routeDonors[current] != null)
                     {
                         int next = -1;
-                        foreach (int d in donors[current])
-                            if (!inLake[d] && (next < 0 || accumulation[d] > accumulation[next] ||
-                                accumulation[d] == accumulation[next] && d < next)) next = d;
+                        foreach (int d in routeDonors[current])
+                            if (!Blocked(d) && (next < 0 || routeAccumulation[d] > routeAccumulation[next] ||
+                                routeAccumulation[d] == routeAccumulation[next] && d < next)) next = d;
                         if (next < 0) break;
                         float step = Arc(direction[current], direction[next], radius);
                         if (length + step > settings.riverLengthMeters.y) break;
@@ -151,16 +170,37 @@ namespace B612
                         stem.Add(next);
                         current = next;
                     }
-                    if (length < settings.riverLengthMeters.x) { shortStems++; continue; }
+                    bool longEnough = length >= settings.riverLengthMeters.x;
+                    // v14: a flooded stem a little short of the minimum is still a candidate (ranked last, half the
+                    // minimum length), and the pond's own basin river below is tried as well.
+                    bool keepShort = settings.floodedRouting && length >= .5f * settings.riverLengthMeters.x;
+                    if (!longEnough) shortStems++;
+                    if (!longEnough && !keepShort && !settings.floodedRouting) continue;
 
                     var path = new List<Vector3>(stem.Count + 1);
                     for (int k = stem.Count - 1; k >= 0; k--) path.Add(direction[stem[k]]);
-                    path.Add(direction[receiver[entry]]);
-                    candidates.Add(new Candidate
+                    path.Add(direction[routeReceiver[entry]]);
+                    if (longEnough || keepShort)
+                        candidates.Add(new Candidate
+                        {
+                            path = path, pondDirection = direction[pit], pondLevel = level, pondRadius = rim, pondBowl = bowl,
+                            minLength = longEnough ? 0f : .5f * settings.riverLengthMeters.x,
+                            score = longEnough
+                                ? (settings.floodedRouting ? length : 1f) * routeAccumulation[entry] * (.8f + .4f * (float)random.NextDouble())
+                                : -.5f / (1 + candidates.Count)
+                        });
+                    if (settings.floodedRouting)
                     {
-                        path = path, pondDirection = direction[pit], pondLevel = level, pondRadius = rim, pondBowl = bowl,
-                        score = accumulation[entry] * (.8f + .4f * (float)random.NextDouble())
-                    });
+                        // Fallback for this pond: the river of its own basin only (v13 routing), at least half the
+                        // minimum length. Ranked after every flooded candidate.
+                        var local = BasinStem(lake, inLake, receiver, accumulation, donors, direction, radius, settings);
+                        if (local != null)
+                            candidates.Add(new Candidate
+                            {
+                                path = local, pondDirection = direction[pit], pondLevel = level, pondRadius = rim, pondBowl = bowl,
+                                minLength = .5f * settings.riverLengthMeters.x, score = -1f / (1 + candidates.Count)
+                            });
+                    }
                 }
                 finally { foreach (int c in lake) inLake[c] = false; }
             }
@@ -171,6 +211,15 @@ namespace B612
             foreach (var candidate in candidates)
             {
                 string reason = Fit(plan, candidate, out var river);
+                // v14: a gorge too deep part way down: drop the river above it and fit the rest (up to 3 times).
+                for (int retry = 0; settings.floodedRouting && reason == "deep cut" && retry < 3; retry++)
+                {
+                    var trimmed = Trim(candidate.path, candidate.cutAt + .5f, radius);
+                    if (trimmed == null) break;
+                    candidate.path = trimmed;
+                    candidate.minLength = .5f * settings.riverLengthMeters.x;
+                    reason = Fit(plan, candidate, out river);
+                }
                 if (reason != null)
                 {
                     rejected++;
@@ -300,11 +349,111 @@ namespace B612
         /// <summary>Height below the surrounding mean that counts as a full hollow (scaled by q).</summary>
         const float PositionMeters = .15f;
 
+        /// <summary>Drops the part of a cell path above `metres` from its source; null if too little is left.</summary>
+        static List<Vector3> Trim(List<Vector3> path, float metres, float radius)
+        {
+            if (metres <= 0f) return null;
+            float run = 0f;
+            for (int i = 1; i < path.Count; i++)
+            {
+                run += Arc(path[i - 1], path[i], radius);
+                if (run >= metres) return path.Count - i >= 3 ? path.GetRange(i, path.Count - i) : null;
+            }
+            return null;
+        }
+
+        /// <summary>The v13 main stem of a pond's own basin, or null when it is shorter than half the minimum.</summary>
+        static List<Vector3> BasinStem(List<int> lake, bool[] inLake, int[] receiver, float[] accumulation, List<int>[] donors,
+            Vector3[] direction, float radius, NaturalTerrainSettings settings)
+        {
+            int entry = -1;
+            foreach (int c in lake)
+                if (donors[c] != null)
+                    foreach (int d in donors[c])
+                        if (!inLake[d] && (entry < 0 || accumulation[d] > accumulation[entry] ||
+                            accumulation[d] == accumulation[entry] && d < entry)) entry = d;
+            if (entry < 0) return null;
+            var stem = new List<int> { entry };
+            float length = Arc(direction[entry], direction[receiver[entry]], radius);
+            int current = entry;
+            while (donors[current] != null)
+            {
+                int next = -1;
+                foreach (int d in donors[current])
+                    if (!inLake[d] && (next < 0 || accumulation[d] > accumulation[next] ||
+                        accumulation[d] == accumulation[next] && d < next)) next = d;
+                if (next < 0) break;
+                float step = Arc(direction[current], direction[next], radius);
+                if (length + step > settings.riverLengthMeters.y) break;
+                length += step;
+                stem.Add(next);
+                current = next;
+            }
+            if (length < .5f * settings.riverLengthMeters.x) return null;
+            var path = new List<Vector3>(stem.Count + 1);
+            for (int k = stem.Count - 1; k >= 0; k--) path.Add(direction[stem[k]]);
+            path.Add(direction[receiver[entry]]);
+            return path;
+        }
+
+        /// <summary>Candidate ponds that get a planet-wide flooded routing (the most-fed basins first).</summary>
+        const int FloodedCandidates = 8;
+
+        /// <summary>
+        /// Priority-flood from the pond's cells over the edge neighbours: every other cell is reached at
+        /// max(its height, the height it was reached from + epsilon), so depressions are filled to their spill
+        /// point and all water drains into the pond along the lowest passes. Returns the routing tree
+        /// (receiver = the cell it was reached from), its catchment areas, donors and the filled heights.
+        /// </summary>
+        static void Flood(Field field, List<int> seeds, out int[] receiver, out float[] accumulation,
+            out List<int>[] donors, out float[] filled)
+        {
+            int count = field.direction.Length;
+            receiver = new int[count];
+            filled = new float[count];
+            var visited = new bool[count];
+            var queue = new SortedSet<(float, int)>();
+            foreach (int s in seeds)
+            {
+                visited[s] = true;
+                receiver[s] = -1;
+                filled[s] = field.height[s];
+                queue.Add((filled[s], s));
+            }
+            var order = new List<int>(count);
+            while (queue.Count > 0)
+            {
+                var (h, c) = queue.Min;
+                queue.Remove(queue.Min);
+                order.Add(c);
+                foreach (int n in field.cells[c].neighbors)
+                {
+                    if (visited[n]) continue;
+                    visited[n] = true;
+                    receiver[n] = c;
+                    filled[n] = Mathf.Max(field.height[n], h + 1e-5f);
+                    queue.Add((filled[n], n));
+                }
+            }
+            accumulation = (float[])field.area.Clone();
+            donors = new List<int>[count];
+            for (int k = order.Count - 1; k >= 0; k--)
+            {
+                int c = order[k], r = receiver[c];
+                if (r < 0) continue;
+                accumulation[r] += accumulation[c];
+                (donors[r] ??= new List<int>()).Add(c);
+            }
+        }
+
         sealed class Candidate
         {
             public List<Vector3> path;
             public Vector3 pondDirection;
             public float pondLevel, pondRadius, pondBowl, score;
+            // v14: shortest acceptable fitted river, and where a failed fit hit a gorge too deep (metres from the source).
+            public float minLength;
+            public float cutAt = -1f;
         }
 
         static void Near(List<PlanetSurfaceGrid.SurfaceCell> cells, int index, List<int> result)
@@ -438,7 +587,11 @@ namespace B612
                 return free - TerrainWater.PondCarve(candidate.pondDirection, candidate.pondRadius, candidate.pondBowl,
                     candidate.pondLevel, plan.radius, d, free);
             }
-            float margin = settings.riverDepthMeters.x * .25f;
+            // v14 keeps the v13 surface margin (3 cm at full size) although the channel is deeper.
+            float margin = settings.floodedRouting ? .03f * q : settings.riverDepthMeters.x * .25f;
+            // v14 checks the banks at the channel edge; v13 looked further out, which on a wide river crossing a
+            // slope pulled the level down to the lower side and forced needless gorges downstream.
+            float bankReach = settings.floodedRouting ? .3f : .65f;
             float level = float.PositiveInfinity;
             var originals = new List<float>();
             var depths = new List<float>();
@@ -452,28 +605,38 @@ namespace B612
                 float original = Ground(direction);
                 float bankHeight = Mathf.Min(Bank(-1), Bank(1));
                 level = Mathf.Min(level, Mathf.Min(original, bankHeight) - margin);
-                if (original - level > settings.riverDepthMeters.y * .85f) return "deep cut";
+                // v14 lets a long river cut a shallow gorge through a low pass (riverMaxCutMeters).
+                if (original - level > Mathf.Max(settings.riverDepthMeters.y * .85f, settings.riverMaxCutMeters))
+                {
+                    candidate.cutAt = i == 0 ? 0f : result.lengths[i - 1] + Vector3.Distance(direction, path[i - 1]) * plan.radius;
+                    return "deep cut";
+                }
                 float slope = Mathf.Clamp01((original - level) / settings.riverDepthMeters.y);
                 originals.Add(original);
-                depths.Add(Mathf.Lerp(settings.riverDepthMeters.x, settings.riverDepthMeters.y, slope));
+                float depth = Mathf.Lerp(settings.riverDepthMeters.x, settings.riverDepthMeters.y, slope);
+                // v14: a narrow channel stays shallow so its banks stay walkable; the river deepens as it widens.
+                if (settings.riverDepthPerWidth > 0f) depth = Mathf.Min(depth, settings.riverDepthPerWidth * width);
+                depths.Add(depth);
                 result.directions.Add(direction);
                 result.points.Add(direction * plan.radius);
                 result.levels.Add(level);
                 result.lengths.Add(i == 0 ? 0f : result.lengths[i - 1] + Vector3.Distance(direction, path[i - 1]) * plan.radius);
                 if (widen) result.widths.Add(width);
-                // The channel ends where it reaches the shore band of the pond.
-                if (original < candidate.pondLevel + margin) break;
+                // The channel ends where it reaches the shore band of the pond (v14: of this pond, not of any
+                // lower ground it passes on the way).
+                if (original < candidate.pondLevel + margin && (!settings.floodedRouting ||
+                    Arc(direction, candidate.pondDirection, plan.radius) <= candidate.pondRadius + 1f)) break;
 
                 float Bank(float sign)
                 {
                     var bank = (direction * plan.radius + side * (sign * (width * .55f +
-                        settings.bankTransitionMeters * .65f))).normalized;
+                        settings.bankTransitionMeters * bankReach))).normalized;
                     return Ground(bank);
                 }
             }
             int last = result.directions.Count - 1;
             if (originals[last] >= candidate.pondLevel + margin) return "no pond";
-            if (result.lengths[last] < settings.riverLengthMeters.x * .995f) return "short";
+            if (result.lengths[last] < (candidate.minLength > 0f ? candidate.minLength : settings.riverLengthMeters.x) * .995f) return "short";
 
             // Water cannot sit below the pond it flows into. Raising the level must not lift it above dry ground.
             Vector3 mean = Vector3.zero;
@@ -506,6 +669,22 @@ namespace B612
             result.centre = mean * (plan.radius / result.directions.Count);
             foreach (var point in result.points)
                 result.bound = Mathf.Max(result.bound, Vector3.Distance(point, result.centre));
+            if (settings.floodedRouting)
+            {
+                // v14: where the river cuts a gorge, its banks would be steep over the usual transition. The
+                // section's peak slope is 2 x (ground - bed) / (half width + bank), so size the bank of the whole
+                // river from its worst point to keep that at or under about 27 degrees (at most 2.5 m of bank), and
+                // never below 3 x the deepest cut.
+                float deepestCut = 0f, needed = 0f;
+                for (int i = 0; i <= last; i++)
+                {
+                    deepestCut = Mathf.Max(deepestCut, originals[i] - result.levels[i]);
+                    needed = Mathf.Max(needed, 3.9f * (originals[i] - result.beds[i]) - .5f * TerrainWater.WidthAt(result, i));
+                }
+                result.bankWidth = Mathf.Max(result.bankWidth, Mathf.Max(3f * deepestCut, Mathf.Min(2.5f, needed)));
+                result.smoothBank = true;
+                result.sourceFade = Mathf.Min(.25f * result.lengths[last], 3.9f * Mathf.Max(0f, originals[0] - result.beds[0]));
+            }
             float widest = result.width;
             foreach (float w in result.widths) widest = Mathf.Max(widest, w);
             result.bound += widest * .5f + result.bankWidth;
