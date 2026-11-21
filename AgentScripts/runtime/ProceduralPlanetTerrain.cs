@@ -37,6 +37,10 @@ namespace B612
             public int landformSeed, landformAttempts;
             public List<TerrainLandforms.Landform> landforms = new List<TerrainLandforms.Landform>();
             public Vector3 macroOffset, hillOffset, roughnessOffset;
+            // v15 rugged highlands: ridged peaks and the phase of their terrace steps.
+            public int peakSeed;
+            public Vector3 peakOffset;
+            public float ruggedThreshold, ruggedFull;
             // Rendering only: wetness from the flow field, sampled into the ground mesh's second UV channel.
             [NonSerialized] internal NaturalTerrainFlow.Moisture moisture;
             // v12: shallow gullies along the drainage network; part of the height field once set.
@@ -230,6 +234,8 @@ namespace B612
                 Vector3 metres = direction * plan.radius;
                 float broad = Basis(metres / natural.broadScaleMeters + plan.macroOffset, plan.macroSeed, natural.noiseBasis);
                 float medium = Basis(metres / natural.mediumScaleMeters + plan.hillOffset, plan.hillSeed, natural.noiseBasis);
+                if (natural.ruggedStrength > 0f)
+                    return Rugged(plan, metres, broad, medium) - (plan.erosion == null ? 0f : plan.erosion.Carve(direction));
                 if (plan.erosion == null)
                     return broad * natural.broadAmplitudeMeters + medium * natural.mediumAmplitudeMeters * Roughness(plan, metres);
                 return broad * natural.broadAmplitudeMeters + medium * natural.mediumAmplitudeMeters * Roughness(plan, metres) -
@@ -263,6 +269,89 @@ namespace B612
             float ridge = 1f - Mathf.Abs(2f * Noise(sample * (plan.radius / scale) + plan.macroOffset, plan.ridgeSeed) - 1f);
             return elevation + shapeBudget * settings.ridgeShare * mountain * ridge * ridge;
         }
+        /// <summary>
+        /// v15 height: the v14 layers plus rugged highlands on the roughest, highest share of the planet
+        /// (ruggedCoverage of the surface by 0.6 x roughness mask + 0.4 x broad layer; rivers keep the lowlands).
+        /// The highlands rise as a range of summits and are cut into terrace steps: a tread keeps a little of the
+        /// slope and a thin cliff face takes the rest of the step. A jumping walker slides up any face that is not
+        /// close to vertical, so faces are thin enough to be near-vertical on all but nearly flat ground. Walking
+        /// routes up come from ramp corridors: narrow noise lines where the terraces switch off and the range's own
+        /// slope shows, plus the soft rim where the terraces fade in with the rugged weight.
+        /// </summary>
+        static float Rugged(Plan plan, Vector3 metres, float broad, float medium)
+        {
+            var n = plan.natural;
+            float mask = Basis(metres / n.roughnessScaleMeters + plan.roughnessOffset, plan.roughnessSeed, n.noiseBasis);
+            float rough = n.roughnessRange.x >= 1f ? 1f : Mathf.Lerp(n.roughnessRange.x, n.roughnessRange.y, Smooth(-.45f, .45f, mask));
+            float height = broad * n.broadAmplitudeMeters + medium * n.mediumAmplitudeMeters * rough;
+            float weight = RuggedWeight(plan, mask, broad);
+            if (weight <= 0f) return height;
+            // The rugged zone rises as a range; massif noise varies its height (65-100%) into separate summits,
+            // and a light ridged crest pattern roughens the tops.
+            float massif = Simplex(metres / n.peakScaleMeters + plan.peakOffset, plan.peakSeed);
+            // Soft absolute value: the crest is rounded over about 0.25 m instead of a crease the mesh cannot follow.
+            float crestNoise = Simplex(metres / (.45f * n.peakScaleMeters) + plan.peakOffset * 1.3f, plan.peakSeed ^ 0x2c9);
+            float crest = 1f - Mathf.Sqrt(crestNoise * crestNoise + .0009f);
+            height += n.peakHeightMeters * weight * (.65f + .35f * Smooth(-.5f, .5f, massif)) * (.8f + .2f * crest * crest);
+            if (n.terraceStepMeters <= 0f) return height;
+            // Raw simplex is near zero over much of the surface (|n| < 0.02 on about 10%), so corridors are the
+            // bands under about 0.01-0.035 (scaled by their width setting): roughly 1 m wide lines at 2.4 m.
+            float ramp = n.rampCorridorMeters <= 0f ? 1f : Smooth(.01f, .035f, Mathf.Abs(Simplex(metres / n.peakScaleMeters +
+                plan.peakOffset * 2.3f, plan.peakSeed ^ 0x7e3)) * (1.6f / n.rampCorridorMeters));
+            // Terrace strength fades in at the zone rim and out in the corridors by widening the face (its share of
+            // the step grows to the whole step, the raw slope) rather than by blending heights, which would leave
+            // near-vertical half walls along every corridor.
+            float strength = Smooth(.05f, .3f, weight) * ramp;
+            if (strength <= 0f) return height;
+            float riser = n.terraceRiser + (1f - n.terraceRiser) * (1f - strength) * (1f - strength);
+            float phase = .5f + .5f * Simplex(metres / (1.4f * n.peakScaleMeters) + plan.peakOffset * 1.7f, plan.peakSeed ^ 0x5bd1);
+            float level = height / n.terraceStepMeters + phase;
+            float floor = Mathf.Floor(level), u = level - floor;
+            float face = Mathf.Clamp01((u - (1f - riser)) / riser);
+            float stepped = n.terraceTread * u + (1f - n.terraceTread) * face;
+            return (floor + stepped - phase) * n.terraceStepMeters;
+        }
+
+        // The rise spans twice the band from the coverage threshold to the top 1.5%, so the range climbs gently (its
+        // own slope is what the ramp corridors walk up) and only its cores reach full height.
+        static float RuggedWeight(Plan plan, float mask, float broad)
+        {
+            float score = Mathf.Clamp01((.6f * mask + .4f * broad - plan.ruggedThreshold) / (2f * (plan.ruggedFull - plan.ruggedThreshold)));
+            return plan.natural.ruggedStrength * score * score * (3f - 2f * score);
+        }
+
+        /// <summary>v15 rugged-highland weight at a direction (0 outside the highlands, or when they are off); for validation.</summary>
+        public static float RuggedWeight(Plan plan, Vector3 direction)
+        {
+            var n = plan.natural;
+            if (n == null || n.ruggedStrength <= 0f) return 0f;
+            Vector3 metres = direction * plan.radius;
+            return RuggedWeight(plan, Basis(metres / n.roughnessScaleMeters + plan.roughnessOffset, plan.roughnessSeed, n.noiseBasis),
+                Basis(metres / n.broadScaleMeters + plan.macroOffset, plan.macroSeed, n.noiseBasis));
+        }
+
+        /// <summary>
+        /// Score above which ruggedCoverage of the surface lies (2048 even samples), so every planet gets its share,
+        /// and the score of its top 1.5%, where the highlands reach full strength, so every planet gets full peaks.
+        /// </summary>
+        static void RuggedThreshold(Plan plan)
+        {
+            var n = plan.natural;
+            const int count = 2048;
+            var scores = new float[count];
+            for (int i = 0; i < count; i++)
+            {
+                float y = 1f - 2f * (i + .5f) / count, ring = Mathf.Sqrt(1f - y * y), angle = i * 2.39996323f;
+                Vector3 metres = new Vector3(Mathf.Cos(angle) * ring, y, Mathf.Sin(angle) * ring) * plan.radius;
+                float mask = Basis(metres / n.roughnessScaleMeters + plan.roughnessOffset, plan.roughnessSeed, n.noiseBasis);
+                float broad = Basis(metres / n.broadScaleMeters + plan.macroOffset, plan.macroSeed, n.noiseBasis);
+                scores[i] = .6f * mask + .4f * broad;
+            }
+            Array.Sort(scores);
+            plan.ruggedThreshold = scores[Mathf.Clamp(Mathf.RoundToInt((1f - n.ruggedCoverage) * count), 0, count - 1)];
+            plan.ruggedFull = Mathf.Max(plan.ruggedThreshold + .05f, scores[Mathf.RoundToInt(.985f * (count - 1))]);
+        }
+
         /// <summary>Signed noise around 0. Value keeps the v9 expression exactly; Simplex is scaled to the same spread.</summary>
         static float Basis(Vector3 p, int seed, NaturalNoiseBasis basis)
             => basis == NaturalNoiseBasis.Value ? 2f * Noise(p, seed) - 1f : SimplexGain * Simplex(p * SimplexFrequency, seed);
@@ -459,12 +548,15 @@ namespace B612
                 riverSeed = StarSystemFactory.DeriveSeed(seed, 83, 0),
                 placementSeed = StarSystemFactory.DeriveSeed(seed, 84, 0),
                 surfaceSeed = StarSystemFactory.DeriveSeed(seed, 85, 0),
-                roughnessSeed = StarSystemFactory.DeriveSeed(seed, 86, 0)
+                roughnessSeed = StarSystemFactory.DeriveSeed(seed, 86, 0),
+                peakSeed = StarSystemFactory.DeriveSeed(seed, 87, 0)
             };
+            plan.peakOffset = NoiseOffset(plan.peakSeed);
             plan.macroOffset = NoiseOffset(plan.macroSeed);
             plan.hillOffset = NoiseOffset(plan.hillSeed);
             plan.noiseOffset = NoiseOffset(plan.surfaceSeed);
             plan.roughnessOffset = NoiseOffset(plan.roughnessSeed);
+            if (natural.ruggedStrength > 0f) RuggedThreshold(plan);
             var watch = System.Diagnostics.Stopwatch.StartNew();
             if (natural.erosionDepthMeters > 0f)
             {

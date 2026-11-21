@@ -22,6 +22,22 @@ namespace B612
         [Min(5f)] public float roughnessScaleMeters = 18f;
         [Tooltip("Medium-layer multiplier from calm (x) to rough (y) areas, y up to 2 within the height budget. (1, 1) disables the mask, as in v9.")]
         public Vector2 roughnessRange = new Vector2(.2f, 1.6f);
+        [Tooltip("Generator v15: strength of the rugged highlands (ridged peaks and terraced cliffs) in the roughest high areas. 0 reproduces v14.")]
+        [Range(0f, 1.5f)] public float ruggedStrength = 1f;
+        [Tooltip("v15: share of each planet's surface given to rugged highlands: the roughest, highest part by 0.6 x roughness mask + 0.4 x broad height.")]
+        [Range(0f, .8f)] public float ruggedCoverage = .3f;
+        [Tooltip("v15: height of the rounded massifs at full strength (a light ridged crest pattern on top).")]
+        [Range(0f, 12f)] public float peakHeightMeters = 9f;
+        [Tooltip("v15: horizontal size of the massif pattern.")]
+        [Range(3f, 30f)] public float peakScaleMeters = 16f;
+        [Tooltip("v15: height of one terrace step (cliff band), the same on every planet size because jump heights are fixed. A held jump clears about 2 m and a double jump about 3.4 m, so 3 m bands need the double jump. 0 turns terraces off.")]
+        [Range(0f, 3.5f)] public float terraceStepMeters = 3f;
+        [Tooltip("v15: share of a step's run taken by its cliff face; the rest is the tread above it. Small values keep faces near vertical (a jumping walker slides up a 70 degree face).")]
+        [Range(.01f, .6f)] public float terraceRiser = .03f;
+        [Tooltip("v15: rough width of the ramp corridors where the terraces switch off and the range can be walked up. 0 turns them off.")]
+        [Range(0f, 4f)] public float rampCorridorMeters = 2.4f;
+        [Tooltip("v15: share of the original slope kept on a tread (0 = flat treads).")]
+        [Range(0f, .5f)] public float terraceTread = .15f;
         [Tooltip("Rendering only: how strongly drainage lines and basins turn green and ridges dry out (0 keeps the v11 colours).")]
         [Range(0f, 1.5f)] public float moistureStrength = 1f;
         [Tooltip("Rendering only: softening radius of the moisture bands.")]
@@ -70,6 +86,9 @@ namespace B612
         {
             static bool Valid(float value, float min, float max) => value >= min && value <= max;
             if (!Enum.IsDefined(typeof(NaturalNoiseBasis), noiseBasis) || !Valid(roughnessScaleMeters, 5, 60) ||
+                !Valid(ruggedStrength, 0, 1.5f) || !Valid(ruggedCoverage, 0, .8f) || !Valid(peakHeightMeters, 0, 12) ||
+                !Valid(peakScaleMeters, 3, 30) || !Valid(terraceStepMeters, 0, 3.5f) || !Valid(terraceRiser, .01f, .6f) || !Valid(rampCorridorMeters, 0, 4) ||
+                !Valid(terraceTread, 0, .5f) ||
                 !Valid(roughnessRange.x, .1f, 1) || !Valid(roughnessRange.y, roughnessRange.x, 2) ||
                 !Valid(moistureStrength, 0, 1.5f) || !Valid(moistureBlurMeters, .4f, 3) ||
                 !Valid(erosionDepthMeters, 0, .4f) || !Valid(erosionMinCells, 5, 200) || !Valid(erosionWidthMeters, .5f, 3) ||
@@ -92,6 +111,9 @@ namespace B612
             used.broadScaleMeters *= scale;
             used.mediumScaleMeters *= scale;
             used.roughnessScaleMeters *= scale;
+            used.peakHeightMeters *= scale;
+            used.peakScaleMeters *= scale;
+            used.rampCorridorMeters *= scale;
             used.moistureBlurMeters *= scale;
             used.erosionDepthMeters *= scale;
             used.erosionWidthMeters *= scale;
