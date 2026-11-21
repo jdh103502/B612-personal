@@ -30,6 +30,7 @@ MonoBehaviour:
   - {fileID: 2100000, guid: 7174cf0dc14b75c4588fff59808dec45, type: 2}
   proceduralGroundMaterial: {fileID: 2100000, guid: 38433d6f94e2f744aad393faa1b49885, type: 2}
   proceduralWaterMaterial: {fileID: 2100000, guid: 4f98de91e5907874aba2abeb8905fa71, type: 2}
+  riverWaterMaterial: {fileID: 2100000, guid: cfad0b736b6e5da4991a1e7e0bfe1415, type: 2}
   routeGuideMaterial: {fileID: 2100000, guid: bc6372c3627e2874db6f521ed223af2a, type: 2}
   terrainAppearance:
     macroFrequency: 1.2

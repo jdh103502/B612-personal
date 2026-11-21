@@ -487,7 +487,7 @@ namespace B612
             plan.riverPlanMilliseconds = (float)watch.Elapsed.TotalMilliseconds;
             watch.Restart();
             AssignMesh(filter, collider);
-            if (plan.river != null) CreateWater(settings.proceduralWaterMaterial);
+            if (plan.river != null) CreateWater(settings.riverWaterMaterial ? settings.riverWaterMaterial : settings.proceduralWaterMaterial);
             plan.meshMilliseconds = (float)watch.Elapsed.TotalMilliseconds;
             plan.buildAttempts = 1;
         }
@@ -759,8 +759,11 @@ namespace B612
             WaterMesh = TerrainWater.CreateMesh(plan);
             waterMaterial = template ? new Material(template) : new Material(Shader.Find("Universal Render Pipeline/Lit"));
             waterMaterial.name = "Owned shallow water";
-            waterMaterial.color = new Color(.13f,.53f,.7f);
-            waterMaterial.SetFloat("_Smoothness", .36f);
+            if (waterMaterial.shader.name != "B612/Water")
+            {
+                waterMaterial.color = new Color(.13f,.53f,.7f);
+                waterMaterial.SetFloat("_Smoothness", .36f);
+            }
             var go=new GameObject("Shallow connected river");go.transform.SetParent(transform,false);go.AddComponent<MeshFilter>().sharedMesh=WaterMesh;go.AddComponent<MeshRenderer>().sharedMaterial=waterMaterial;
         }
         void OnDestroy()

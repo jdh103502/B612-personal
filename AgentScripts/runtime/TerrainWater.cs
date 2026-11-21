@@ -206,7 +206,8 @@ namespace B612
         /// Flat pond surface: a polar disc at the pond level. The ground above the level hides the rest of
         /// the disc, and planning guarantees the ground at the rim stays above the water.
         /// </summary>
-        static void AppendPond(ProceduralPlanetTerrain.Plan plan, List<Vector3> vertices, List<int> triangles)
+        static void AppendPond(ProceduralPlanetTerrain.Plan plan, List<Vector3> vertices, List<int> triangles,
+            List<Vector2> flow = null, List<Vector4> water = null)
         {
             const int Rings = 10, Segments = 64;
             var river = plan.river;
@@ -216,6 +217,7 @@ namespace B612
             float height = plan.radius + river.pondLevel + ShoreInset(river);
             int first = vertices.Count;
             vertices.Add(centre * height);
+            AddPondData(centre, 0f, 0f);
             for (int ring = 1; ring <= Rings; ring++)
             {
                 float angle = river.pondRadius * ring / Rings / plan.radius;
@@ -223,8 +225,18 @@ namespace B612
                 {
                     float theta = s * Mathf.PI * 2f / Segments;
                     var heading = tangent * Mathf.Cos(theta) + bitangent * Mathf.Sin(theta);
-                    vertices.Add((centre * Mathf.Cos(angle) + heading * Mathf.Sin(angle)).normalized * height);
+                    var direction = (centre * Mathf.Cos(angle) + heading * Mathf.Sin(angle)).normalized;
+                    vertices.Add(direction * height);
+                    AddPondData(direction, angle * plan.radius * Mathf.Cos(theta), angle * plan.radius * Mathf.Sin(theta));
                 }
+            }
+
+            // Still water: planar metres for the ripples, depth to the final ground (0 where it is dry ground).
+            void AddPondData(Vector3 direction, float x, float y)
+            {
+                if (flow == null) return;
+                flow.Add(new Vector2(x, y));
+                water.Add(new Vector4(Mathf.Max(0f, river.pondLevel - Ground(plan, direction)), 0f, 0f, 1f));
             }
             int Index(int ring, int s) => ring == 0 ? first : first + 1 + (ring - 1) * Segments + (s % Segments);
             void Face(int a, int b, int c)
@@ -245,6 +257,7 @@ namespace B612
 
         public static Mesh CreateMesh(ProceduralPlanetTerrain.Plan plan)
         {
+            if (plan.natural != null) return CreateNaturalMesh(plan);
             var river=plan.river;var vertices=new List<Vector3>();var triangles=new List<int>();
             for(int i=0;i<river.directions.Count;i++)
             {
@@ -269,8 +282,62 @@ namespace B612
                 // Only the radial top surface is visible, even at the horizon.
                 triangles.AddRange(new[]{c,b,a,c,d,b});
             }
-            if (river.pond) AppendPond(plan, vertices, triangles);
             var mesh=new Mesh{name="Connected shallow river"};mesh.SetVertices(vertices);mesh.SetTriangles(triangles,0);mesh.SetNormals(vertices.ConvertAll(v=>v.normalized));mesh.RecalculateBounds();return mesh;
+        }
+
+        /// <summary>
+        /// Natural river and pond water for the B612/Water shader. The ribbon has five columns across so the
+        /// depth can go from the banks to the centre. UV0 holds flow-space metres (x across, y downstream along
+        /// the river, planar metres on the pond). UV1 holds water depth (m), flow speed (m/s, from the surface
+        /// slope), distance from the centre line as 0..1 and the kind (0 river, 1 pond).
+        /// </summary>
+        static Mesh CreateNaturalMesh(ProceduralPlanetTerrain.Plan plan)
+        {
+            const int Columns = 5;
+            var river = plan.river;
+            int count = river.directions.Count;
+            var vertices = new List<Vector3>();
+            var triangles = new List<int>();
+            var flow = new List<Vector2>();
+            var water = new List<Vector4>();
+            for (int i = 0; i < count; i++)
+            {
+                var n = river.directions[i];
+                var tangent = river.directions[Mathf.Min(i + 1, count - 1)] - river.directions[Mathf.Max(0, i - 1)];
+                var side = Vector3.Cross(n, tangent).normalized;
+                float fade = EndFade(river, river.lengths[i]);
+                float halfMeters = ChannelHalfWidth(river, fade) * .94f;
+                // Same downhill surface as before, all the way to both ends.
+                float height = plan.radius + river.levels[i] + ShoreInset(river);
+                int upstream = Mathf.Max(0, i - 2), downstream = Mathf.Min(count - 1, i + 2);
+                float run = Mathf.Max(.01f, river.lengths[downstream] - river.lengths[upstream]);
+                float slope = Mathf.Max(0f, river.levels[upstream] - river.levels[downstream]) / run;
+                float speed = Mathf.Clamp(.25f + 6f * slope, .2f, 1f);
+                float centreDepth = Mathf.Max(0f, river.levels[i] - river.beds[i]);
+                for (int c = 0; c < Columns; c++)
+                {
+                    float t = (c - (Columns - 1) * .5f) / ((Columns - 1) * .5f);
+                    vertices.Add((n + side * (halfMeters * t / plan.radius)).normalized * height);
+                    flow.Add(new Vector2(halfMeters * t, river.lengths[i]));
+                    water.Add(new Vector4(centreDepth * (1f - t * t), speed, Mathf.Abs(t), 0f));
+                }
+                if (i == 0) continue;
+                for (int c = 0; c < Columns - 1; c++)
+                {
+                    int a = (i - 1) * Columns + c, b = a + 1, cc = i * Columns + c, d = cc + 1;
+                    // Only the radial top surface is visible, even at the horizon.
+                    triangles.AddRange(new[] { cc, b, a, cc, d, b });
+                }
+            }
+            if (river.pond) AppendPond(plan, vertices, triangles, flow, water);
+            var mesh = new Mesh { name = "Connected shallow river" };
+            mesh.SetVertices(vertices);
+            mesh.SetUVs(0, flow);
+            mesh.SetUVs(1, water);
+            mesh.SetTriangles(triangles, 0);
+            mesh.SetNormals(vertices.ConvertAll(v => v.normalized));
+            mesh.RecalculateBounds();
+            return mesh;
         }
     }
 }

@@ -12,6 +12,8 @@ namespace B612
         public Material[] originalMaterials;
         public Material proceduralGroundMaterial;
         public Material proceduralWaterMaterial;
+        [Tooltip("Natural profile river and pond water (B612/Water). Falls back to proceduralWaterMaterial when empty.")]
+        public Material riverWaterMaterial;
         public Material routeGuideMaterial;
         public TerrainAppearanceSettings terrainAppearance = new TerrainAppearanceSettings();
         public NaturalTerrainSettings naturalTerrain = new NaturalTerrainSettings();
