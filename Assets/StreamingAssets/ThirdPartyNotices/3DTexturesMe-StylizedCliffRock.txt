@@ -1,0 +1,17 @@
+Stylized Cliff Rock 006 and Stylized Cliff Rock 003 by 3dtextures.me
+Sources: https://3dtextures.me/2024/11/28/stylized-cliff-rock-006/
+         https://3dtextures.me/2024/08/03/stylized-cliff-rock-003-2/
+Downloaded: 2026-11-22, free 1024 x 1024 PNG sets (linked Google Drive folders)
+
+License: the site states that all of its textures are CC0 (any use, including
+commercial; no credit required; you may not claim to be the author).
+
+Files used in B612:
+  Stylized_Cliff_Rock_006_basecolor.png, Stylized_Cliff_Rock_006_normal.png
+    planet ground cliff rock (default)
+  Stylized_Cliff_Rock_003_basecolor.png, Stylized_Cliff_Rock_003_normal.png
+    alternative kept in the project for comparison
+
+B612 keeps the original PNGs and applies Unity import compression and mipmaps.
+The planet ground shader projects the rock upright along the planet radius on
+steep ground and blends it into the planet palette.

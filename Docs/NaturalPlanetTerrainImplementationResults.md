@@ -524,6 +524,25 @@ unity command run_script --file AgentScripts/NaturalTerrainMeshValidation.cs --e
   - 길쭉한 삼각형 때문에 절벽면에 줄무늬 음영이 보인다. 이 줄무늬는 암석 텍스처(4번)가 가장 잘 가린다.
   - 플레이어 빌드와 실제 조작 화면은 확인하지 않았다.
 
+## 절벽 암석 텍스처 (렌더링 전용)
+
+2026-11-22. v16 절벽면에 남은 줄무늬 음영과 단색 문제를 가리려고, 사용자가 고른 3dtextures.me의 무료 텍스처 두 종을 내려받아 적용하고 비교했다. 지형 형태와 생성기 버전(16)은 바뀌지 않는다.
+
+- **에셋:** `Stylized Cliff Rock 006`(황갈색 바위 조각)과 `Stylized Cliff Rock 003`(눈 덮인 기둥 바위)을 사용했다.
+  - 1024×1024 PNG이며 라이선스는 사이트 표기상 CC0다.
+  - 색과 노멀맵만 `Assets/B612/Art/ThirdParty/3DTexturesMe/`에 넣었다.
+  - [배포용 고지](../Assets/StreamingAssets/ThirdPartyNotices/3DTexturesMe-StylizedCliffRock.txt)
+- **투영:** `B612/Planet Ground` 셰이더에 암석 층을 추가했다(`_RockTexturesEnabled`, `_RockAlbedo`, `_RockNormal`, `_RockTileMeters` 2.5m, `_RockTextureStrength` 0.85, `_RockTint` 0.3, `_RockNormalStrength` 0.9).
+  - 텍스처의 세로축은 행성 반지름 방향의 높이다. 그래서 바위 결이 행성 어디서든 똑바로 선다.
+  - 가로축은 큐브 차트의 접평면 좌표(미터)다. 세 차트를 위쪽 방향에 따라 섞어 이음매가 없다.
+  - 각 차트 안에서는 절벽이 향한 방향으로 두 세로 투영을 섞는다.
+  - 기존 "바위" 가중치(18~46° 경사)가 있는 곳에만 적용된다. 노멀맵도 같은 투영으로 법선에 더한다.
+- **기본값:** 기본 재질 `StylizedPlanetGround.mat`은 006을 쓴다. 기존 잔디·흙의 따뜻한 손그림 느낌과 어울리고, 003의 눈 덮인 윗면은 눈이 없는 행성에서 어색할 수 있기 때문이다. 003은 재질의 텍스처 두 칸만 바꾸면 쓸 수 있다.
+- **비교:** 텍스처 없음, 006, 003을 행성 두 곳(`system_02_B` 1배, `system_01_D`)의 같은 지점에서 촬영했다. [촬영 폴더](../Artifacts/NaturalPlanetTerrain/CliffRockTexture/)
+  - 가까이서는 두 텍스처 모두 늘어진 천 같던 절벽면을 바위로 읽히게 한다.
+  - 멀리서는 003의 눈 조각이 약간 반짝인다.
+- **확인하지 않은 것:** 실제 게임 조명과 카메라에서의 인상, 플레이어 빌드, 텍스처 샘플 추가(최대 12회)에 따른 GPU 비용.
+
 ## 남은 검증과 튜닝
 
 - 연결 영역은 경사·지면·캡슐 검사를 표본화한 추정치다. 임의의 두 지점 사이를 모든 실제 입력과 카메라 조건에서 걸을 수 있음을 보장하지 않는다.

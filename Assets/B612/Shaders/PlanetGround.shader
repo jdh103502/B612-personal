@@ -25,6 +25,13 @@ Shader "B612/Planet Ground"
         _GrassNormalStrength("Grass normal strength", Range(0, 1)) = 0.2
         _DirtAlbedoMean("Dirt mean linear RGB", Vector) = (1, 1, 1, 0)
         _GrassAlbedoMean("Grass mean linear RGB", Vector) = (1, 1, 1, 0)
+        [ToggleUI] _RockTexturesEnabled("Cliff rock texture", Float) = 0
+        [NoScaleOffset] _RockAlbedo("Rock base color", 2D) = "white" {}
+        [NoScaleOffset] [Normal] _RockNormal("Rock normal", 2D) = "bump" {}
+        _RockTileMeters("Rock tile size (m)", Float) = 2.5
+        _RockTextureStrength("Rock texture color strength", Range(0, 1)) = 0.85
+        _RockTint("Rock planet tint", Range(0, 1)) = 0.3
+        _RockNormalStrength("Rock normal strength", Range(0, 1.5)) = 0.9
         [HideInInspector] _DiagnosticUnlit("Diagnostic color", Float) = 0
         [HideInInspector] _DiagnosticLegacy("Diagnostic previous palette", Float) = 0
         _Smoothness("Smoothness", Range(0, 1)) = 0.1
@@ -46,6 +53,10 @@ Shader "B612/Planet Ground"
         SAMPLER(sampler_DirtNormal);
         TEXTURE2D(_GrassNormal);
         SAMPLER(sampler_GrassNormal);
+        TEXTURE2D(_RockAlbedo);
+        SAMPLER(sampler_RockAlbedo);
+        TEXTURE2D(_RockNormal);
+        SAMPLER(sampler_RockNormal);
 
         CBUFFER_START(UnityPerMaterial)
             half4 _BaseColor, _EarthColor, _VegetationColor, _RockColor;
@@ -55,6 +66,7 @@ Shader "B612/Planet Ground"
             float _GroundTexturesEnabled, _DirtTileMeters, _GrassTileMeters, _GroundTextureStrength;
             float _DirtNormalStrength, _GrassNormalStrength;
             float _MoistureStrength, _MoistureMean;
+            float _RockTexturesEnabled, _RockTileMeters, _RockTextureStrength, _RockTint, _RockNormalStrength;
         CBUFFER_END
 
         struct GroundSurface
@@ -139,6 +151,53 @@ Shader "B612/Planet Ground"
                 + float3(z.x * axisSign.z, z.y, 0) * blend.z;
         }
 
+        bool RockTexturesActive()
+        {
+            return _RockTexturesEnabled > 0.5 && _DiagnosticLegacy <= 0.5 && _DiagnosticUnlit <= 0.5;
+        }
+
+        // Cliff rock: the texture's V runs up the planet's radius (the layers stand upright everywhere on the sphere)
+        // and its U runs along the cliff. U comes from a gnomonic cube chart (metres on the tangent plane), blended
+        // over the three charts by how closely the local up follows each axis so there is no seam; within a chart
+        // the two vertical projections are blended by which way the cliff faces. Returns the colour and the normal-map
+        // slope expressed in object space.
+        void SampleRock(float3 positionOS, float3 normalOS, bool wantNormal, out half3 color, out float3 slope)
+        {
+            color = 0;
+            slope = 0;
+            float3 up = normalize(positionOS);
+            float v = (length(positionOS) - _Radius) / max(_RockTileMeters, 0.05);
+            float3 horizontal = normalOS - up * dot(normalOS, up);
+            float3 chart = abs(up);
+            chart *= chart; chart *= chart; chart *= chart;
+            chart /= dot(chart, float3(1, 1, 1));
+            [unroll] for (int k = 0; k < 3; k++)
+            {
+                if (chart[k] < 0.002) continue;
+                float3 axis = k == 0 ? float3(1, 0, 0) : (k == 1 ? float3(0, 1, 0) : float3(0, 0, 1));
+                float3 t1 = k == 0 ? float3(0, 1, 0) : float3(1, 0, 0);
+                float3 t2 = cross(axis, t1);
+                float scale = _Radius / (max(abs(dot(positionOS, axis)), 0.01) * max(_RockTileMeters, 0.05));
+                float c1 = dot(positionOS, t1) * scale, c2 = dot(positionOS, t2) * scale;
+                float f1 = dot(horizontal, t1), f2 = dot(horizontal, t2);
+                float w1 = f1 * f1, w2 = f2 * f2;
+                w1 *= w1; w2 *= w2;
+                float sum = max(w1 + w2, 1e-6);
+                w1 = w1 / sum * chart[k];
+                w2 = w2 / sum * chart[k];
+                float s1 = f1 >= 0 ? 1 : -1, s2 = f2 >= 0 ? -1 : 1;
+                float2 uvA = float2(c2 * s1, v), uvB = float2(c1 * s2, v);
+                color += SAMPLE_TEXTURE2D(_RockAlbedo, sampler_RockAlbedo, uvA).rgb * w1
+                    + SAMPLE_TEXTURE2D(_RockAlbedo, sampler_RockAlbedo, uvB).rgb * w2;
+                if (wantNormal)
+                {
+                    float2 a = UnpackSlope(SAMPLE_TEXTURE2D(_RockNormal, sampler_RockNormal, uvA));
+                    float2 b = UnpackSlope(SAMPLE_TEXTURE2D(_RockNormal, sampler_RockNormal, uvB));
+                    slope += (t2 * s1 * a.x + up * a.y) * w1 + (t1 * s2 * b.x + up * b.y) * w2;
+                }
+            }
+        }
+
         bool GroundTexturesActive()
         {
             return _GroundTexturesEnabled > 0.5 && _DiagnosticLegacy <= 0.5 && _DiagnosticUnlit <= 0.5;
@@ -146,16 +205,28 @@ Shader "B612/Planet Ground"
 
         float3 GetGroundNormalOS(float3 positionOS, float3 normalOS, GroundSurface surface, half3 blend)
         {
-            if (!GroundTexturesActive() || surface.rock >= 1 ||
-                max(_DirtNormalStrength, _GrassNormalStrength) <= 0)
+            bool ground = GroundTexturesActive() && surface.rock < 1 && max(_DirtNormalStrength, _GrassNormalStrength) > 0;
+            bool rock = RockTexturesActive() && surface.rock > 0 && _RockNormalStrength > 0;
+            if (!ground && !rock)
                 return normalOS;
 
-            float3 axisSign = GetAxisSign(normalOS);
-            float3 dirt = SampleGroundSlope(TEXTURE2D_ARGS(_DirtNormal, sampler_DirtNormal),
-                GetGroundProjection(positionOS, _DirtTileMeters, axisSign), blend, axisSign) * _DirtNormalStrength;
-            float3 grass = SampleGroundSlope(TEXTURE2D_ARGS(_GrassNormal, sampler_GrassNormal),
-                GetGroundProjection(positionOS, _GrassTileMeters, axisSign), blend, axisSign) * _GrassNormalStrength;
-            float3 perturbation = lerp(dirt, grass, surface.meadow) * (1 - surface.rock);
+            float3 perturbation = 0;
+            if (ground)
+            {
+                float3 axisSign = GetAxisSign(normalOS);
+                float3 dirt = SampleGroundSlope(TEXTURE2D_ARGS(_DirtNormal, sampler_DirtNormal),
+                    GetGroundProjection(positionOS, _DirtTileMeters, axisSign), blend, axisSign) * _DirtNormalStrength;
+                float3 grass = SampleGroundSlope(TEXTURE2D_ARGS(_GrassNormal, sampler_GrassNormal),
+                    GetGroundProjection(positionOS, _GrassTileMeters, axisSign), blend, axisSign) * _GrassNormalStrength;
+                perturbation = lerp(dirt, grass, surface.meadow) * (1 - surface.rock);
+            }
+            if (rock)
+            {
+                half3 unusedColor;
+                float3 rockSlope;
+                SampleRock(positionOS, normalOS, true, unusedColor, rockSlope);
+                perturbation += rockSlope * _RockNormalStrength * surface.rock;
+            }
             // Project onto the mesh tangent plane so a flat map leaves the geometric normal intact.
             perturbation -= normalOS * dot(perturbation, normalOS);
             return normalize(normalOS + perturbation);
@@ -248,6 +319,14 @@ Shader "B612/Planet Ground"
                             GetGroundProjection(input.positionOS, _GrassTileMeters, axisSign), blend);
                         earth *= GroundColorDetail(dirtSample, _DirtAlbedoMean.rgb);
                         grass *= GroundColorDetail(grassSample, _GrassAlbedoMean.rgb);
+                    }
+                    if (RockTexturesActive() && ground.rock > 0)
+                    {
+                        half3 rockSample;
+                        float3 unusedSlope;
+                        SampleRock(input.positionOS, normalOS, false, rockSample, unusedSlope);
+                        half3 tinted = rockSample * lerp(half3(1, 1, 1), _BaseColor.rgb * 1.25, _RockTint);
+                        stone = lerp(stone, tinted, _RockTextureStrength);
                     }
                     albedo = lerp(lerp(earth, grass, ground.meadow), stone, ground.rock);
                     albedo *= lerp(0.88, 1.08, ground.highGround);
