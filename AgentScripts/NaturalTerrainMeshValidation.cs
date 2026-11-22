@@ -175,6 +175,7 @@ public static class NaturalTerrainMeshValidation
             // routes follow a walking graph (0.4 m cells, two-ring neighbours, no third of an edge steeper than the
             // placement's 35 degrees either way, dry cells clear of walls) from the spawn to the highest and the lowest cell it
             // reaches, sampled every third cell.
+            int skipped = 0;
             var spawn = plan.placement.spawn.direction;
             int frequency = Mathf.Min(Mathf.CeilToInt(1.23f * radius / .4f), 44);
             var cells = PlanetSurfaceGrid.CreateTopology(frequency);
@@ -259,7 +260,20 @@ public static class NaturalTerrainMeshValidation
             if (plan.river != null)
             {
                 var river = plan.river;
-                foreach (float fraction in new[] { .35f, .65f })
+                // v17: straight crossings only where the straight line is walkable ground (canyons and the gorge are
+                // for abilities, and in play a walker goes round them); the first two of these fractions.
+                var fractions = new List<float>();
+                foreach (float f in new[] { .35f, .65f, .2f, .8f, .5f, .45f, .55f, .3f, .7f })
+                {
+                    int k = Mathf.Clamp(Mathf.RoundToInt(f * (river.directions.Count - 1)), 1, river.directions.Count - 2);
+                    var c = river.directions[k];
+                    var across = Vector3.Cross(c, river.directions[k + 1] - river.directions[k - 1]).normalized;
+                    float o = TerrainWater.WidthAt(river, k) * .5f + river.bankWidth + .6f;
+                    if (!StraightWalkable(plan, (c * radius - across * o).normalized, (c * radius + across * o).normalized)) continue;
+                    if (fractions.Count < 2) fractions.Add(f);
+                }
+                skipped += 2 - fractions.Count;
+                foreach (float fraction in fractions)
                 {
                     int i = Mathf.Clamp(Mathf.RoundToInt(fraction * (river.directions.Count - 1)), 1, river.directions.Count - 2);
                     var n = river.directions[i];
@@ -276,12 +290,23 @@ public static class NaturalTerrainMeshValidation
                     var inflow = Vector3.ProjectOnPlane(river.directions[river.directions.Count - 1] - river.pondDirection,
                         river.pondDirection).normalized;
                     float angle = (river.pondRadius + 1f) / radius;
-                    var shore = (river.pondDirection * Mathf.Cos(angle) - inflow * Mathf.Sin(angle)).normalized;
-                    Run("pondIn", Path(shore, river.pondDirection));
-                    Run("pondOut", Path(river.pondDirection, shore));
+                    // v17: away from the inflow first, then round the pond, the first shore with a walkable line in.
+                    Vector3 shore = Vector3.zero; bool found = false;
+                    for (int k = 0; k < 8 && !found; k++)
+                    {
+                        var heading = Quaternion.AngleAxis(45f * k, river.pondDirection) * -inflow;
+                        shore = (river.pondDirection * Mathf.Cos(angle) + heading * Mathf.Sin(angle)).normalized;
+                        found = StraightWalkable(plan, shore, river.pondDirection);
+                    }
+                    if (found)
+                    {
+                        Run("pondIn", Path(shore, river.pondDirection));
+                        Run("pondOut", Path(river.pondDirection, shore));
+                    }
+                    else skipped += 2;
                 }
             }
-            return new { planetId, radius, equalAngle = plan.natural.equalAngleMesh, highMeters = highH, lowMeters = lowH, maxSlope, routes = rows };
+            return new { planetId, radius, equalAngle = plan.natural.equalAngleMesh, highMeters = highH, lowMeters = lowH, maxSlope, skipped, routes = rows };
         }
         finally
         {
@@ -464,6 +489,22 @@ public static class NaturalTerrainMeshValidation
 #endif
         Check(settings && settings.profileId == PlanetGenerationSettings.NaturalProfileId, "Natural chapter settings missing");
         return settings;
+    }
+
+    /// <summary>A straight line is walkable: every 0.15 m step climbs or drops at most 35 degrees.</summary>
+    static bool StraightWalkable(ProceduralPlanetTerrain.Plan plan, Vector3 from, Vector3 to)
+    {
+        float length = Mathf.Acos(Mathf.Clamp(Vector3.Dot(from, to), -1f, 1f)) * plan.radius;
+        int steps = Mathf.Max(2, Mathf.CeilToInt(length / .15f));
+        float grade = Mathf.Tan(35f * Mathf.Deg2Rad) * length / steps;
+        float previous = ProceduralPlanetTerrain.Height(plan, from);
+        for (int i = 1; i <= steps; i++)
+        {
+            float h = ProceduralPlanetTerrain.Height(plan, Vector3.Slerp(from, to, i / (float)steps).normalized);
+            if (Mathf.Abs(h - previous) > grade) return false;
+            previous = h;
+        }
+        return true;
     }
 
     // ---------------------------------------------------------------------------------------------------------
@@ -828,7 +869,7 @@ public static class NaturalTerrainMeshValidation
         return world.Terrain.GenerationPlan;
     }
 
-    // v15: in the rugged highlands a mesh of 0.18 m spacing cannot follow near-vertical faces and sharp tread edges,
+    // v15-v17: in the rugged highlands and along canyons and gorges a mesh of 0.18 m spacing cannot follow near-vertical faces and sharp edges,
     // so those samples are kept apart (cliffMax, reported) from the strict surface error, which covers the rest.
     static string worstSurface = "";
     static (float mean, float max, int misses, float cliffMax, int cliffSamples) SurfaceError(PlanetWorldInstance world, ProceduralPlanetTerrain.Plan plan)
@@ -842,7 +883,7 @@ public static class NaturalTerrainMeshValidation
             if (!world.surface.TryProject(d, out var point, out _)) { misses++; continue; }
             float h = ProceduralPlanetTerrain.Height(plan, d);
             float error = Mathf.Abs((point - centre).magnitude - (plan.radius + h));
-            if (ProceduralPlanetTerrain.RuggedWeight(plan, d) > 0f) { cliff++; cliffMax = Mathf.Max(cliffMax, error); continue; }
+            if (ProceduralPlanetTerrain.InCliffZone(plan, d) || NearWall(plan, d, h)) { cliff++; cliffMax = Mathf.Max(cliffMax, error); continue; }
             if (error > max)
             {
                 TerrainWater.SampleWidth(plan, d, out float riverDistance, out float riverWidth);
@@ -851,6 +892,20 @@ public static class NaturalTerrainMeshValidation
             sum += error; max = Mathf.Max(max, error); count++;
         }
         return (sum / Mathf.Max(1, count), max, misses, cliffMax, cliff);
+    }
+
+    /// <summary>Any wall: the ground changes by more than 0.3 m within 0.45 m (the mesh spans such a step with one triangle).</summary>
+    static bool NearWall(ProceduralPlanetTerrain.Plan plan, Vector3 d, float h)
+    {
+        if (plan.natural == null || plan.natural.ruggedStrength <= 0f) return false;
+        var t0 = Vector3.Cross(d, Mathf.Abs(d.y) < .9f ? Vector3.up : Vector3.right).normalized;
+        for (int k = 0; k < 8; k++)
+        {
+            var t = Quaternion.AngleAxis(45f * k, d) * t0;
+            var side = (d * Mathf.Cos(.45f / plan.radius) + t * Mathf.Sin(.45f / plan.radius)).normalized;
+            if (Mathf.Abs(ProceduralPlanetTerrain.Height(plan, side) - h) > .3f) return true;
+        }
+        return false;
     }
 
     static IEnumerable<Vector3> Directions(int count)

@@ -74,6 +74,11 @@ MonoBehaviour:
     cliffJitter: 0.04
     cliffJitterMeters: 3
     cliffSnap: 1
+    canyonDepthMeters: 2.4
+    canyonWidthMeters: 4.4
+    canyonWallMeters: 0.4
+    canyonScaleMeters: 22
+    canyonSegmentMeters: 26
     terraceRiser: 0.03
     rampCorridorMeters: 2.4
     terraceTread: 0.15

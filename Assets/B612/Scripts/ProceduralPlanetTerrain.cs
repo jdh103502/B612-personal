@@ -39,6 +39,9 @@ namespace B612
             public Vector3 macroOffset, hillOffset, roughnessOffset;
             // v15 rugged highlands: ridged peaks and the phase of their terrace steps.
             public int peakSeed;
+            // v17 canyons: the line field and the segment field that breaks the lines into separate canyons.
+            public int canyonSeed;
+            public Vector3 canyonOffset;
             public Vector3 peakOffset;
             public float ruggedThreshold, ruggedFull;
             // Rendering only: wetness from the flow field, sampled into the ground mesh's second UV channel.
@@ -234,6 +237,11 @@ namespace B612
                 Vector3 metres = direction * plan.radius;
                 float broad = Basis(metres / natural.broadScaleMeters + plan.macroOffset, plan.macroSeed, natural.noiseBasis);
                 float medium = Basis(metres / natural.mediumScaleMeters + plan.hillOffset, plan.hillSeed, natural.noiseBasis);
+                if (natural.ruggedStrength > 0f && natural.canyonDepthMeters > 0f)
+                {
+                    float rugged = Rugged(plan, metres, broad, medium) - CanyonDepth(plan, metres, broad);
+                    return rugged - (plan.erosion == null ? 0f : plan.erosion.Carve(direction));
+                }
                 if (natural.ruggedStrength > 0f)
                     return Rugged(plan, metres, broad, medium) - (plan.erosion == null ? 0f : plan.erosion.Carve(direction));
                 if (plan.erosion == null)
@@ -376,6 +384,19 @@ namespace B612
             var n = plan.natural;
             if (n == null || !n.cliffSnap || n.ruggedStrength <= 0f || n.terraceStepMeters <= 0f || n.rampNotchLength <= 0f)
                 return direction;
+            if (n.canyonDepthMeters > 0f)
+            {
+                // v17: canyon walls too, onto the floor edge or the rim, whichever is nearer.
+                Vector3 metres = direction * plan.radius;
+                float broad = Basis(metres / n.broadScaleMeters + plan.macroOffset, plan.macroSeed, n.noiseBasis);
+                if (CanyonGeometry(plan, metres, broad, out float along, out float distance, out var away) && along > .5f)
+                {
+                    float halfRim = .5f * n.canyonWidthMeters, halfFloor = CanyonFloor(n, along);
+                    float target = Mathf.Abs(distance - halfFloor) < Mathf.Abs(distance - halfRim) ? halfFloor : halfRim;
+                    if (Mathf.Abs(target - distance) <= maxMetres)
+                        return (direction + away * ((target - distance) / plan.radius)).normalized;
+                }
+            }
             if (!StepLevel(plan, direction, out float level, out float share) || share < .5f) return direction;
             float u = level - Mathf.Floor(level), foot = 1f - n.terraceRiser;
             // Nearest edge in level units: the foot (start of the face) or the lip (end of the face, which is also
@@ -405,6 +426,80 @@ namespace B612
             level = height / n.terraceStepMeters + phase;
             cliffShare = Smooth(.05f, .3f, weight) * ramp * Smooth(0f, .05f, weight);
             return weight > 0f;
+        }
+
+        /// <summary>
+        /// v17 canyons: depth cut along the zero lines of a noise field, only where a second, larger segment field is
+        /// positive, so the lines break into separate canyons a walker goes round (their ends fade into ramps over a
+        /// few metres). Across a canyon the distance from its line is measured in metres (noise value over its
+        /// tangential gradient), so every canyon has the same floor and rim width: a flat floor, then a thin
+        /// near-vertical wall to a rim canyonWidthMeters across, wider than a plain jump and within a jump and dash.
+        /// Depth and widths are the same on every planet size because the abilities are.
+        /// </summary>
+        static float CanyonDepth(Plan plan, Vector3 metres, float broad)
+        {
+            var n = plan.natural;
+            if (!CanyonGeometry(plan, metres, broad, out float along, out float distance, out _)) return 0f;
+            float halfRim = .5f * n.canyonWidthMeters, halfFloor = CanyonFloor(n, along);
+            return n.canyonDepthMeters * along * (1f - Smooth(halfFloor, halfRim, distance));
+        }
+
+        /// <summary>
+        /// Half width of a canyon floor: full where the canyon is at full depth; towards its ends (along -> 0) the
+        /// floor narrows and the sides widen into a smooth trough, so a shallow end never leaves a short vertical
+        /// curb a walker would drop off.
+        /// </summary>
+        static float CanyonFloor(NaturalTerrainSettings n, float along)
+        {
+            return Mathf.Max(0f, .5f * n.canyonWidthMeters - n.canyonWallMeters) * along * along;
+        }
+
+        /// <summary>
+        /// The canyon at this point: along = depth share along the canyon (0 outside a segment and in the lowlands,
+        /// where ponds and rivers form), distance = metres from its line, away = unit tangent pointing away from
+        /// the line. False where there is no canyon within its rim.
+        /// </summary>
+        static bool CanyonGeometry(Plan plan, Vector3 metres, float broad, out float along, out float distance, out Vector3 away)
+        {
+            var n = plan.natural;
+            distance = float.PositiveInfinity;
+            away = Vector3.zero;
+            float segment = Simplex(metres / n.canyonSegmentMeters + plan.canyonOffset * 1.9f, plan.canyonSeed ^ 0x3a7);
+            along = Smooth(.04f, .2f, segment) * Smooth(-.25f, 0f, broad);
+            if (along <= 0f) return false;
+            Vector3 p = metres / n.canyonScaleMeters + plan.canyonOffset;
+            float value = Simplex(p, plan.canyonSeed);
+            float halfRim = .5f * n.canyonWidthMeters;
+            // Cheap reject far from any line (the field changes by at most about 2 per unit).
+            if (Mathf.Abs(value) > 2f * (halfRim + .5f) / n.canyonScaleMeters) return false;
+            const float e = .002f;
+            var gradient = new Vector3(Simplex(p + new Vector3(e, 0f, 0f), plan.canyonSeed) - value,
+                Simplex(p + new Vector3(0f, e, 0f), plan.canyonSeed) - value,
+                Simplex(p + new Vector3(0f, 0f, e), plan.canyonSeed) - value) / (e * n.canyonScaleMeters);
+            var up = metres.normalized;
+            var tangent = gradient - up * Vector3.Dot(gradient, up);
+            float slope = tangent.magnitude;
+            if (slope < 1e-5f) return false;
+            distance = Mathf.Abs(value) / slope;
+            away = tangent / slope * Mathf.Sign(value);
+            return distance < halfRim;
+        }
+
+        /// <summary>
+        /// Validation: ground the mesh cannot follow exactly (rugged highlands, within a metre of a canyon rim, the
+        /// gorge stretch beside the water).
+        /// </summary>
+        public static bool InCliffZone(Plan plan, Vector3 direction)
+        {
+            var n = plan.natural;
+            if (n == null) return false;
+            if (RuggedWeight(plan, direction) > 0f) return true;
+            if (TerrainWater.InGorge(plan, direction)) return true;
+            if (n.canyonDepthMeters <= 0f) return false;
+            Vector3 metres = direction * plan.radius;
+            float broad = Basis(metres / n.broadScaleMeters + plan.macroOffset, plan.macroSeed, n.noiseBasis);
+            CanyonGeometry(plan, metres, broad, out float along, out float distance, out _);
+            return along > 0f && distance < .5f * n.canyonWidthMeters + 1f;
         }
 
         /// <summary>Validation: (raw height before terracing, terrace strength, face share, step fraction u) at a direction.</summary>
@@ -657,9 +752,11 @@ namespace B612
                 placementSeed = StarSystemFactory.DeriveSeed(seed, 84, 0),
                 surfaceSeed = StarSystemFactory.DeriveSeed(seed, 85, 0),
                 roughnessSeed = StarSystemFactory.DeriveSeed(seed, 86, 0),
-                peakSeed = StarSystemFactory.DeriveSeed(seed, 87, 0)
+                peakSeed = StarSystemFactory.DeriveSeed(seed, 87, 0),
+                canyonSeed = StarSystemFactory.DeriveSeed(seed, 88, 0)
             };
             plan.peakOffset = NoiseOffset(plan.peakSeed);
+            plan.canyonOffset = NoiseOffset(plan.canyonSeed);
             plan.macroOffset = NoiseOffset(plan.macroSeed);
             plan.hillOffset = NoiseOffset(plan.hillSeed);
             plan.noiseOffset = NoiseOffset(plan.surfaceSeed);
@@ -833,6 +930,7 @@ namespace B612
                     {
                         // v16: vertices next to a cliff edge move onto it (at most half the mesh spacing; folds are undone below).
                         var n = SnapToCliff(plan, directions[v], .5f * spacing);
+                        if (n == directions[v]) n = TerrainWater.SnapToGorge(plan, n, .5f * spacing);
                         float elevation = FreeHeight(plan, n);
                         vertices[v] = n * (plan.radius + TerrainWater.Height(plan, n, elevation));
                         colors[v] = NaturalSurfaceWeights(plan, n, elevation);

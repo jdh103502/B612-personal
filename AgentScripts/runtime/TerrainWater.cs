@@ -21,6 +21,13 @@ namespace B612
             // v14: metres over which the spring fades in; 0 keeps 0.85 x the width. A spring that starts in a
             // cut fades in over a longer run so its head is not a steep wall.
             public float sourceFade;
+            // v17: a gorge on the stretch [gorgeStart, gorgeEnd] (metres from the spring): both banks rise
+            // gorgeHeight as near-vertical walls beside a narrow beach, so the river runs through a canyon.
+            public float gorgeStart, gorgeEnd, gorgeHeight;
+            // The gorge's own point range and bounding sphere, so only nearby ground looks it up.
+            public int gorgeFirst, gorgeLast;
+            public Vector3 gorgeCentre;
+            public float gorgeBound;
 
             // v11 flow river. flowFit: the channel only lowers the ground. pond: the river ends in a
             // shallow pond whose water fills all ground below pondLevel within pondRadius (metres).
@@ -115,6 +122,8 @@ namespace B612
         }
         public static float Height(ProceduralPlanetTerrain.Plan plan,Vector3 n,float original)
         {
+            if (plan.natural != null && plan.river != null && plan.river.gorgeHeight > 0f)
+                return HeightWithGorge(plan, n, original);
             if (plan.natural != null && plan.river != null && plan.river.pond)
                 original -= PondCarve(plan.river.pondDirection, plan.river.pondRadius, plan.river.pondBowl, plan.river.pondLevel,
                     plan.radius, n, original);
@@ -232,6 +241,92 @@ namespace B612
         }
 
         static float AtEdge(float total, float a, float xp, float w) => Rise(2f * total / w, xp, w, a);
+
+        /// <summary>v17: the natural channel height (as above, kept separate so v16 stays bit-identical) plus the gorge walls.</summary>
+        static float HeightWithGorge(ProceduralPlanetTerrain.Plan plan, Vector3 n, float original)
+        {
+            var river = plan.river;
+            if (river.pond)
+                original -= PondCarve(river.pondDirection, river.pondRadius, river.pondBowl, river.pondLevel, plan.radius, n, original);
+            float height = original;
+            if (Sample(plan, n, out float distance, out float level, out float bed, out float along, out float width))
+                height = NaturalChannelHeight(river, original, distance, level, bed, EndFade(river, along), width);
+            if (GorgeNearest(plan, n, out float gorgeDistance, out float gorgeAlong, out float gorgeWidth, out _))
+                height += GorgeRaise(river, gorgeDistance, gorgeAlong, gorgeWidth);
+            return height;
+        }
+
+        /// <summary>Nearest point of the gorge stretch only (false outside the gorge's bounding sphere).</summary>
+        static bool GorgeNearest(ProceduralPlanetTerrain.Plan plan, Vector3 n, out float distance, out float along, out float width,
+            out Vector3 nearest)
+        {
+            var river = plan.river;
+            var point = n * plan.radius;
+            distance = float.PositiveInfinity; along = 0f; width = river.width; nearest = point;
+            if ((point - river.gorgeCentre).sqrMagnitude > river.gorgeBound * river.gorgeBound) return false;
+            float best = float.PositiveInfinity;
+            for (int i = river.gorgeFirst + 1; i <= river.gorgeLast; i++)
+            {
+                var a = river.points[i - 1]; var d = river.points[i] - a;
+                float t = Mathf.Clamp01(Vector3.Dot(point - a, d) / d.sqrMagnitude);
+                var q = a + d * t; float sq = (point - q).sqrMagnitude;
+                if (sq >= best) continue;
+                best = sq; nearest = q;
+                along = Mathf.Lerp(river.lengths[i - 1], river.lengths[i], t);
+                width = Mathf.Lerp(WidthAt(river, i - 1), WidthAt(river, i), t);
+            }
+            distance = Mathf.Sqrt(best);
+            return true;
+        }
+
+        /// <summary>
+        /// v17 gorge walls beside the water: a 0.5 m beach, a 0.4 m near-vertical wall up gorgeHeight, a 1.5 m
+        /// plateau, then a 5 m slope back to the ground; the ends fade over 3 m so a walker enters along the river.
+        /// </summary>
+        public static float GorgeRaise(River river, float distance, float along, float width)
+        {
+            float fade = Smooth01((along - river.gorgeStart) / 3f) * (1f - Smooth01((along - (river.gorgeEnd - 3f)) / 3f));
+            if (fade <= 0f) return 0f;
+            // Towards the ends the wall widens with the fade, so a low wall is a slope rather than a curb.
+            float wall = GorgeWall + 2f * (1f - fade);
+            float inner = width * .5f + GorgeBeach, rim = inner + wall, plateau = rim + 1.5f;
+            if (distance <= inner || distance >= plateau + 5f) return 0f;
+            float profile = Smooth01((distance - inner) / wall) * (1f - Smooth01((distance - plateau) / 5f));
+            return river.gorgeHeight * fade * profile;
+        }
+
+        /// <summary>
+        /// v17 mesh: a vertex within maxMetres of a gorge wall's foot or rim (where the gorge is at full height) is
+        /// moved onto that line, straight away from or towards the river, so the walls get clean edges.
+        /// </summary>
+        public static Vector3 SnapToGorge(ProceduralPlanetTerrain.Plan plan, Vector3 n, float maxMetres)
+        {
+            var river = plan.river;
+            if (river == null || river.gorgeHeight <= 0f) return n;
+            if (!GorgeNearest(plan, n, out float distance, out float along, out float width, out var nearest)) return n;
+            if (along < river.gorgeStart + 3f || along > river.gorgeEnd - 3f) return n;
+            var away = n * plan.radius - nearest;
+            away -= n * Vector3.Dot(away, n);
+            if (away.sqrMagnitude < 1e-8f) return n;
+            away.Normalize();
+            float inner = width * .5f + GorgeBeach, rim = inner + GorgeWall;
+            float target = Mathf.Abs(distance - inner) < Mathf.Abs(distance - rim) ? inner : rim;
+            if (Mathf.Abs(target - distance) > maxMetres) return n;
+            return (n + away * ((target - distance) / plan.radius)).normalized;
+        }
+
+        /// <summary>v17 validation: within the gorge stretch, from the water's edge out to the end of its outer slope.</summary>
+        public static bool InGorge(ProceduralPlanetTerrain.Plan plan, Vector3 n)
+        {
+            var river = plan.river;
+            return river != null && river.gorgeHeight > 0f && GorgeNearest(plan, n, out float distance, out float along, out float width, out _)
+                && along >= river.gorgeStart && along <= river.gorgeEnd && distance > width * .5f && distance < width * .5f + GorgeReach;
+        }
+
+        /// <summary>Gorge beach width beside the water and wall width (m).</summary>
+        public const float GorgeBeach = .5f, GorgeWall = .4f, GorgeReach = .5f + 2.4f + 1.5f + 5f;
+
+        static float Smooth01(float t) { t = Mathf.Clamp01(t); return t * t * (3f - 2f * t); }
 
         static float EndFade(River river, float along)
         {

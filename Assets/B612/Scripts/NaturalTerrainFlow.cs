@@ -685,11 +685,49 @@ namespace B612
                 result.smoothBank = true;
                 result.sourceFade = Mathf.Min(.25f * result.lengths[last], 3.9f * Mathf.Max(0f, originals[0] - result.beds[0]));
             }
+            if (settings.canyonDepthMeters > 0f && settings.floodedRouting) Gorge(result, settings);
             float widest = result.width;
             foreach (float w in result.widths) widest = Mathf.Max(widest, w);
             result.bound += widest * .5f + result.bankWidth;
             river = result;
             return null;
+        }
+
+        /// <summary>
+        /// v17: the river runs through a gorge on the stretch where it is 2.4-2.9 m wide (the gap between the gorge
+        /// rims is then about a dash: width + 1.8 m), ending at least 4 m before the pond mouth; at least 6 m long or
+        /// no gorge. Rivers that never get that wide take the last 8 m before the mouth margin; never the first 3 m.
+        /// </summary>
+        static void Gorge(TerrainWater.River river, NaturalTerrainSettings settings)
+        {
+            int last = river.directions.Count - 1;
+            float total = river.lengths[last], end = total - 4f;
+            float start = -1f, stop = end;
+            for (int i = 0; i <= last; i++)
+            {
+                float w = TerrainWater.WidthAt(river, i), at = river.lengths[i];
+                if (start < 0f && w >= 2.4f) start = at;
+                if (start >= 0f && w > 2.9f) { stop = Mathf.Min(stop, at); break; }
+            }
+            if (start < 0f) start = end - 8f;
+            start = Mathf.Max(start, 3f);
+            if (stop - start < 6f) return;
+            river.gorgeStart = start;
+            river.gorgeEnd = stop;
+            river.gorgeHeight = settings.canyonDepthMeters;
+            river.gorgeFirst = 0; river.gorgeLast = last;
+            for (int i = 0; i <= last; i++)
+            {
+                if (river.lengths[i] <= start) river.gorgeFirst = i;
+                if (river.lengths[i] >= stop) { river.gorgeLast = i; break; }
+            }
+            var centre = Vector3.zero;
+            for (int i = river.gorgeFirst; i <= river.gorgeLast; i++) centre += river.points[i];
+            river.gorgeCentre = centre / (river.gorgeLast - river.gorgeFirst + 1);
+            float reach = 0f;
+            for (int i = river.gorgeFirst; i <= river.gorgeLast; i++)
+                reach = Mathf.Max(reach, Vector3.Distance(river.points[i], river.gorgeCentre) + .5f * TerrainWater.WidthAt(river, i));
+            river.gorgeBound = reach + TerrainWater.GorgeReach;
         }
 
         /// <summary>How far the underwater end of a widened channel sits below the pond surface (m).</summary>

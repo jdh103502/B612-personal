@@ -1,0 +1,112 @@
+Generator v17 (canyons and river gorge) validation - 2026-11-22, Unity 6000.3.23f1, Play mode restarted between batches
+Settings: v16 values + canyonDepth 2.4 m, canyonWidth 4.4 m, canyonWall 0.4 m, canyonScale 22 m, canyonSegment 26 m
+
+== v16 reproduction (RunV16, canyons off): 8/8 identical ==
+planetId=system_02_B radius=8.4 vertices=32858 ground=10c66f94fefb43cd positions=28573f123ebbbaf5 tints=5c79c77a74849a6e water=294dcdf99c75b0a4 placement=d8859c07efa34f10 slots=b22ffdf293d155f2 SlotCount=2355 meshMilliseconds=100.4 analysisMilliseconds=39.8 candidateMilliseconds=38.4 moistureMean=0.4 moistureChannel=True gullies=24 gullyLength=110.8 gullyDeepest=0.1 gullyMean=0.0 river=Flow_river_into_pond:_14.7m,_width_0.6-2.1m,_pond_radius_2.8m_(3920_cells,_26_basins,_2_candidates,_0_unfit).
+planetId=system_02_B radius=12 vertices=66152 ground=82f68be3716025c5 positions=ab007fd6197f229d tints=26c231c1ea7392c8 water=c2fc42e65c4694b6 placement=b8a06f98cd30b7a8 slots=824edb19038b86c3 SlotCount=2560 meshMilliseconds=165.7 analysisMilliseconds=54.6 candidateMilliseconds=33.9 moistureMean=0.4 moistureChannel=True gullies=24 gullyLength=168.1 gullyDeepest=0.2 gullyMean=0.1 river=Flow_river_into_pond:_16.7m,_width_0.9-3.0m,_pond_radius_3.8m_(3920_cells,_15_basins,_3_candidates,_0_unfit).
+planetId=system_02_B radius=24 vertices=264602 ground=436f6c0958647bbd positions=2eef7eb8c1a038bd tints=1f2c0bc0906bb13f water=4894b66afe99669b placement=1d859779283a4773 slots=3911812570d32767 SlotCount=10179 meshMilliseconds=512.6 analysisMilliseconds=197.7 candidateMilliseconds=111.1 moistureMean=0.4 moistureChannel=True gullies=114 gullyLength=683.4 gullyDeepest=0.2 gullyMean=0.1 river=Flow_river_into_pond:_10.7m,_width_0.9-2.9m,_pond_radius_4.0m_(15680_cells,_61_basins,_15_candidates,_0_unfit).
+planetId=system_01_Start radius=12 vertices=66152 ground=6314c30a28d0f763 positions=69f1e6845e4d7edf tints=51c5dc45ce79b9dd water=7943f59ccc5617fa placement=99200f0bc6e71911 slots=1077e0842832720b SlotCount=2551 meshMilliseconds=185.7 analysisMilliseconds=60.0 candidateMilliseconds=31.6 moistureMean=0.4 moistureChannel=True gullies=28 gullyLength=155.7 gullyDeepest=0.2 gullyMean=0.1 river=Flow_river_into_pond:_18.6m,_width_0.9-3.0m,_pond_radius_3.7m_(3920_cells,_11_basins,_6_candidates,_1_unfit).
+planetId=system_01_D radius=23.5 vertices=254618 ground=3b1b359cd450cf97 positions=488e710ab1467a62 tints=22b998bebfbd7584 water=80a744579724d671 placement=2fd59cfaeb9589ff slots=dd3ab2aec31b51e4 SlotCount=10240 meshMilliseconds=523.2 analysisMilliseconds=202.0 candidateMilliseconds=105.9 moistureMean=0.4 moistureChannel=True gullies=105 gullyLength=643.2 gullyDeepest=0.2 gullyMean=0.1 river=Flow_river_into_pond:_22.2m,_width_0.9-3.0m,_pond_radius_3.9m_(15680_cells,_55_basins,_8_candidates,_0_unfit).
+planetId=system_03_E radius=21.4 vertices=209816 ground=2f18256aa4c8c547 positions=c6930ccb75cd7f35 tints=1b38720fb2d434e7 water=320fd227dd1f6923 placement=6e072558de70d5b7 slots=0b10be8d794bc0e1 SlotCount=10206 meshMilliseconds=563.8 analysisMilliseconds=193.0 candidateMilliseconds=129.1 moistureMean=0.4 moistureChannel=True gullies=90 gullyLength=475.4 gullyDeepest=0.2 gullyMean=0.1 river=Flow_river_into_pond:_31.5m,_width_0.9-3.0m,_pond_radius_4.3m_(12500_cells,_51_basins,_16_candidates,_0_unfit).
+planetId=system_01_C radius=9.7 vertices=43352 ground=3c152eed94fd3980 positions=f55c5356dadfa425 tints=962d6865db2a2dc1 water=5e94c3abfbe6a45c placement=61da78c018e40fa5 slots=b243afa378cf6e1f SlotCount=2462 meshMilliseconds=240.5 analysisMilliseconds=58.9 candidateMilliseconds=50.3 moistureMean=0.4 moistureChannel=True gullies=24 gullyLength=137.1 gullyDeepest=0.2 gullyMean=0.1 river=Flow_river_into_pond:_26.8m,_width_0.7-2.4m,_pond_radius_3.4m_(3920_cells,_19_basins,_5_candidates,_0_unfit).
+planetId=system_03_D radius=9.5 vertices=41336 ground=9a2788b926136749 positions=e9da5abf6795bc15 tints=781b7d1ea42bbade water=15890b0725df7af2 placement=6e553778342da5eb slots=f403ead591a9fb70 SlotCount=2471 meshMilliseconds=145.1 analysisMilliseconds=42.4 candidateMilliseconds=49.6 moistureMean=0.4 moistureChannel=True gullies=35 gullyLength=146.4 gullyDeepest=0.1 gullyMean=0.0 river=Flow_river_into_pond:_20.7m,_width_0.7-2.3m,_pond_radius_3.1m_(3920_cells,_14_basins,_12_candidates,_0_unfit).
+
+== Compare: 36 planets ==
+j=612101 system_01_Start R=12.0 river=True conn=0.8923 cand=2556 empty=0 err=7mm cliff=729mm/1424 depth=0.18/0.32/0.38 | Flow river into pond: 18.6m, width 0.9-3.0m, pond radius 3.7m (3920 cells, 18 basins, 8 candidates, 0 unfit).
+j=612101 system_01_C R=15.1 river=True conn=0.8448 cand=5668 empty=1 err=9mm cliff=571mm/1371 depth=0.18/0.31/0.38 | Flow river into pond: 16.3m, width 0.9-2.9m, pond radius 4.2m (6480 cells, 40 basins, 4 candidates, 0 unfit).
+j=612101 system_01_D R=23.5 river=True conn=0.8400 cand=10204 empty=0 err=8mm cliff=1372mm/1708 depth=0.18/0.21/0.22 | Flow river into pond: 31.4m, width 0.9-1.1m, pond radius 1.4m (15680 cells, 82 basins, 10 candidates, 0 unfit).
+j=612101 system_01_E R=15.1 river=True conn=0.8565 cand=5736 empty=0 err=12mm cliff=750mm/1728 depth=0.18/0.28/0.34 | Flow river into pond: 27.0m, width 0.9-1.7m, pond radius 2.2m (6480 cells, 33 basins, 13 candidates, 1 unfit).
+j=612101 system_01_Destination R=13.7 river=True conn=0.8504 cand=5631 empty=2 err=9mm cliff=489mm/1676 depth=0.18/0.29/0.32 | Flow river into pond: 18.1m, width 0.9-3.0m, pond radius 4.2m (5120 cells, 29 basins, 11 candidates, 0 unfit).
+j=612101 system_02_Start R=12.0 river=True conn=0.8373 cand=2560 empty=0 err=17mm cliff=524mm/1708 depth=0.18/0.30/0.31 | Flow river into pond: 22.7m, width 0.9-2.9m, pond radius 4.4m (3920 cells, 22 basins, 6 candidates, 0 unfit).
+j=612101 system_02_B R=19.5 river=True conn=0.8483 cand=10120 empty=2 err=9mm cliff=626mm/1668 depth=0.18/0.24/0.28 | Flow river into pond: 9.5m, width 0.9-1.4m, pond radius 1.8m (10580 cells, 76 basins, 13 candidates, 0 unfit).
+j=612101 system_02_C R=8.9 river=True conn=0.8473 cand=2443 empty=1 err=13mm cliff=311mm/1575 depth=0.13/0.14/0.14 | Flow river into pond: 10.5m, width 0.7-0.7m, pond radius 0.9m (3920 cells, 20 basins, 8 candidates, 2 unfit).
+j=612101 system_02_D R=22.1 river=True conn=0.8530 cand=10135 empty=2 err=8mm cliff=553mm/1535 depth=0.18/0.30/0.38 | Flow river into pond: 32.2m, width 0.9-2.0m, pond radius 2.6m (13520 cells, 67 basins, 16 candidates, 1 unfit).
+j=612101 system_02_E R=15.3 river=True conn=0.7947 cand=5518 empty=4 err=7mm cliff=690mm/1441 depth=0.18/0.33/0.38 | Flow river into pond: 22.5m, width 0.9-3.0m, pond radius 4.1m (6480 cells, 43 basins, 9 candidates, 0 unfit).
+j=612101 system_02_Destination R=22.9 river=True conn=0.8661 cand=10210 empty=0 err=6mm cliff=375mm/1528 depth=0.18/0.30/0.35 | Flow river into pond: 17.4m, width 0.9-2.9m, pond radius 3.8m (14580 cells, 77 basins, 16 candidates, 0 unfit).
+j=612101 system_03_Start R=12.0 river=True conn=0.8539 cand=2560 empty=0 err=23mm cliff=1117mm/1574 depth=0.18/0.28/0.31 | Flow river into pond: 9.5m, width 0.9-2.9m, pond radius 3.9m (3920 cells, 26 basins, 4 candidates, 3 unfit).
+j=612101 system_03_B R=21.1 river=True conn=0.8539 cand=10168 empty=1 err=6mm cliff=392mm/1607 depth=0.18/0.30/0.34 | Flow river into pond: 31.4m, width 0.9-3.0m, pond radius 3.9m (12500 cells, 76 basins, 12 candidates, 0 unfit).
+j=612101 system_03_C R=8.7 river=True conn=0.8081 cand=2452 empty=2 err=14mm cliff=1064mm/1317 depth=0.13/0.22/0.26 | Flow river into pond: 8.6m, width 0.7-2.1m, pond radius 2.9m (3920 cells, 19 basins, 4 candidates, 0 unfit).
+j=612101 system_03_Destination R=18.0 river=True conn=0.7862 cand=5627 empty=1 err=10mm cliff=925mm/1606 depth=0.18/0.18/0.19 | Flow river into pond: 20.6m, width 0.9-0.9m, pond radius 1.2m (8820 cells, 52 basins, 10 candidates, 0 unfit).
+j=77 system_01_C R=9.7 river=True conn=0.7851 cand=2434 empty=2 err=9mm cliff=873mm/1651 depth=0.15/0.23/0.25 | Flow river into pond: 8.6m, width 0.7-2.0m, pond radius 2.5m (3920 cells, 21 basins, 5 candidates, 1 unfit).
+j=77 system_01_D R=18.9 river=True conn=0.7827 cand=9958 empty=1 err=15mm cliff=1206mm/1859 depth=0.18/0.32/0.38 | Flow river into pond: 31.4m, width 0.9-3.0m, pond radius 4.0m (9680 cells, 57 basins, 15 candidates, 0 unfit).
+j=77 system_01_E R=10.6 river=True conn=0.6617 cand=2411 empty=3 err=5mm cliff=693mm/2039 depth=0.16/0.18/0.20 | Flow river into pond: 20.8m, width 0.8-1.0m, pond radius 1.2m (3920 cells, 29 basins, 5 candidates, 0 unfit).
+j=77 system_02_Start R=12.0 river=True conn=0.8569 cand=2560 empty=0 err=9mm cliff=1155mm/1424 depth=0.18/0.18/0.18 | Flow river into pond: 11.1m, width 0.9-0.9m, pond radius 0.8m (3920 cells, 25 basins, 6 candidates, 3 unfit).
+j=77 system_02_B R=15.5 river=True conn=0.8430 cand=5657 empty=0 err=9mm cliff=359mm/1590 depth=0.18/0.29/0.32 | Flow river into pond: 15.6m, width 0.9-2.9m, pond radius 4.0m (6480 cells, 29 basins, 11 candidates, 2 unfit).
+j=77 system_02_C R=21.1 river=True conn=0.8407 cand=9969 empty=6 err=6mm cliff=898mm/1664 depth=0.18/0.32/0.36 | Flow river into pond: 31.6m, width 0.9-3.0m, pond radius 4.3m (12500 cells, 78 basins, 15 candidates, 0 unfit).
+j=77 system_02_E R=18.7 river=True conn=0.8314 cand=9745 empty=9 err=11mm cliff=1058mm/1706 depth=0.18/0.30/0.35 | Flow river into pond: 32.3m, width 0.9-2.9m, pond radius 3.7m (9680 cells, 56 basins, 15 candidates, 0 unfit).
+j=77 system_02_Destination R=23.8 river=True conn=0.8534 cand=10076 empty=3 err=6mm cliff=291mm/1545 depth=0.18/0.30/0.36 | Flow river into pond: 15.1m, width 0.9-2.9m, pond radius 3.9m (15680 cells, 107 basins, 15 candidates, 0 unfit).
+j=77 system_03_E R=23.9 river=True conn=0.8380 cand=10034 empty=3 err=9mm cliff=368mm/1562 depth=0.18/0.31/0.36 | Flow river into pond: 21.9m, width 0.9-2.5m, pond radius 3.1m (15680 cells, 83 basins, 15 candidates, 0 unfit).
+j=77 system_03_Destination R=10.2 river=True conn=0.8508 cand=2513 empty=1 err=34mm cliff=613mm/1397 depth=0.15/0.25/0.28 | Flow river into pond: 26.3m, width 0.8-2.5m, pond radius 3.3m (3920 cells, 25 basins, 5 candidates, 0 unfit).
+j=612101 system_03_E R=21.4 river=True conn=0.8119 cand=10031 empty=1 err=10mm cliff=470mm/2074 depth=0.18/0.32/0.38 | Flow river into pond: 31.5m, width 0.9-3.0m, pond radius 4.3m (12500 cells, 80 basins, 15 candidates, 0 unfit).
+j=77 system_03_C R=9.2 river=True conn=0.7516 cand=2490 empty=0 err=32mm cliff=988mm/1833 depth=0.14/0.22/0.25 | Flow river into pond: 24.8m, width 0.7-2.3m, pond radius 3.2m (3920 cells, 22 basins, 2 candidates, 0 unfit).
+j=612101 system_01_B R=10.9 river=True conn=0.8258 cand=2560 empty=0 err=12mm cliff=439mm/1927 depth=0.16/0.21/0.24 | Flow river into pond: 18.6m, width 0.8-1.2m, pond radius 1.5m (3920 cells, 19 basins, 13 candidates, 0 unfit).
+j=612101 system_03_D R=23.3 river=True conn=0.8490 cand=10129 empty=1 err=4mm cliff=748mm/1802 depth=0.18/0.32/0.37 | Flow river into pond: 31.0m, width 0.9-3.0m, pond radius 3.7m (14580 cells, 71 basins, 16 candidates, 0 unfit).
+j=77 system_01_Start R=12.0 river=True conn=0.8191 cand=2560 empty=0 err=9mm cliff=1129mm/1661 depth=0.18/0.21/0.23 | Flow river into pond: 32.6m, width 0.9-1.2m, pond radius 1.4m (3920 cells, 20 basins, 11 candidates, 0 unfit).
+j=77 system_01_B R=12.2 river=True conn=0.7904 cand=5652 empty=1 err=16mm cliff=1083mm/1922 depth=0.18/0.20/0.22 | Flow river into pond: 15.3m, width 0.9-1.1m, pond radius 1.3m (4500 cells, 37 basins, 5 candidates, 1 unfit).
+j=77 system_01_Destination R=13.5 river=True conn=0.7929 cand=5468 empty=4 err=7mm cliff=863mm/2204 depth=0.18/0.34/0.38 | Flow river into pond: 30.7m, width 0.9-2.9m, pond radius 3.6m (5120 cells, 31 basins, 13 candidates, 0 unfit).
+j=77 system_02_D R=17.3 river=True conn=0.7904 cand=5515 empty=2 err=8mm cliff=471mm/1609 depth=0.18/0.28/0.37 | Flow river into pond: 13.6m, width 0.9-2.3m, pond radius 2.9m (8820 cells, 44 basins, 14 candidates, 0 unfit).
+j=77 system_03_Start R=12.0 river=True conn=0.8545 cand=2560 empty=0 err=17mm cliff=1538mm/2279 depth=0.18/0.18/0.19 | Flow river into pond: 30.8m, width 0.9-0.9m, pond radius 1.2m (3920 cells, 30 basins, 11 candidates, 0 unfit).
+j=77 system_03_B R=11.4 river=True conn=0.7649 cand=2388 empty=5 err=10mm cliff=1442mm/1865 depth=0.17/0.29/0.36 | Flow river into pond: 29.7m, width 0.9-2.2m, pond radius 2.8m (3920 cells, 24 basins, 5 candidates, 0 unfit).
+j=77 system_03_D R=9.5 river=True conn=0.7997 cand=2480 empty=1 err=13mm cliff=1120mm/1864 depth=0.14/0.27/0.30 | Flow river into pond: 20.7m, width 0.7-2.3m, pond radius 3.1m (3920 cells, 16 basins, 12 candidates, 0 unfit).
+
+== Relief: 8 planets ==
+system_02_B R=8.4 river=True conn=0.7536 spread/q=2.04 regions=20 slope%=72.1/9.2/18.69 maxSlope=87.2
+system_02_B R=12.0 river=True conn=0.8144 spread/q=2.05 regions=20 slope%=71.6/10.9/17.54 maxSlope=87.5
+system_02_B R=24.0 river=True conn=0.7842 spread/q=1.95 regions=20 slope%=69.7/9.1/21.12 maxSlope=88.3
+system_01_Start R=12.0 river=True conn=0.8924 spread/q=1.57 regions=20 slope%=79.1/9.4/11.54 maxSlope=87.5
+system_01_D R=23.5 river=True conn=0.8400 spread/q=2.18 regions=20 slope%=73.8/9.7/16.53 maxSlope=88.6
+system_03_E R=21.4 river=True conn=0.8119 spread/q=2.00 regions=20 slope%=72.9/8.1/19.03 maxSlope=89.4
+system_01_C R=9.7 river=True conn=0.7851 spread/q=2.76 regions=20 slope%=72.4/9.3/18.31 maxSlope=87.3
+system_03_D R=9.5 river=True conn=0.7997 spread/q=2.13 regions=20 slope%=67.9/14.4/17.72 maxSlope=88.2
+
+== Walk: 8 planets x 10 routes ==
+walk system_02_B R=8.4 routes=10 skipped=0 high=1.75 low=-0.83 maxSlope=54.6 hillUp:7.4 hillDown:7.4 basinIn:6.9 basinOut:6.8 river0.35AB:2.4 river0.35BA:2.4 river0.65AB:2.6 river0.65BA:2.6 pondIn:2.2 pondOut:2.3
+walk system_02_B R=12.0 routes=10 skipped=0 high=1.96 low=-1.29 maxSlope=49.8 hillUp:7.5 hillDown:7.5 basinIn:12.7 basinOut:12.7 river0.35AB:3.2 river0.35BA:3.2 river0.65AB:3.4 river0.65BA:3.4 pondIn:2.9 pondOut:3.0
+walk system_02_B R=24.0 routes=10 skipped=0 high=2.53 low=-2.62 maxSlope=51.1 hillUp:31.3 hillDown:31.3 basinIn:37.3 basinOut:37.3 river0.35AB:3.3 river0.35BA:3.3 river0.65AB:3.6 river0.65BA:3.6 pondIn:3.0 pondOut:3.0
+walk system_01_Start R=12.0 routes=10 skipped=0 high=2.03 low=-1.94 maxSlope=58.1 hillUp:13.5 hillDown:13.5 basinIn:15.3 basinOut:15.3 river0.35AB:4.1 river0.35BA:4.1 river0.20AB:3.8 river0.20BA:3.8 pondIn:2.9 pondOut:2.9
+walk system_01_D R=23.5 routes=10 skipped=0 high=2.53 low=-2.33 maxSlope=50.6 hillUp:32.2 hillDown:32.2 basinIn:11.1 basinOut:11.1 river0.35AB:3.4 river0.35BA:3.4 river0.20AB:3.4 river0.20BA:3.4 pondIn:1.4 pondOut:1.5
+walk system_03_E R=21.4 routes=10 skipped=0 high=2.32 low=-2.42 maxSlope=45.9 hillUp:35.6 hillDown:35.6 basinIn:23.3 basinOut:23.3 river0.35AB:4.1 river0.35BA:4.1 river0.20AB:3.9 river0.20BA:3.9 pondIn:3.1 pondOut:3.2
+walk system_01_C R=9.7 routes=10 skipped=0 high=2.36 low=-1.96 maxSlope=40.8 hillUp:13.2 hillDown:13.2 basinIn:3.6 basinOut:3.6 river0.35AB:2.6 river0.35BA:2.6 river0.65AB:2.8 river0.65BA:2.8 pondIn:2.0 pondOut:2.0
+walk system_03_D R=9.5 routes=10 skipped=0 high=2.52 low=-1.21 maxSlope=50.6 hillUp:12.7 hillDown:12.7 basinIn:8.7 basinOut:8.7 river0.35AB:2.7 river0.35BA:2.7 river0.20AB:2.5 river0.20BA:2.5 pondIn:2.6 pondOut:2.6
+
+== Ability shortcuts ==
+system_02_B      R= 8.4
+   dash       found  127 tested  9 ok  5 plainAlso  1 shortcuts  1 (no-walk 0) medRatio 1.46 | plain rises [0.1] | need [0.3,0.0,-0.6,-0.3]
+   doubleJump found   46 tested  8 ok  5 plainAlso  3 shortcuts  2 (no-walk 0) medRatio 4.32 | plain rises [2.0,1.9,1.9] | need [2.5,2.5]
+   glide      found   15 tested  4 ok  3 plainAlso  0 shortcuts  0 (no-walk 0) medRatio 0.90 | plain rises [] | need [-0.8,-0.6,-0.6]
+system_02_B      R=12.0
+   dash       found  238 tested 18 ok 12 plainAlso  1 shortcuts  4 (no-walk 3) medRatio 1.46 | plain rises [0.0] | need [-0.2,0.1,-0.4,0.4,-0.1,0.5,0.2,0.5,0.0,0.5,-0.6]
+   doubleJump found   95 tested 13 ok 11 plainAlso  4 shortcuts  7 (no-walk 5) medRatio 3.50 | plain rises [2.2,2.2,2.3,2.1] | need [2.7,2.6,2.4,2.3,2.6,2.5,2.7]
+   glide      found    6 tested  3 ok  1 plainAlso  0 shortcuts  0 (no-walk 0) medRatio 1.21 | plain rises [] | need [-3.1]
+system_02_B      R=24.0
+   dash       found 1119 tested 24 ok 13 plainAlso  4 shortcuts  7 (no-walk 0) medRatio 2.07 | plain rises [-0.2,-0.5,-0.1,0.2] | need [0.0,0.2,-0.1,0.0,-0.5,0.0,0.0,-0.2,-0.4]
+   doubleJump found  348 tested 24 ok 15 plainAlso  3 shortcuts 10 (no-walk 5) medRatio 2.64 | plain rises [2.1,1.9,2.4] | need [2.7,2.1,2.4,2.4,2.4,2.7,2.5,2.3,2.3,2.5,2.4,2.2]
+   glide      found   79 tested 24 ok 20 plainAlso  0 shortcuts 10 (no-walk 0) medRatio 1.65 | plain rises [] | need [-1.5,-0.4,-0.8,-0.3,-0.3,-0.4,-0.3,-1.7,-0.4,-1.0,-0.3,-1.2,-2.1,-0.4,-0.3,-0.6,-0.4,-0.4,-0.6,-0.6]
+system_01_Start  R=12.0
+   dash       found  109 tested  7 ok  2 plainAlso  0 shortcuts  1 (no-walk 0) medRatio 3.28 | plain rises [] | need [-0.4,0.4]
+   doubleJump found  114 tested 12 ok 10 plainAlso  3 shortcuts  7 (no-walk 4) medRatio 3.82 | plain rises [1.9,1.9,2.3] | need [2.1,2.6,2.7,2.0,2.6,2.9,2.2]
+   glide      found   10 tested  1 ok  1 plainAlso  0 shortcuts  0 (no-walk 0) medRatio 0.84 | plain rises [] | need [-1.2]
+system_01_D      R=23.5
+   dash       found  733 tested 24 ok 13 plainAlso  2 shortcuts  8 (no-walk 1) medRatio 1.85 | plain rises [0.0,-0.1] | need [-0.3,0.1,0.3,0.1,-0.4,0.3,-0.3,-0.4,0.0,-0.1,-0.1]
+   doubleJump found  354 tested 24 ok 17 plainAlso  3 shortcuts 12 (no-walk 3) medRatio 3.34 | plain rises [2.1,2.3,2.4] | need [2.7,2.7,2.4,2.2,2.3,2.4,2.3,2.4,2.5,2.4,2.6,2.4,2.4,2.7]
+   glide      found   94 tested 24 ok 17 plainAlso  0 shortcuts  5 (no-walk 0) medRatio 1.15 | plain rises [] | need [-0.6,-0.5,-0.4,-0.5,-0.3,-0.6,-0.6,-0.7,-0.7,-0.5,-0.9,-0.3,-0.5,-0.8,-0.4,-2.0,-0.8]
+system_03_E      R=21.4
+   dash       found 1183 tested 24 ok 17 plainAlso  4 shortcuts  5 (no-walk 1) medRatio 1.40 | plain rises [-0.4,-0.2,0.0,0.1] | need [-0.5,-0.2,-0.4,-0.2,0.0,0.1,-0.2,-0.4,0.5,0.0,-0.3,-0.4,-0.3]
+   doubleJump found  334 tested 24 ok 18 plainAlso  5 shortcuts 12 (no-walk 6) medRatio 2.23 | plain rises [2.0,2.2,2.1,2.0,2.3] | need [2.5,2.5,2.5,2.3,2.5,2.6,2.4,2.5,2.4,2.5,2.2,2.4,2.5]
+   glide      found   52 tested 22 ok 16 plainAlso  1 shortcuts  4 (no-walk 2) medRatio 1.27 | plain rises [-1.3] | need [-0.4,-1.6,-0.3,-1.5,-0.5,-0.4,-2.6,-0.4,-0.3,-0.8,-0.4,-0.4,-0.3,-2.3,-0.6]
+system_01_C      R= 9.7
+   dash       found  275 tested 16 ok 13 plainAlso  5 shortcuts  3 (no-walk 0) medRatio 1.39 | plain rises [0.0,0.0,-0.2,-0.3,0.1] | need [0.1,-0.4,-0.1,0.4,-0.2,0.3,0.4,-0.3]
+   doubleJump found   85 tested  9 ok  5 plainAlso  3 shortcuts  1 (no-walk 0) medRatio 4.85 | plain rises [2.0,2.3,2.1] | need [2.7,2.5]
+   glide      found   10 tested  4 ok  3 plainAlso  0 shortcuts  0 (no-walk 0) medRatio 1.09 | plain rises [] | need [-0.6,-0.8,-0.3]
+system_03_D      R= 9.5
+   dash       found   72 tested  8 ok  3 plainAlso  2 shortcuts  0 (no-walk 0) medRatio 1.18 | plain rises [-0.4,0.1] | need [-0.2]
+   doubleJump found   48 tested  7 ok  6 plainAlso  3 shortcuts  2 (no-walk 0) medRatio 2.32 | plain rises [1.9,1.9,2.0] | need [2.5,2.4,2.3]
+   glide      found    6 tested  1 ok  0 plainAlso  0 shortcuts  0 (no-walk 0) medRatio 0.00 | plain rises [] | need []
+
+== Prep time system_02_B ==
+1 total 321 river 88 mesh 141 analysis 54 cand 36
+1 total 316 river 88 mesh 146 analysis 50 cand 30
+1 total 334 river 90 mesh 142 analysis 68 cand 32
+2 total 1105 river 293 mesh 511 analysis 187 cand 112
+2 total 1248 river 380 mesh 516 analysis 216 cand 134
+2 total 1130 river 289 mesh 527 analysis 201 cand 111

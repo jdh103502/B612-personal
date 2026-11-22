@@ -40,6 +40,16 @@ namespace B612
         [Range(.5f, 5f)] public float cliffJitterMeters = 3f;
         [Tooltip("v16: move ground-mesh vertices onto the lip and foot lines of cliffs so their edges are clean instead of saw-toothed.")]
         public bool cliffSnap = true;
+        [Tooltip("Generator v17: depth of the canyons cut along noise lines (the same on every planet size). 0 reproduces v16.")]
+        [Range(0f, 4f)] public float canyonDepthMeters = 2.4f;
+        [Tooltip("v17: canyon width at the rim. A plain jump clears about 4 m and a jump with a dash more, so the default needs the dash.")]
+        [Range(1f, 8f)] public float canyonWidthMeters = 4.4f;
+        [Tooltip("v17: horizontal width of each near-vertical canyon wall; the floor takes the rest.")]
+        [Range(.1f, 2f)] public float canyonWallMeters = .4f;
+        [Tooltip("v17: spacing of the canyon line pattern, the same on every planet size (smaller planets get fewer canyons, not narrower spacing).")]
+        [Range(5f, 60f)] public float canyonScaleMeters = 22f;
+        [Tooltip("v17: size of the pattern that breaks the lines into separate canyons with ramped ends.")]
+        [Range(5f, 80f)] public float canyonSegmentMeters = 26f;
         [Tooltip("v15: share of a step's run taken by its cliff face; the rest is the tread above it. Small values keep faces near vertical (a jumping walker slides up a 70 degree face).")]
         [Range(.01f, .6f)] public float terraceRiser = .03f;
         [Tooltip("v15: rough width of the ramp corridors where the terraces switch off and the range can be walked up. 0 turns them off.")]
@@ -96,6 +106,8 @@ namespace B612
             if (!Enum.IsDefined(typeof(NaturalNoiseBasis), noiseBasis) || !Valid(roughnessScaleMeters, 5, 60) ||
                 !Valid(ruggedStrength, 0, 1.5f) || !Valid(ruggedCoverage, 0, .8f) || !Valid(peakHeightMeters, 0, 12) ||
                 !Valid(peakScaleMeters, 3, 30) || !Valid(terraceStepMeters, 0, 3.5f) || !Valid(terraceRiser, .01f, .6f) || !Valid(rampCorridorMeters, 0, 4) ||
+                !Valid(canyonDepthMeters, 0, 4) || !Valid(canyonWidthMeters, 1, 8) || !Valid(canyonWallMeters, .1f, 2) ||
+                !Valid(canyonScaleMeters, 5, 60) || !Valid(canyonSegmentMeters, 5, 80) ||
                 !Valid(terraceTread, 0, .5f) || !Valid(rampNotchLength, 0, .95f) || !Valid(cliffJitter, 0, .2f) ||
                 !Valid(cliffJitterMeters, .5f, 5) ||
                 !Valid(roughnessRange.x, .1f, 1) || !Valid(roughnessRange.y, roughnessRange.x, 2) ||
