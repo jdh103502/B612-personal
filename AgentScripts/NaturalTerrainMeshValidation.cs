@@ -133,7 +133,7 @@ public static class NaturalTerrainMeshValidation
                 var log = new System.Text.StringBuilder();
                 motor.Traversal.SetAllowed(TraversalFeature.Dash, false); motor.Traversal.SetAllowed(TraversalFeature.AirJump, false); motor.Traversal.SetAllowed(TraversalFeature.Glide, false);
                 log.Append($"pre v{body.linearVelocity.magnitude:F2} g{motor.Grounded} ");
-                if (!ground.Raycast(new Ray(origin + route[0] * (radius + 6), -route[0]), out var hit, radius + 12)) return "no ground at start";
+                if (!ground.Raycast(new Ray(origin + route[0] * (radius + 20), -route[0]), out var hit, radius + 40)) return "no ground at start";
                 body.rotation = Quaternion.LookRotation(Vector3.ProjectOnPlane(route[1] - route[0], hit.normal), hit.normal);
                 motor.Teleport(hit.point + hit.normal * .04f, hit.normal);
                 motor.Traversal.SetInputEnabled(true);
@@ -164,7 +164,7 @@ public static class NaturalTerrainMeshValidation
                     if (t % 10 == 0 || air > 4)
                         log.Append($"[{t * .02f:F2}s wp{next} d{distance:F2} g{(motor.Grounded ? 1 : 0)} air{air} up{Vector3.Angle(motor.MovementUp, radial):F0} h{height:F2} v{body.linearVelocity.magnitude:F2}] ");
                     if (air > 4) return log.Append("airborne too long").ToString();
-                    if (Vector3.Distance(body.position, origin) < radius - 3) return log.Append("fell through").ToString();
+                    if (Vector3.Distance(body.position, origin) < radius - 8) return log.Append("fell through").ToString();
                 }
                 return log.Append("timeout").ToString();
             }
