@@ -23,7 +23,7 @@ namespace B612
         [Tooltip("Medium-layer multiplier from calm (x) to rough (y) areas, y up to 2 within the height budget. (1, 1) disables the mask, as in v9.")]
         public Vector2 roughnessRange = new Vector2(.2f, 1.6f);
         [Tooltip("Generator v15: strength of the rugged highlands (ridged peaks and terraced cliffs) in the roughest high areas. 0 reproduces v14.")]
-        [Range(0f, 1.5f)] public float ruggedStrength = 1f;
+        [Range(0f, 1.5f)] public float ruggedStrength = 0f;
         [Tooltip("v15: share of each planet's surface given to rugged highlands: the roughest, highest part by 0.6 x roughness mask + 0.4 x broad height.")]
         [Range(0f, .8f)] public float ruggedCoverage = .3f;
         [Tooltip("v15: height of the rounded massifs at full strength (a light ridged crest pattern on top).")]
@@ -40,8 +40,20 @@ namespace B612
         [Range(.5f, 5f)] public float cliffJitterMeters = 3f;
         [Tooltip("v16: move ground-mesh vertices onto the lip and foot lines of cliffs so their edges are clean instead of saw-toothed.")]
         public bool cliffSnap = true;
+        [Tooltip("Generator v18: height range of the large, continuous hills and valleys over the whole planet. 0 keeps the v15-v17 rugged path.")]
+        [Range(0f, 10f)] public float reliefHeightMeters = 5f;
+        [Tooltip("v18: feature size of those hills and valleys on a 12 m planet; it follows the radius so every planet gets the same shapes.")]
+        [Range(5f, 60f)] public float reliefScaleMeters = 10f;
+        [Tooltip("v18: domain warp that bends ranges and valleys.")]
+        [Range(0f, 1f)] public float reliefWarp = .35f;
+        [Tooltip("v18: height of the few long escarpments (0 = none).")]
+        [Range(0f, 4f)] public float escarpmentHeightMeters = 2f;
+        [Tooltip("v18: spacing of the escarpment lines on a 12 m planet (follows the radius).")]
+        [Range(5f, 60f)] public float escarpmentScaleMeters = 30f;
+        [Tooltip("v18: horizontal width of an escarpment's cliff face.")]
+        [Range(.3f, 4f)] public float escarpmentWidthMeters = 2f;
         [Tooltip("Generator v17: depth of the canyons cut along noise lines (the same on every planet size). 0 reproduces v16.")]
-        [Range(0f, 4f)] public float canyonDepthMeters = 2.4f;
+        [Range(0f, 4f)] public float canyonDepthMeters = 0f;
         [Tooltip("v17: canyon width at the rim. A plain jump clears about 4 m and a jump with a dash more, so the default needs the dash.")]
         [Range(1f, 8f)] public float canyonWidthMeters = 4.4f;
         [Tooltip("v17: horizontal width of each near-vertical canyon wall; the floor takes the rest.")]
@@ -106,6 +118,8 @@ namespace B612
             if (!Enum.IsDefined(typeof(NaturalNoiseBasis), noiseBasis) || !Valid(roughnessScaleMeters, 5, 60) ||
                 !Valid(ruggedStrength, 0, 1.5f) || !Valid(ruggedCoverage, 0, .8f) || !Valid(peakHeightMeters, 0, 12) ||
                 !Valid(peakScaleMeters, 3, 30) || !Valid(terraceStepMeters, 0, 3.5f) || !Valid(terraceRiser, .01f, .6f) || !Valid(rampCorridorMeters, 0, 4) ||
+                !Valid(reliefHeightMeters, 0, 10) || !Valid(reliefScaleMeters, 5, 60) || !Valid(reliefWarp, 0, 1) ||
+                !Valid(escarpmentHeightMeters, 0, 4) || !Valid(escarpmentScaleMeters, 5, 60) || !Valid(escarpmentWidthMeters, .3f, 4) ||
                 !Valid(canyonDepthMeters, 0, 4) || !Valid(canyonWidthMeters, 1, 8) || !Valid(canyonWallMeters, .1f, 2) ||
                 !Valid(canyonScaleMeters, 5, 60) || !Valid(canyonSegmentMeters, 5, 80) ||
                 !Valid(terraceTread, 0, .5f) || !Valid(rampNotchLength, 0, .95f) || !Valid(cliffJitter, 0, .2f) ||
@@ -135,6 +149,11 @@ namespace B612
             used.peakHeightMeters *= scale;
             used.peakScaleMeters *= scale;
             used.rampCorridorMeters *= scale;
+            // v18 relief shapes follow the radius both ways (a 24 m planet gets the same hills, twice as large).
+            used.reliefScaleMeters *= radius / 12f;
+            used.escarpmentScaleMeters *= radius / 12f;
+            used.reliefHeightMeters *= scale;
+            used.escarpmentHeightMeters *= scale;
             used.cliffJitterMeters *= scale;
             used.moistureBlurMeters *= scale;
             used.erosionDepthMeters *= scale;

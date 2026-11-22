@@ -237,6 +237,8 @@ namespace B612
                 Vector3 metres = direction * plan.radius;
                 float broad = Basis(metres / natural.broadScaleMeters + plan.macroOffset, plan.macroSeed, natural.noiseBasis);
                 float medium = Basis(metres / natural.mediumScaleMeters + plan.hillOffset, plan.hillSeed, natural.noiseBasis);
+                if (natural.reliefHeightMeters > 0f)
+                    return Relief(plan, metres, broad, medium) - (plan.erosion == null ? 0f : plan.erosion.Carve(direction));
                 if (natural.ruggedStrength > 0f && natural.canyonDepthMeters > 0f)
                 {
                     float rugged = Rugged(plan, metres, broad, medium) - CanyonDepth(plan, metres, broad);
@@ -429,6 +431,91 @@ namespace B612
         }
 
         /// <summary>
+        /// v18 natural relief: the v14 layers plus large, continuous hills and valleys over the whole planet (feature
+        /// size proportional to the radius, domain-warped so ranges bend, with rounded range crests) and a few long
+        /// escarpments. No small features: the v15-v17 terraces, corridors, canyons and gorges are off.
+        /// </summary>
+        static float Relief(Plan plan, Vector3 metres, float broad, float medium)
+        {
+            var n = plan.natural;
+            float mask = Basis(metres / n.roughnessScaleMeters + plan.roughnessOffset, plan.roughnessSeed, n.noiseBasis);
+            float rough = n.roughnessRange.x >= 1f ? 1f : Mathf.Lerp(n.roughnessRange.x, n.roughnessRange.y, Smooth(-.45f, .45f, mask));
+            float height = broad * n.broadAmplitudeMeters + medium * n.mediumAmplitudeMeters * rough;
+            Vector3 q = metres / n.reliefScaleMeters + plan.peakOffset;
+            Vector3 w = q * .55f;
+            var warp = new Vector3(Simplex(w + new Vector3(3.1f, 0f, 0f), plan.peakSeed ^ 0x11),
+                Simplex(w + new Vector3(0f, 5.7f, 0f), plan.peakSeed ^ 0x23), Simplex(w + new Vector3(0f, 0f, 8.3f), plan.peakSeed ^ 0x35));
+            q += warp * (3f * n.reliefWarp);
+            float a = Basis(q, plan.peakSeed, NaturalNoiseBasis.Simplex);
+            float b = Basis(q * 2.1f + new Vector3(7.7f, 1.3f, 4.9f), plan.peakSeed ^ 0x47, NaturalNoiseBasis.Simplex);
+            // Rolling hills and valleys, plus a rounded ridge along the middle of each rise (soft |a|).
+            float ridge = 1f - Mathf.Sqrt(a * a + .04f);
+            float shape = .72f * a + .28f * b + .4f * (ridge - .55f);
+            height += .5f * n.reliefHeightMeters * shape;
+            if (n.escarpmentHeightMeters > 0f) height += Escarpment(plan, metres);
+            return height;
+        }
+
+        /// <summary>
+        /// v18 escarpments: a long cliff along a large noise line, the ground on one side raised by the escarpment
+        /// height. A larger segment field limits each to part of its line; where it fades the cliff lowers and the
+        /// raised side slopes back down, as a real escarpment dies out.
+        /// </summary>
+        static float Escarpment(Plan plan, Vector3 metres)
+        {
+            var n = plan.natural;
+            if (!EscarpmentGeometry(plan, metres, out float segment, out float signed, out _)) return 0f;
+            float half = .5f * n.escarpmentWidthMeters;
+            return n.escarpmentHeightMeters * segment * Smooth(-half, half, signed);
+        }
+
+        /// <summary>
+        /// The escarpment at this point: segment = height share along it (0 = none), signed = metres from its line
+        /// (positive on the high side; +/-infinity far away), away = unit tangent towards the high side.
+        /// </summary>
+        static bool EscarpmentGeometry(Plan plan, Vector3 metres, out float segment, out float signed, out Vector3 away)
+        {
+            var n = plan.natural;
+            signed = 0f; away = Vector3.zero;
+            // Raw simplex at 0.8 x the line spacing, above 0.1-0.2: each escarpment covers a small part of its line,
+            // so no plateau is ever fenced in all round.
+            segment = Smooth(.1f, .2f, Simplex(metres / (.8f * n.escarpmentScaleMeters) + plan.canyonOffset * 1.9f, plan.canyonSeed ^ 0x3a7));
+            if (segment <= 0f) return false;
+            Vector3 p = metres / n.escarpmentScaleMeters + plan.canyonOffset;
+            float value = Simplex(p, plan.canyonSeed);
+            float half = .5f * n.escarpmentWidthMeters;
+            if (Mathf.Abs(value) > 2f * (half + .5f) / n.escarpmentScaleMeters)
+            {
+                signed = value > 0f ? float.PositiveInfinity : float.NegativeInfinity;
+                return true;
+            }
+            const float e = .002f;
+            var gradient = new Vector3(Simplex(p + new Vector3(e, 0f, 0f), plan.canyonSeed) - value,
+                Simplex(p + new Vector3(0f, e, 0f), plan.canyonSeed) - value,
+                Simplex(p + new Vector3(0f, 0f, e), plan.canyonSeed) - value) / (e * n.escarpmentScaleMeters);
+            var up = metres.normalized;
+            var tangent = gradient - up * Vector3.Dot(gradient, up);
+            float slope = tangent.magnitude;
+            if (slope < 1e-5f) { signed = value > 0f ? float.PositiveInfinity : float.NegativeInfinity; return true; }
+            signed = value / slope;
+            away = tangent / slope;
+            return true;
+        }
+
+        /// <summary>v18 mesh: a vertex within maxMetres of an escarpment's foot or lip line moves onto it.</summary>
+        public static Vector3 SnapToEscarpment(Plan plan, Vector3 direction, float maxMetres)
+        {
+            var n = plan.natural;
+            if (n == null || !n.cliffSnap || n.reliefHeightMeters <= 0f || n.escarpmentHeightMeters <= 0f) return direction;
+            if (!EscarpmentGeometry(plan, direction * plan.radius, out float segment, out float signed, out var away) ||
+                segment < .5f || float.IsInfinity(signed)) return direction;
+            float half = .5f * n.escarpmentWidthMeters;
+            float target = Mathf.Abs(signed - half) < Mathf.Abs(signed + half) ? half : -half;
+            if (Mathf.Abs(target - signed) > maxMetres) return direction;
+            return (direction + away * ((target - signed) / plan.radius)).normalized;
+        }
+
+        /// <summary>
         /// v17 canyons: depth cut along the zero lines of a noise field, only where a second, larger segment field is
         /// positive, so the lines break into separate canyons a walker goes round (their ends fade into ramps over a
         /// few metres). Across a canyon the distance from its line is measured in metres (noise value over its
@@ -493,6 +580,9 @@ namespace B612
         {
             var n = plan.natural;
             if (n == null) return false;
+            if (n.reliefHeightMeters > 0f && n.escarpmentHeightMeters > 0f &&
+                EscarpmentGeometry(plan, direction * plan.radius, out float segment, out float signed, out _) &&
+                Mathf.Abs(signed) < .5f * n.escarpmentWidthMeters + 1f) return true;
             if (RuggedWeight(plan, direction) > 0f) return true;
             if (TerrainWater.InGorge(plan, direction)) return true;
             if (n.canyonDepthMeters <= 0f) return false;
@@ -931,6 +1021,7 @@ namespace B612
                         // v16: vertices next to a cliff edge move onto it (at most half the mesh spacing; folds are undone below).
                         var n = SnapToCliff(plan, directions[v], .5f * spacing);
                         if (n == directions[v]) n = TerrainWater.SnapToGorge(plan, n, .5f * spacing);
+                        if (n == directions[v]) n = SnapToEscarpment(plan, n, .5f * spacing);
                         float elevation = FreeHeight(plan, n);
                         vertices[v] = n * (plan.radius + TerrainWater.Height(plan, n, elevation));
                         colors[v] = NaturalSurfaceWeights(plan, n, elevation);
@@ -944,7 +1035,8 @@ namespace B612
                     vertices[v] = n * (plan.radius + Height(plan, n));
                     colors[v] = SurfaceWeights(plan, n);
                 }
-            if (plan.natural != null && plan.natural.cliffSnap && plan.natural.rampNotchLength > 0f && plan.natural.ruggedStrength > 0f)
+            if (plan.natural != null && plan.natural.cliffSnap && (plan.natural.rampNotchLength > 0f && plan.natural.ruggedStrength > 0f ||
+                plan.natural.reliefHeightMeters > 0f && plan.natural.escarpmentHeightMeters > 0f))
                 UnsnapFolds(plan, directions, indices, vertices, colors, wetness);
             var mesh=new Mesh{name="Seeded terrain "+plan.seed,indexFormat=IndexFormat.UInt32};
             mesh.SetVertices(vertices);

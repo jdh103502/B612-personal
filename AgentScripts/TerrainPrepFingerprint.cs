@@ -26,6 +26,23 @@ public static class TerrainPrepFingerprint
     }
 
     /// <summary>Same as Run with the v13 river (short, shallow, basin-limited routing).</summary>
+    public static object RunV17(int journey, int chapter, string planetId, float size)
+    {
+#if UNITY_EDITOR
+        var settings = UnityEditor.AssetDatabase.LoadAssetAtPath<PlanetGenerationSettings>("Assets/B612/Settings/Chapters/ChapterJourneyGeneration.asset");
+        string original = JsonUtility.ToJson(settings.naturalTerrain);
+        try
+        {
+            var n = settings.naturalTerrain;
+            n.reliefHeightMeters = 0f; n.ruggedStrength = 1f; n.canyonDepthMeters = 2.4f;
+            return Run(journey, chapter, planetId, size);
+        }
+        finally { JsonUtility.FromJsonOverwrite(original, settings.naturalTerrain); }
+#else
+        throw new InvalidOperationException("Editor only");
+#endif
+    }
+
     public static object RunV16(int journey, int chapter, string planetId, float size)
     {
 #if UNITY_EDITOR
@@ -34,6 +51,7 @@ public static class TerrainPrepFingerprint
         try
         {
             settings.naturalTerrain.canyonDepthMeters = 0f;
+            settings.naturalTerrain.reliefHeightMeters = 0f; settings.naturalTerrain.ruggedStrength = 1f;
             return Run(journey, chapter, planetId, size);
         }
         finally { JsonUtility.FromJsonOverwrite(original, settings.naturalTerrain); }
@@ -51,6 +69,7 @@ public static class TerrainPrepFingerprint
         {
             var n = settings.naturalTerrain;
             n.rampNotchLength = 0f; n.cliffJitter = 0f; n.cliffSnap = false;
+            n.reliefHeightMeters = 0f; n.ruggedStrength = 1f; n.canyonDepthMeters = 0f;
             return Run(journey, chapter, planetId, size);
         }
         finally { JsonUtility.FromJsonOverwrite(original, settings.naturalTerrain); }
@@ -67,6 +86,7 @@ public static class TerrainPrepFingerprint
         try
         {
             settings.naturalTerrain.ruggedStrength = 0f;
+            settings.naturalTerrain.reliefHeightMeters = 0f; settings.naturalTerrain.canyonDepthMeters = 0f;
             return Run(journey, chapter, planetId, size);
         }
         finally { JsonUtility.FromJsonOverwrite(original, settings.naturalTerrain); }
