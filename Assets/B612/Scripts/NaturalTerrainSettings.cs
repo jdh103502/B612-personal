@@ -52,16 +52,6 @@ namespace B612
         [Range(5f, 60f)] public float escarpmentScaleMeters = 30f;
         [Tooltip("v18: horizontal width of an escarpment's cliff face.")]
         [Range(.3f, 4f)] public float escarpmentWidthMeters = 2f;
-        [Tooltip("Generator v19: height of the few distinct high mountains on a 12 m planet (0 = none). It grows a little with the radius (0.7-1.5 x).")]
-        [Range(0f, 12f)] public float mountainHeightMeters = 6.5f;
-        [Tooltip("v19: base radius of a mountain on a 12 m planet (follows the radius).")]
-        [Range(3f, 30f)] public float mountainRadiusMeters = 11f;
-        [Tooltip("v19: mountains on a 12 m planet; the count follows the radius (at least 1).")]
-        [Range(0, 6)] public int mountainCount = 2;
-        [Tooltip("Generator v19: length of the one long river as a share of the planet's circumference (x = shortest, y = longest). It runs in a valley shaped along the lowest passes into a lake. x = 0 keeps the v18 rivers.")]
-        public Vector2 riverCircumferenceShare = new Vector2(.52f, .7f);
-        [Tooltip("v19: radius of the lake the long river ends in; the mouth is at most 80% of the pond radius.")]
-        [Range(2f, 10f)] public float riverLakeRadiusMeters = 7f;
         [Tooltip("Generator v17: depth of the canyons cut along noise lines (the same on every planet size). 0 reproduces v16.")]
         [Range(0f, 4f)] public float canyonDepthMeters = 0f;
         [Tooltip("v17: canyon width at the rim. A plain jump clears about 4 m and a jump with a dash more, so the default needs the dash.")]
@@ -92,9 +82,9 @@ namespace B612
         public bool generateRiver = true;
         [Tooltip("Generator v14: 15-40 m (v13: 8-18 m). Flooded routing lets a river run on through shallow basins.")]
         public Vector2 riverLengthMeters = new Vector2(15f, 40f);
-        [Min(.6f)] public float riverWidthMeters = 1.35f;
+        [Min(.6f)] public float riverWidthMeters = .9f;
         [Tooltip("Generator v13: channel width where a flow river meets its pond (at most 80% of the pond radius). The river widens from riverWidthMeters at the spring. 0 or narrower than the spring keeps a constant width (v12).")]
-        [Range(0f, 5f)] public float riverMouthWidthMeters = 4.5f;
+        [Range(0f, 5f)] public float riverMouthWidthMeters = 3f;
         [Tooltip("Generator v9 default: equal-angle cube-sphere ground mesh. Keeps the coarsest vertex spacing and removes the face-corner oversampling of the normalized cube. Off reproduces the v8 normalized mapping for comparison only.")]
         public bool equalAngleMesh = true;
         [Tooltip("Channel depth below the water surface (v13: 0.12-0.2 m). v14 reaches the player's shins and knees in the wide lower river.")]
@@ -114,7 +104,7 @@ namespace B612
         [Range(.4f, 1.2f)] public float flowSpacingMeters = .6f;
         [Tooltip("Deepest point of the pond below its surface. The pond floor is the natural ground and stays walkable.")]
         [Range(.08f, .4f)] public float pondMaxDepthMeters = .25f;
-        [Range(1f, 8f)] public float pondMaxRadiusMeters = 8f;
+        [Range(1f, 8f)] public float pondMaxRadiusMeters = 3.5f;
 
         [Range(.35f, 1f)] public float analysisSpacingMeters = .6f;
         [Range(1000, 30000)] public int maxAnalysisNodes = 30000;
@@ -130,9 +120,6 @@ namespace B612
                 !Valid(peakScaleMeters, 3, 30) || !Valid(terraceStepMeters, 0, 3.5f) || !Valid(terraceRiser, .01f, .6f) || !Valid(rampCorridorMeters, 0, 4) ||
                 !Valid(reliefHeightMeters, 0, 10) || !Valid(reliefScaleMeters, 5, 60) || !Valid(reliefWarp, 0, 1) ||
                 !Valid(escarpmentHeightMeters, 0, 4) || !Valid(escarpmentScaleMeters, 5, 60) || !Valid(escarpmentWidthMeters, .3f, 4) ||
-                !Valid(mountainHeightMeters, 0, 12) || !Valid(mountainRadiusMeters, 3, 30) || mountainCount < 0 || mountainCount > 6 ||
-                !Valid(riverCircumferenceShare.x, 0, .9f) || !Valid(riverCircumferenceShare.y, riverCircumferenceShare.x, .95f) ||
-                !Valid(riverLakeRadiusMeters, 2, 10) ||
                 !Valid(canyonDepthMeters, 0, 4) || !Valid(canyonWidthMeters, 1, 8) || !Valid(canyonWallMeters, .1f, 2) ||
                 !Valid(canyonScaleMeters, 5, 60) || !Valid(canyonSegmentMeters, 5, 80) ||
                 !Valid(terraceTread, 0, .5f) || !Valid(rampNotchLength, 0, .95f) || !Valid(cliffJitter, 0, .2f) ||
@@ -167,10 +154,6 @@ namespace B612
             used.escarpmentScaleMeters *= radius / 12f;
             used.reliefHeightMeters *= scale;
             used.escarpmentHeightMeters *= scale;
-            // v19 mountains keep their shape on every planet and grow a little taller on large ones.
-            used.mountainRadiusMeters *= radius / 12f;
-            used.mountainHeightMeters *= Mathf.Clamp(radius / 12f, .7f, 1.5f);
-            used.riverLakeRadiusMeters *= scale;
             used.cliffJitterMeters *= scale;
             used.moistureBlurMeters *= scale;
             used.erosionDepthMeters *= scale;

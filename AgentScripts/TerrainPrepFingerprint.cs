@@ -17,7 +17,6 @@ public static class TerrainPrepFingerprint
         {
             settings.naturalTerrain.noiseBasis = NaturalNoiseBasis.Value;
             settings.naturalTerrain.roughnessRange = Vector2.one;
-            V18Rivers(settings.naturalTerrain);
             return Run(journey, chapter, planetId, size);
         }
         finally { JsonUtility.FromJsonOverwrite(original, settings.naturalTerrain); }
@@ -27,32 +26,6 @@ public static class TerrainPrepFingerprint
     }
 
     /// <summary>Same as Run with the v13 river (short, shallow, basin-limited routing).</summary>
-    /// <summary>The river and pond sizes before v19 (older reproductions keep them).</summary>
-    static void V18Rivers(NaturalTerrainSettings n)
-    {
-        n.mountainHeightMeters = 0f; n.riverCircumferenceShare = Vector2.zero;
-        n.riverWidthMeters = .9f; n.riverMouthWidthMeters = 3f; n.pondMaxRadiusMeters = 3.5f;
-    }
-
-    public static object RunV18(int journey, int chapter, string planetId, float size)
-    {
-#if UNITY_EDITOR
-        var settings = UnityEditor.AssetDatabase.LoadAssetAtPath<PlanetGenerationSettings>("Assets/B612/Settings/Chapters/ChapterJourneyGeneration.asset");
-        string original = JsonUtility.ToJson(settings.naturalTerrain);
-        try
-        {
-            var n = settings.naturalTerrain;
-            n.mountainHeightMeters = 0f; n.riverCircumferenceShare = Vector2.zero;
-            n.riverWidthMeters = .9f; n.riverMouthWidthMeters = 3f; n.pondMaxRadiusMeters = 3.5f;
-            V18Rivers(settings.naturalTerrain);
-            return Run(journey, chapter, planetId, size);
-        }
-        finally { JsonUtility.FromJsonOverwrite(original, settings.naturalTerrain); }
-#else
-        throw new InvalidOperationException("Editor only");
-#endif
-    }
-
     public static object RunV17(int journey, int chapter, string planetId, float size)
     {
 #if UNITY_EDITOR
@@ -62,7 +35,6 @@ public static class TerrainPrepFingerprint
         {
             var n = settings.naturalTerrain;
             n.reliefHeightMeters = 0f; n.ruggedStrength = 1f; n.canyonDepthMeters = 2.4f;
-            V18Rivers(settings.naturalTerrain);
             return Run(journey, chapter, planetId, size);
         }
         finally { JsonUtility.FromJsonOverwrite(original, settings.naturalTerrain); }
@@ -80,7 +52,6 @@ public static class TerrainPrepFingerprint
         {
             settings.naturalTerrain.canyonDepthMeters = 0f;
             settings.naturalTerrain.reliefHeightMeters = 0f; settings.naturalTerrain.ruggedStrength = 1f;
-            V18Rivers(settings.naturalTerrain);
             return Run(journey, chapter, planetId, size);
         }
         finally { JsonUtility.FromJsonOverwrite(original, settings.naturalTerrain); }
@@ -99,7 +70,6 @@ public static class TerrainPrepFingerprint
             var n = settings.naturalTerrain;
             n.rampNotchLength = 0f; n.cliffJitter = 0f; n.cliffSnap = false;
             n.reliefHeightMeters = 0f; n.ruggedStrength = 1f; n.canyonDepthMeters = 0f;
-            V18Rivers(settings.naturalTerrain);
             return Run(journey, chapter, planetId, size);
         }
         finally { JsonUtility.FromJsonOverwrite(original, settings.naturalTerrain); }
@@ -117,7 +87,6 @@ public static class TerrainPrepFingerprint
         {
             settings.naturalTerrain.ruggedStrength = 0f;
             settings.naturalTerrain.reliefHeightMeters = 0f; settings.naturalTerrain.canyonDepthMeters = 0f;
-            V18Rivers(settings.naturalTerrain);
             return Run(journey, chapter, planetId, size);
         }
         finally { JsonUtility.FromJsonOverwrite(original, settings.naturalTerrain); }
@@ -139,7 +108,6 @@ public static class TerrainPrepFingerprint
             n.riverDepthPerWidth = 0f;
             n.riverMaxCutMeters = 0f;
             n.floodedRouting = false;
-            V18Rivers(settings.naturalTerrain);
             return Run(journey, chapter, planetId, size);
         }
         finally { JsonUtility.FromJsonOverwrite(original, settings.naturalTerrain); }
@@ -157,7 +125,6 @@ public static class TerrainPrepFingerprint
         try
         {
             settings.naturalTerrain.riverMouthWidthMeters = 0f;
-            V18Rivers(settings.naturalTerrain);
             return Run(journey, chapter, planetId, size);
         }
         finally { JsonUtility.FromJsonOverwrite(original, settings.naturalTerrain); }
@@ -175,7 +142,6 @@ public static class TerrainPrepFingerprint
         try
         {
             settings.naturalTerrain.erosionDepthMeters = 0f;
-            V18Rivers(settings.naturalTerrain);
             return Run(journey, chapter, planetId, size);
         }
         finally { JsonUtility.FromJsonOverwrite(original, settings.naturalTerrain); }
@@ -193,7 +159,6 @@ public static class TerrainPrepFingerprint
         try
         {
             settings.naturalTerrain.moistureStrength = 0f;
-            V18Rivers(settings.naturalTerrain);
             return Run(journey, chapter, planetId, size);
         }
         finally { JsonUtility.FromJsonOverwrite(original, settings.naturalTerrain); }
@@ -211,7 +176,6 @@ public static class TerrainPrepFingerprint
         try
         {
             settings.naturalTerrain.riverMode = NaturalRiverMode.Trace;
-            V18Rivers(settings.naturalTerrain);
             return Run(journey, chapter, planetId, size);
         }
         finally { JsonUtility.FromJsonOverwrite(original, settings.naturalTerrain); }

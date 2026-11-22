@@ -28,9 +28,6 @@ namespace B612
             public int gorgeFirst, gorgeLast;
             public Vector3 gorgeCentre;
             public float gorgeBound;
-            // v19: segments binned by position, so a long river is not scanned whole for every ground point.
-            [NonSerialized] internal Dictionary<Vector3Int, List<int>> index;
-            [NonSerialized] internal float indexCell;
 
             // v11 flow river. flowFit: the channel only lowers the ground. pond: the river ends in a
             // shallow pond whose water fills all ground below pondLevel within pondRadius (metres).
@@ -111,33 +108,8 @@ namespace B612
             out float bed, out float along, out float width)
         {
             distance=float.PositiveInfinity;level=bed=along=0;var river=plan.river;width=river!=null?river.width:0f;if(river==null)return false;var point=n*plan.radius;
-            int bestIndex=-1;float bestT=0f;
             if((point-river.centre).sqrMagnitude>river.bound*river.bound)return false;
             float best=float.PositiveInfinity;
-            if (river.index != null)
-            {
-                var key = Vector3Int.FloorToInt(point / river.indexCell);
-                for (int x = -1; x <= 1; x++)
-                for (int y = -1; y <= 1; y++)
-                for (int z = -1; z <= 1; z++)
-                {
-                    if (!river.index.TryGetValue(key + new Vector3Int(x, y, z), out var list)) continue;
-                    foreach (int i in list)
-                    {
-                        var a=river.points[i-1];var d=river.points[i]-a;float t=Mathf.Clamp01(Vector3.Dot(point-a,d)/d.sqrMagnitude);
-                        float sq=(point-a-d*t).sqrMagnitude;if(sq>best||sq==best&&i>bestIndex)continue;
-                        best=sq;bestIndex=i;bestT=t;
-                    }
-                }
-                if (bestIndex < 0) return false;
-                {
-                    int i = bestIndex; float t = bestT;
-                    level=Mathf.Lerp(river.levels[i-1],river.levels[i],t);bed=Mathf.Lerp(river.beds[i-1],river.beds[i],t);
-                    if (river.lengths.Count != 0) along = Mathf.Lerp(river.lengths[i - 1], river.lengths[i], t);
-                    if (river.widths.Count != 0) width = Mathf.Lerp(river.widths[i - 1], river.widths[i], t);
-                }
-                distance=Mathf.Sqrt(best);return true;
-            }
             for(int i=1;i<river.points.Count;i++)
             {
                 var a=river.points[i-1];var d=river.points[i]-a;float t=Mathf.Clamp01(Vector3.Dot(point-a,d)/d.sqrMagnitude);
@@ -148,27 +120,6 @@ namespace B612
             }
             distance=Mathf.Sqrt(best);return true;
         }
-        /// <summary>
-        /// v19: bins each channel segment under its end point. A cell covers the widest reach any caller needs
-        /// (half width + bank + 1.5 m) plus a segment, so the nearest segment within that reach is always found;
-        /// points further away report no channel, which every caller treats the same as a distant one.
-        /// </summary>
-        internal static void BuildIndex(River river)
-        {
-            if (river.points.Count < 2) return;
-            float widest = river.width, segment = 0f;
-            foreach (float w in river.widths) widest = Mathf.Max(widest, w);
-            for (int i = 1; i < river.points.Count; i++) segment = Mathf.Max(segment, Vector3.Distance(river.points[i], river.points[i - 1]));
-            river.indexCell = .5f * widest + river.bankWidth + 1.5f + segment;
-            river.index = new Dictionary<Vector3Int, List<int>>();
-            for (int i = 1; i < river.points.Count; i++)
-            {
-                var key = Vector3Int.FloorToInt(river.points[i] / river.indexCell);
-                if (!river.index.TryGetValue(key, out var list)) river.index[key] = list = new List<int>();
-                list.Add(i);
-            }
-        }
-
         public static float Height(ProceduralPlanetTerrain.Plan plan,Vector3 n,float original)
         {
             if (plan.natural != null && plan.river != null && plan.river.gorgeHeight > 0f)
