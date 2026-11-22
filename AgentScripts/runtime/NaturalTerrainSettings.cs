@@ -32,6 +32,14 @@ namespace B612
         [Range(3f, 30f)] public float peakScaleMeters = 16f;
         [Tooltip("v15: height of one terrace step (cliff band), the same on every planet size because jump heights are fixed. A held jump clears about 2 m and a double jump about 3.4 m, so 3 m bands need the double jump. 0 turns terraces off.")]
         [Range(0f, 3.5f)] public float terraceStepMeters = 3f;
+        [Tooltip("Generator v16: ramp corridors cut a notch into the upper tread that climbs over this share of a step, never rising above the cliff terraces (no fins). 0 reproduces the v15 corridors.")]
+        [Range(0f, .95f)] public float rampNotchLength = .85f;
+        [Tooltip("v16: step-phase noise that moves the cliff lines back and forth into buttresses and bays (in steps). 0 keeps the v15 contour bands.")]
+        [Range(0f, .2f)] public float cliffJitter = .04f;
+        [Tooltip("v16: size of the cliff-line wiggle.")]
+        [Range(.5f, 5f)] public float cliffJitterMeters = 3f;
+        [Tooltip("v16: move ground-mesh vertices onto the lip and foot lines of cliffs so their edges are clean instead of saw-toothed.")]
+        public bool cliffSnap = true;
         [Tooltip("v15: share of a step's run taken by its cliff face; the rest is the tread above it. Small values keep faces near vertical (a jumping walker slides up a 70 degree face).")]
         [Range(.01f, .6f)] public float terraceRiser = .03f;
         [Tooltip("v15: rough width of the ramp corridors where the terraces switch off and the range can be walked up. 0 turns them off.")]
@@ -88,7 +96,8 @@ namespace B612
             if (!Enum.IsDefined(typeof(NaturalNoiseBasis), noiseBasis) || !Valid(roughnessScaleMeters, 5, 60) ||
                 !Valid(ruggedStrength, 0, 1.5f) || !Valid(ruggedCoverage, 0, .8f) || !Valid(peakHeightMeters, 0, 12) ||
                 !Valid(peakScaleMeters, 3, 30) || !Valid(terraceStepMeters, 0, 3.5f) || !Valid(terraceRiser, .01f, .6f) || !Valid(rampCorridorMeters, 0, 4) ||
-                !Valid(terraceTread, 0, .5f) ||
+                !Valid(terraceTread, 0, .5f) || !Valid(rampNotchLength, 0, .95f) || !Valid(cliffJitter, 0, .2f) ||
+                !Valid(cliffJitterMeters, .5f, 5) ||
                 !Valid(roughnessRange.x, .1f, 1) || !Valid(roughnessRange.y, roughnessRange.x, 2) ||
                 !Valid(moistureStrength, 0, 1.5f) || !Valid(moistureBlurMeters, .4f, 3) ||
                 !Valid(erosionDepthMeters, 0, .4f) || !Valid(erosionMinCells, 5, 200) || !Valid(erosionWidthMeters, .5f, 3) ||
@@ -114,6 +123,7 @@ namespace B612
             used.peakHeightMeters *= scale;
             used.peakScaleMeters *= scale;
             used.rampCorridorMeters *= scale;
+            used.cliffJitterMeters *= scale;
             used.moistureBlurMeters *= scale;
             used.erosionDepthMeters *= scale;
             used.erosionWidthMeters *= scale;

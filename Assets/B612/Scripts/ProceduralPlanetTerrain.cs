@@ -280,11 +280,67 @@ namespace B612
         /// </summary>
         static float Rugged(Plan plan, Vector3 metres, float broad, float medium)
         {
+            float height = RuggedRaw(plan, metres, broad, medium, out float strength, out float riser, out float phase,
+                out float weight, out float ramp);
+            var n = plan.natural;
+            if (n.rampNotchLength > 0f)
+            {
+                if (weight <= 0f || n.terraceStepMeters <= 0f) return height;
+                float terraced = CliffTerrace(n, height / n.terraceStepMeters + phase, weight, ramp, out _) - phase * n.terraceStepMeters;
+                return Mathf.Lerp(height, terraced, Smooth(0f, .05f, weight));
+            }
+            if (strength <= 0f) return height;
+            float level = height / n.terraceStepMeters + phase;
+            float floor = Mathf.Floor(level), u = level - floor;
+            float face = Mathf.Clamp01((u - (1f - riser)) / riser);
+            float stepped = n.terraceTread * u + (1f - n.terraceTread) * face;
+            return (floor + stepped - phase) * n.terraceStepMeters;
+        }
+
+        /// <summary>
+        /// v16 terraces in metres (before the phase is taken off). The cliff terrace T has thin near-vertical faces;
+        /// towards the zone rim its faces widen into ramps as in v15. The ramped terrace K equals the thin-faced
+        /// terrace on the treads, stays at tread level below a face and instead cuts a notch back into the upper tread
+        /// that climbs smoothly over rampNotchLength of a step, so K is never above T. Ramp corridors use K: a corridor is a
+        /// gully cut through the cliff bands, never a causeway standing above them (v15 corridors used the raw height
+        /// and left thin fins on the lower treads). cliffShare is where the cliff lines are crisp (thin faces).
+        /// </summary>
+        static float CliffTerrace(NaturalTerrainSettings n, float level, float weight, float ramp, out float cliffShare)
+        {
+            float rim = Smooth(.05f, .3f, weight);
+            float riser = n.terraceRiser + (1f - n.terraceRiser) * (1f - rim) * (1f - rim);
+            float cliff = Terrace(level, riser, n.terraceTread);
+            float w = n.rampNotchLength;
+            // The notch ramp eases in and out (smoothstep), so a walker meets no convex corner at its top, and it
+            // fades to the raw slope towards the rim like the cliffs do (no slot walls where the cliffs are gone).
+            float notchLevel = level - w, notchFloor = Mathf.Floor(notchLevel), nu = notchLevel - notchFloor;
+            float rise = Mathf.Clamp01((nu - (1f - w)) / w);
+            float ramped = Mathf.Lerp(level, notchFloor + n.terraceTread * nu + (1f - n.terraceTread) * rise * rise * (3f - 2f * rise) +
+                n.terraceTread * w, rim);
+            cliffShare = rim * ramp;
+            return Mathf.Lerp(ramped, cliff, ramp) * n.terraceStepMeters;
+        }
+
+        static float Terrace(float level, float riser, float tread)
+        {
+            float floor = Mathf.Floor(level), u = level - floor;
+            return floor + tread * u + (1f - tread) * Mathf.Clamp01((u - (1f - riser)) / riser);
+        }
+
+        /// <summary>
+        /// The rugged height before terracing, with the v15 terrace strength (0 = no terraces) and face share, the
+        /// step phase, the highland weight and the corridor factor (0 inside a ramp corridor) at this point.
+        /// </summary>
+        static float RuggedRaw(Plan plan, Vector3 metres, float broad, float medium, out float strength, out float riser,
+            out float phase, out float weight, out float ramp)
+        {
+            strength = riser = phase = 0f;
+            ramp = 1f;
             var n = plan.natural;
             float mask = Basis(metres / n.roughnessScaleMeters + plan.roughnessOffset, plan.roughnessSeed, n.noiseBasis);
             float rough = n.roughnessRange.x >= 1f ? 1f : Mathf.Lerp(n.roughnessRange.x, n.roughnessRange.y, Smooth(-.45f, .45f, mask));
             float height = broad * n.broadAmplitudeMeters + medium * n.mediumAmplitudeMeters * rough;
-            float weight = RuggedWeight(plan, mask, broad);
+            weight = RuggedWeight(plan, mask, broad);
             if (weight <= 0f) return height;
             // The rugged zone rises as a range; massif noise varies its height (65-100%) into separate summits,
             // and a light ridged crest pattern roughens the tops.
@@ -296,20 +352,72 @@ namespace B612
             if (n.terraceStepMeters <= 0f) return height;
             // Raw simplex is near zero over much of the surface (|n| < 0.02 on about 10%), so corridors are the
             // bands under about 0.01-0.035 (scaled by their width setting): roughly 1 m wide lines at 2.4 m.
-            float ramp = n.rampCorridorMeters <= 0f ? 1f : Smooth(.01f, .035f, Mathf.Abs(Simplex(metres / n.peakScaleMeters +
+            ramp = n.rampCorridorMeters <= 0f ? 1f : Smooth(.01f, .035f, Mathf.Abs(Simplex(metres / n.peakScaleMeters +
                 plan.peakOffset * 2.3f, plan.peakSeed ^ 0x7e3)) * (1.6f / n.rampCorridorMeters));
-            // Terrace strength fades in at the zone rim and out in the corridors by widening the face (its share of
-            // the step grows to the whole step, the raw slope) rather than by blending heights, which would leave
-            // near-vertical half walls along every corridor.
-            float strength = Smooth(.05f, .3f, weight) * ramp;
+            phase = .5f + .5f * Simplex(metres / (1.4f * n.peakScaleMeters) + plan.peakOffset * 1.7f, plan.peakSeed ^ 0x5bd1);
+            // v16: a little finer phase noise moves each cliff line back and forth, so a band breaks into
+            // buttresses and bays instead of following its contour like a ribbon.
+            if (n.cliffJitter > 0f)
+                phase += n.cliffJitter * Simplex(metres / n.cliffJitterMeters + plan.peakOffset * 3.1f, plan.peakSeed ^ 0x1b5);
+            // v15: terrace strength fades in at the zone rim and out in the corridors by widening the face.
+            strength = Smooth(.05f, .3f, weight) * ramp;
             if (strength <= 0f) return height;
-            float riser = n.terraceRiser + (1f - n.terraceRiser) * (1f - strength) * (1f - strength);
-            float phase = .5f + .5f * Simplex(metres / (1.4f * n.peakScaleMeters) + plan.peakOffset * 1.7f, plan.peakSeed ^ 0x5bd1);
-            float level = height / n.terraceStepMeters + phase;
-            float floor = Mathf.Floor(level), u = level - floor;
-            float face = Mathf.Clamp01((u - (1f - riser)) / riser);
-            float stepped = n.terraceTread * u + (1f - n.terraceTread) * face;
-            return (floor + stepped - phase) * n.terraceStepMeters;
+            riser = n.terraceRiser + (1f - n.terraceRiser) * (1f - strength) * (1f - strength);
+            return height;
+        }
+
+        /// <summary>
+        /// v16 mesh: a vertex within maxMetres of a lip or foot line of a cliff is moved onto it (one Newton step
+        /// along the gradient of the step level), so the mesh has a row of vertices on both edges of every face
+        /// instead of a saw-tooth where the faces cross the grid. Only where the cliff terrace dominates.
+        /// </summary>
+        public static Vector3 SnapToCliff(Plan plan, Vector3 direction, float maxMetres)
+        {
+            var n = plan.natural;
+            if (n == null || !n.cliffSnap || n.ruggedStrength <= 0f || n.terraceStepMeters <= 0f || n.rampNotchLength <= 0f)
+                return direction;
+            if (!StepLevel(plan, direction, out float level, out float share) || share < .5f) return direction;
+            float u = level - Mathf.Floor(level), foot = 1f - n.terraceRiser;
+            // Nearest edge in level units: the foot (start of the face) or the lip (end of the face, which is also
+            // level 0 of the next step, just behind a point at small u).
+            float delta = u < .5f ? -u : (u < foot ? foot - u : (u - foot < 1f - u ? foot - u : 1f - u));
+            var t1 = Vector3.Cross(direction, Mathf.Abs(direction.y) < .9f ? Vector3.up : Vector3.right).normalized;
+            var t2 = Vector3.Cross(direction, t1);
+            const float h = .04f;
+            float a = h / plan.radius;
+            if (!StepLevel(plan, (direction + t1 * a).normalized, out float l1, out _) ||
+                !StepLevel(plan, (direction + t2 * a).normalized, out float l2, out _)) return direction;
+            var gradient = t1 * ((l1 - level) / h) + t2 * ((l2 - level) / h);
+            float g2 = gradient.sqrMagnitude;
+            if (g2 < 1e-6f) return direction;
+            var move = gradient * (delta / g2);
+            if (move.magnitude > maxMetres) return direction;
+            return (direction + move / plan.radius).normalized;
+        }
+
+        static bool StepLevel(Plan plan, Vector3 direction, out float level, out float cliffShare)
+        {
+            var n = plan.natural;
+            Vector3 metres = direction * plan.radius;
+            float broad = Basis(metres / n.broadScaleMeters + plan.macroOffset, plan.macroSeed, n.noiseBasis);
+            float medium = Basis(metres / n.mediumScaleMeters + plan.hillOffset, plan.hillSeed, n.noiseBasis);
+            float height = RuggedRaw(plan, metres, broad, medium, out _, out _, out float phase, out float weight, out float ramp);
+            level = height / n.terraceStepMeters + phase;
+            cliffShare = Smooth(.05f, .3f, weight) * ramp * Smooth(0f, .05f, weight);
+            return weight > 0f;
+        }
+
+        /// <summary>Validation: (raw height before terracing, terrace strength, face share, step fraction u) at a direction.</summary>
+        public static Vector4 RuggedTerms(Plan plan, Vector3 direction)
+        {
+            var n = plan.natural;
+            if (n == null || n.ruggedStrength <= 0f) return Vector4.zero;
+            Vector3 metres = direction * plan.radius;
+            float broad = Basis(metres / n.broadScaleMeters + plan.macroOffset, plan.macroSeed, n.noiseBasis);
+            float medium = Basis(metres / n.mediumScaleMeters + plan.hillOffset, plan.hillSeed, n.noiseBasis);
+            float height = RuggedRaw(plan, metres, broad, medium, out float strength, out float riser, out float phase, out float weight, out float ramp);
+            float level = weight > 0f && n.terraceStepMeters > 0f ? height / n.terraceStepMeters + phase : 0f;
+            return new Vector4(height, n.rampNotchLength > 0f ? Smooth(.05f, .3f, weight) * ramp : strength, riser, level - Mathf.Floor(level));
         }
 
         // The rise spans twice the band from the coverage threshold to the top 1.5%, so the range climbs gently (its
@@ -723,7 +831,8 @@ namespace B612
                 {
                     for (int v = from; v < to; v++)
                     {
-                        var n = directions[v];
+                        // v16: vertices next to a cliff edge move onto it (at most half the mesh spacing; folds are undone below).
+                        var n = SnapToCliff(plan, directions[v], .5f * spacing);
                         float elevation = FreeHeight(plan, n);
                         vertices[v] = n * (plan.radius + TerrainWater.Height(plan, n, elevation));
                         colors[v] = NaturalSurfaceWeights(plan, n, elevation);
@@ -737,6 +846,8 @@ namespace B612
                     vertices[v] = n * (plan.radius + Height(plan, n));
                     colors[v] = SurfaceWeights(plan, n);
                 }
+            if (plan.natural != null && plan.natural.cliffSnap && plan.natural.rampNotchLength > 0f && plan.natural.ruggedStrength > 0f)
+                UnsnapFolds(plan, directions, indices, vertices, colors, wetness);
             var mesh=new Mesh{name="Seeded terrain "+plan.seed,indexFormat=IndexFormat.UInt32};
             mesh.SetVertices(vertices);
             mesh.SetColors(colors);
@@ -750,6 +861,38 @@ namespace B612
             mesh.SetTriangles(indices,0);
             mesh.RecalculateNormals();
             return mesh;
+        }
+
+        /// <summary>
+        /// v16: a snapped vertex can pass a neighbour and fold a triangle over. Any triangle that faces inwards gets
+        /// its vertices back on their grid directions, until none is left (every fold has a snapped vertex and each
+        /// pass reverts some). Serial and in index order, so the result is deterministic.
+        /// </summary>
+        static void UnsnapFolds(Plan plan, List<Vector3> directions, int[] indices, Vector3[] vertices, Color[] colors, Vector2[] wetness)
+        {
+            for (int pass = 0; pass < 200; pass++)
+            {
+                var revert = new HashSet<int>();
+                for (int t = 0; t < indices.Length; t += 3)
+                {
+                    Vector3 a = vertices[indices[t]], b = vertices[indices[t + 1]], c = vertices[indices[t + 2]];
+                    var normal = Vector3.Cross(b - a, c - a);
+                    if (Vector3.Dot(normal, a + b + c) > 0f) continue;
+                    for (int k = 0; k < 3; k++)
+                        if (vertices[indices[t + k]].normalized != directions[indices[t + k]]) revert.Add(indices[t + k]);
+                }
+                if (revert.Count == 0) return;
+                var order = new List<int>(revert);
+                order.Sort();
+                foreach (int v in order)
+                {
+                    var n = directions[v];
+                    float elevation = FreeHeight(plan, n);
+                    vertices[v] = n * (plan.radius + TerrainWater.Height(plan, n, elevation));
+                    colors[v] = NaturalSurfaceWeights(plan, n, elevation);
+                    if (wetness != null) wetness[v] = new Vector2(plan.moisture.Sample(n), 0f);
+                }
+            }
         }
 
         /// <summary>Runs pure, read-only work over [0, count) in fixed ranges; sequential where threads are unavailable.</summary>

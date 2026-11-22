@@ -26,6 +26,23 @@ public static class TerrainPrepFingerprint
     }
 
     /// <summary>Same as Run with the v13 river (short, shallow, basin-limited routing).</summary>
+    public static object RunV15(int journey, int chapter, string planetId, float size)
+    {
+#if UNITY_EDITOR
+        var settings = UnityEditor.AssetDatabase.LoadAssetAtPath<PlanetGenerationSettings>("Assets/B612/Settings/Chapters/ChapterJourneyGeneration.asset");
+        string original = JsonUtility.ToJson(settings.naturalTerrain);
+        try
+        {
+            var n = settings.naturalTerrain;
+            n.rampNotchLength = 0f; n.cliffJitter = 0f; n.cliffSnap = false;
+            return Run(journey, chapter, planetId, size);
+        }
+        finally { JsonUtility.FromJsonOverwrite(original, settings.naturalTerrain); }
+#else
+        throw new InvalidOperationException("Editor only");
+#endif
+    }
+
     public static object RunV14(int journey, int chapter, string planetId, float size)
     {
 #if UNITY_EDITOR

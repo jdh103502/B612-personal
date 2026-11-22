@@ -186,7 +186,8 @@ public static class NaturalTerrainMeshValidation
                 heights[i] = ProceduralPlanetTerrain.Height(plan, dirs[i]);
                 dry[i] = !TerrainWater.IsWet(plan, dirs[i], .6f, out _);
             }
-            // Clearance: the ground changes by at most 0.35 m within 0.3 m (no cliff foot to rub, no lip to slip off).
+            // Clearance: the ground changes by at most 0.35 m within 0.4 m (no cliff foot to rub, no lip to slip off;
+            // 0.3 m plus room for v16 cliff-snapped mesh triangles, which reach up to one 0.18 m spacing past a lip).
             for (int i = 0; i < count; i++)
             {
                 if (!dry[i]) continue;
@@ -194,7 +195,7 @@ public static class NaturalTerrainMeshValidation
                 for (int k = 0; k < 6 && dry[i]; k++)
                 {
                     var t = Quaternion.AngleAxis(60f * k, dirs[i]) * t0;
-                    var side = (dirs[i] * Mathf.Cos(.3f / radius) + t * Mathf.Sin(.3f / radius)).normalized;
+                    var side = (dirs[i] * Mathf.Cos(.4f / radius) + t * Mathf.Sin(.4f / radius)).normalized;
                     dry[i] = Mathf.Abs(ProceduralPlanetTerrain.Height(plan, side) - heights[i]) <= .35f;
                 }
             }

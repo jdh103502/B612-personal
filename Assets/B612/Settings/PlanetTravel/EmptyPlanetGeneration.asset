@@ -70,6 +70,10 @@ MonoBehaviour:
     peakHeightMeters: 9
     peakScaleMeters: 16
     terraceStepMeters: 3
+    rampNotchLength: 0.85
+    cliffJitter: 0.04
+    cliffJitterMeters: 3
+    cliffSnap: 1
     terraceRiser: 0.03
     rampCorridorMeters: 2.4
     terraceTread: 0.15
