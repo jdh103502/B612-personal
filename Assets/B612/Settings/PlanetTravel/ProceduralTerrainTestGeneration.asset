@@ -119,6 +119,11 @@ MonoBehaviour:
     minConnectedAreaRatio: 0.6
     siteSpacingMeters: 2
     siteCandidateLimit: 64
+    spawnPadRadiusMeters: 3
+    spawnPadBlendMeters: 2.5
+    spawnPadMaxBlendMeters: 7
+    spawnPadMaxBlendSlope: 22
+    spawnPadSearchMeters: 14
   baselineColor: {r: 0.91764706, g: 0.8745098, b: 0.7764706, a: 1}
   palette:
   - '#EADFC6'

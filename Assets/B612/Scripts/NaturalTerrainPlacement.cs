@@ -176,6 +176,8 @@ namespace B612
             if (Vector3.Dot(normal, surface.transform.TransformDirection(direction)) < cosSlope ||
                 TerrainWater.IsWet(plan, direction, .24f, out _) || !Clear(point, normal)) return false;
             if (Vector3.Distance(plan.placement.spawn.direction, direction) * plan.radius < 1.1f) return false;
+            // v21: the flat clearing is kept for the NPC and its objects.
+            if (plan.spawnPad != null && plan.spawnPad.InCore(direction)) return false;
             foreach (var site in plan.placement.sites)
                 if (Vector3.Distance(site.direction, direction) * plan.radius < .8f) return false;
 

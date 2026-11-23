@@ -120,6 +120,15 @@ namespace B612
         [Range(1000, 30000)] public int maxAnalysisNodes = 30000;
         [Range(.1f, 1f)] public float minConnectedAreaRatio = .60f;
         [Min(1.5f)] public float siteSpacingMeters = 2f;
+        [Tooltip("Generator v21: radius of the flat clearing around the spawn, room for the planet's NPC and its objects (metres, the same on every planet; at most 30% of the radius). 0 reproduces v20.")]
+        [Range(0f, 6f)] public float spawnPadRadiusMeters = 3f;
+        [Tooltip("v21: narrowest band that blends the clearing back into the terrain; it widens where the height difference would make it steeper than spawnPadMaxBlendSlope.")]
+        [Range(.5f, 6f)] public float spawnPadBlendMeters = 2.5f;
+        [Range(.5f, 12f)] public float spawnPadMaxBlendMeters = 7f;
+        [Tooltip("v21: steepest slope of the blend band (degrees).")]
+        [Range(8f, 35f)] public float spawnPadMaxBlendSlope = 22f;
+        [Tooltip("v21: how far from the preferred spawn direction the clearing may move to find gentle, dry ground.")]
+        [Range(0f, 40f)] public float spawnPadSearchMeters = 14f;
         [Range(8, 64)] public int siteCandidateLimit = 64;
 
         internal NaturalTerrainSettings Snapshot(float radius)
@@ -151,6 +160,8 @@ namespace B612
                 !Valid(pondMaxDepthMeters, .08f, .4f) || !Valid(pondMaxRadiusMeters, 1, 8) ||
                 !Valid(analysisSpacingMeters, .35f, 1) || maxAnalysisNodes < 1000 || maxAnalysisNodes > 30000 ||
                 !Valid(minConnectedAreaRatio, .1f, 1) || !Valid(siteSpacingMeters, 1.5f, 8) ||
+                !Valid(spawnPadRadiusMeters, 0, 6) || !Valid(spawnPadBlendMeters, .5f, 6) || !Valid(spawnPadMaxBlendMeters, spawnPadBlendMeters, 12) ||
+                !Valid(spawnPadMaxBlendSlope, 8, 35) || !Valid(spawnPadSearchMeters, 0, 40) ||
                 siteCandidateLimit < 8 || siteCandidateLimit > 64)
                 throw new ArgumentException("Invalid natural terrain settings.");
 

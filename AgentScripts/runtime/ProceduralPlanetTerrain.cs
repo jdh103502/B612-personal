@@ -46,6 +46,10 @@ namespace B612
             // v19: distinct high mountains (direction xyz, height share w) and the long river's valley.
             public List<Vector4> mountains = new List<Vector4>();
             public string valleyStatus;
+            // v21: the flat clearing around the spawn (NPC space).
+            public string spawnPadStatus;
+            public float spawnPadMilliseconds;
+            [NonSerialized] public NaturalTerrainSpawnPad spawnPad;
             [NonSerialized] internal NaturalTerrainValley valley;
             public float ruggedThreshold, ruggedFull;
             // Rendering only: wetness from the flow field, sampled into the ground mesh's second UV channel.
@@ -224,7 +228,11 @@ namespace B612
                 (float)random.NextDouble() * 40f);
         }
 
+        /// <summary>The terrain before river channels: v21 flattens the spawn clearing on top of everything else.</summary>
         public static float FreeHeight(Plan plan, Vector3 direction)
+            => plan.spawnPad == null ? UnpaddedFreeHeight(plan, direction) : plan.spawnPad.Apply(direction, UnpaddedFreeHeight(plan, direction));
+
+        static float UnpaddedFreeHeight(Plan plan, Vector3 direction)
         {
             if (plan.amplitude == 0f) return 0f;
             if (plan.natural != null && plan.natural.noiseBasis == NaturalNoiseBasis.Value && plan.natural.roughnessRange.x >= 1f)
@@ -920,6 +928,14 @@ namespace B612
                 plan.valley = NaturalTerrainValley.Build(plan);
                 plan.valleyStatus = plan.valley != null ? plan.valley.status : plan.riverStatus;
             }
+            // v21: the spawn clearing comes after the valley (it keeps clear of it) and before gullies and rivers,
+            // which then see the flat ground.
+            if (natural.spawnPadRadiusMeters > 0f && natural.reliefHeightMeters > 0f)
+            {
+                var padWatch = System.Diagnostics.Stopwatch.StartNew();
+                plan.spawnPad = NaturalTerrainSpawnPad.Build(plan, settings.spawnDirection);
+                plan.spawnPadMilliseconds = (float)padWatch.Elapsed.TotalMilliseconds;
+            }
             if (natural.erosionDepthMeters > 0f)
             {
                 // Gullies come from the uneroded drainage; everything below then sees the eroded heights.
@@ -937,6 +953,15 @@ namespace B612
                 string flowStatus = natural.riverMode == NaturalRiverMode.Flow ? plan.riverStatus : null;
                 NaturalTerrainRiver.Plan(plan);
                 if (flowStatus != null) plan.riverStatus = flowStatus + " Fallback trace: " + plan.riverStatus;
+            }
+            if (plan.spawnPad != null && plan.river != null)
+            {
+                // The clearing keeps clear of the valley; a flow river or its pond may still find it (reported, not moved).
+                var river = plan.river;
+                bool crossed = river.pond && plan.spawnPad.InCore(river.pondDirection, river.pondRadius + .5f);
+                for (int i = 0; i < river.directions.Count && !crossed; i++)
+                    crossed = plan.spawnPad.InCore(river.directions[i], .5f * TerrainWater.WidthAt(river, i) + river.bankWidth + .5f);
+                if (crossed) plan.spawnPadStatus += " Water reaches the clearing.";
             }
             plan.riverPlanMilliseconds = (float)watch.Elapsed.TotalMilliseconds;
             watch.Restart();

@@ -31,6 +31,24 @@ public static class TerrainPrepFingerprint
     {
         n.mountainHeightMeters = 0f; n.riverCircumferenceShare = Vector2.zero;
         n.riverWidthMeters = .9f; n.riverMouthWidthMeters = 3f; n.pondMaxRadiusMeters = 3.5f;
+        n.spawnPadRadiusMeters = 0f;
+    }
+
+    /// <summary>Same as Run without the v21 spawn clearing (reproduces v20).</summary>
+    public static object RunV20(int journey, int chapter, string planetId, float size)
+    {
+#if UNITY_EDITOR
+        var settings = UnityEditor.AssetDatabase.LoadAssetAtPath<PlanetGenerationSettings>("Assets/B612/Settings/Chapters/ChapterJourneyGeneration.asset");
+        string original = JsonUtility.ToJson(settings.naturalTerrain);
+        try
+        {
+            settings.naturalTerrain.spawnPadRadiusMeters = 0f;
+            return Run(journey, chapter, planetId, size);
+        }
+        finally { JsonUtility.FromJsonOverwrite(original, settings.naturalTerrain); }
+#else
+        throw new InvalidOperationException("Editor only");
+#endif
     }
 
     /// <summary>Same as Run with the v18 rivers (15-40 m flow rivers, 0.9-3 m wide, small ponds).</summary>

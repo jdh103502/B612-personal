@@ -65,12 +65,76 @@ public static class NaturalTerrainMeshValidation
                     connected = a.connectedAreaRatio, a.candidates, candidatesNormal = b.candidates, spawnShift, siteShifts,
                     emptyCells = a.emptyCells, normalizedMisses = errorB.misses, cliffErrorMm = errorA.cliffMax * 1000f, cliffSamples = errorA.cliffSamples,
                     meanErrorMmEqual = errorA.mean * 1000f, maxErrorMmEqual = errorA.max * 1000f,
-                    meanErrorMmNormal = errorB.mean * 1000f, maxErrorMmNormal = errorB.max * 1000f
+                    meanErrorMmNormal = errorB.mean * 1000f, maxErrorMmNormal = errorB.max * 1000f,
+                    pad = Pad(equalWorld, equal)
                 };
             }
             finally { UnityEngine.Object.DestroyImmediate(normalWorld.transform.root.gameObject); }
         }
         finally { UnityEngine.Object.DestroyImmediate(equalWorld.transform.root.gameObject); }
+    }
+
+    /// <summary>
+    /// v21 spawn clearing on the final collider: largest height difference from the pad level inside the core (0.25 m in
+    /// from its edge), steepest ground in the blend band, spawn offset from the centre, and wet ground inside the core.
+    /// </summary>
+    static object Pad(PlanetWorldInstance world, ProceduralPlanetTerrain.Plan plan)
+    {
+        var pad = plan.spawnPad;
+        if (pad == null) return new { present = false, status = plan.spawnPadStatus };
+        var ground = world.ground;
+        var origin = world.transform.position;
+        float R = plan.radius, flat = 0f, flatSlope = 0f, bandSlope = 0f; int wet = 0, samples = 0;
+        var t0 = Vector3.Cross(pad.centre, Mathf.Abs(pad.centre.y) < .9f ? Vector3.up : Vector3.right).normalized;
+        for (int k = 0; k <= 24; k++)
+            for (int j = 0; j < 36; j++)
+            {
+                float metres = (pad.core * 1.15f + pad.blend) * k / 24f;
+                var t = Quaternion.AngleAxis(10f * j, pad.centre) * t0;
+                var d = (pad.centre * Mathf.Cos(metres / R) + t * Mathf.Sin(metres / R)).normalized;
+                var w = world.transform.TransformDirection(d);
+                if (!ground.Raycast(new Ray(origin + w * (R + 20f), -w), out var hit, R + 40f)) continue;
+                float slope = Vector3.Angle(hit.normal, w);
+                if (pad.InCore(d, -.25f))
+                {
+                    samples++;
+                    flat = Mathf.Max(flat, Mathf.Abs(Vector3.Distance(hit.point, origin) - R - pad.level));
+                    flatSlope = Mathf.Max(flatSlope, slope);
+                    if (TerrainWater.IsWet(plan, d, 0f, out _)) wet++;
+                }
+                else if (!pad.InCore(d)) bandSlope = Mathf.Max(bandSlope, slope);
+            }
+        float spawnOffset = Mathf.Acos(Mathf.Clamp(Vector3.Dot(plan.placement.spawn.direction, pad.centre), -1f, 1f)) * R;
+        // Analytic slope (0.15 m differences) in the band with and without the clearing: what the blend adds.
+        float Slope(Vector3 d)
+        {
+            var a = Vector3.Cross(d, Mathf.Abs(d.y) < .9f ? Vector3.up : Vector3.right).normalized;
+            var b = Vector3.Cross(d, a);
+            float h = ProceduralPlanetTerrain.Height(plan, d), e = .15f / R;
+            float gx = (ProceduralPlanetTerrain.Height(plan, (d + a * e).normalized) - h) / .15f;
+            float gy = (ProceduralPlanetTerrain.Height(plan, (d + b * e).normalized) - h) / .15f;
+            return Mathf.Atan(Mathf.Sqrt(gx * gx + gy * gy)) * Mathf.Rad2Deg;
+        }
+        float padMax = 0f, naturalMax = 0f; int padSteep = 0, naturalSteep = 0, bandSamples = 0;
+        var keep = plan.spawnPad;
+        for (int pass = 0; pass < 2; pass++)
+        {
+            plan.spawnPad = pass == 0 ? keep : null;
+            for (int k = 0; k <= 30; k++)
+                for (int j = 0; j < 48; j++)
+                {
+                    float metres = pad.core * .85f + (pad.core * .3f + pad.blend) * k / 30f;
+                    var t = Quaternion.AngleAxis(7.5f * j, pad.centre) * t0;
+                    var d = (pad.centre * Mathf.Cos(metres / R) + t * Mathf.Sin(metres / R)).normalized;
+                    if (keep.InCore(d) || TerrainWater.IsWet(plan, d, .3f, out _)) continue;
+                    float slope = Slope(d);
+                    if (pass == 0) { bandSamples++; padMax = Mathf.Max(padMax, slope); if (slope > 35f) padSteep++; }
+                    else { naturalMax = Mathf.Max(naturalMax, slope); if (slope > 35f) naturalSteep++; }
+                }
+        }
+        plan.spawnPad = keep;
+        return new { present = true, status = plan.spawnPadStatus, coreMeters = pad.core, blendMeters = pad.blend, pad.maxCut, pad.maxFill,
+            pad.offsetMeters, buildMs = plan.spawnPadMilliseconds, flatMm = flat * 1000f, flatSlope, bandSlope, padMax, naturalMax, padSteep, naturalSteep, bandSamples, spawnOffset, wet, samples };
     }
 
     // Set to a route name to run the logged copy of the verifier loop on that route first.

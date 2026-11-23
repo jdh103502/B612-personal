@@ -47,8 +47,10 @@ namespace B612
                 {
                     Terrain.PrepareNatural(data.spec.seed, data.spec.terrain.radius, data.spec.chapter, settings, filter, meshCollider);
                     var natural = Terrain.GenerationPlan;
+                    // v21: the player spawns in the middle of the flat clearing.
                     Terrain.NaturalPlacement = new NaturalTerrainPlacement(natural, surface, playerCapsule,
-                        settings.spawnClearance, settings.spawnDirection.normalized, settings.chapterCampaign);
+                        settings.spawnClearance, natural.spawnPad != null ? natural.spawnPad.centre : settings.spawnDirection.normalized,
+                        settings.chapterCampaign);
                     natural.spawn = natural.placement.spawn.direction;
                 }
                 else
