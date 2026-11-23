@@ -291,7 +291,7 @@ namespace B612
                 MovementUp = gravityUp;
             }
             if (jump == 1) Jumped?.Invoke();
-            traversal.TryStartDash(Grounded, MovementUp);
+            traversal.TryStartDash(Grounded, MovementUp, jump != 0 ? vertical : RadialSpeed);
             bool dashTick = traversal.ApplyDash(dt, MovementUp, out var dashVelocity);
             float glideTime = traversal.GlideTime(dt, vertical, Grounded, pull.sqrMagnitude > .000001f, jump != 0, dashTick);
             if (dashTick) tangent = dashVelocity;
@@ -326,6 +326,7 @@ namespace B612
                     }
                 }
             }
+            if (jump == 0) vertical = traversal.LimitDashRise(Grounded, vertical);
             if (dashTick) SweepDash(ref tangent, ref vertical, dt, gravityUp);
             rb.linearVelocity = tangent + MovementUp * vertical + (Grounded ? supportVelocity : Vector3.zero);
             TangentSpeed = tangent.magnitude; VerticalSpeed = vertical;

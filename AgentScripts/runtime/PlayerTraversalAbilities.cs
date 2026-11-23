@@ -19,6 +19,8 @@ namespace B612
         [Min(0f)] public float dashCooldown = .65f;
         [Min(0f)] public float dashInputBuffer = .1f;
         [Min(0f)] public float dashCollisionSkin = .015f;
+        [Tooltip("Outward speed (away from the planet) a dash may carry from the ground into the air. A ground dash runs along slopes and banks at dash speed; without this cap it launches off their tops. In the air a dash never adds rise (a jump keeps its own).")]
+        [Min(0f)] public float dashMaxRiseSpeed = .8f;
         [Header("Glide")]
         [Min(0f)] public float glideHoldThreshold = .2f;
         [Min(0f)] public float glideBudgetSeconds = 2.5f;
@@ -74,6 +76,10 @@ namespace B612
 
         GravityWalker walker;
         float jumpPending, dashPending, coyoteRemaining, jumpSupportBlockRemaining;
+        // From a dash until stable support: airborne outward speed may only fall (ballistic). Leaving the ground it may
+        // start at most at dashMaxRiseSpeed; contacts in the air (a steep face) can stop a fall but never add rise.
+        bool riseGuard; float riseLimit;
+        public bool DashRiseGuardActive => riseGuard;
         Vector3 dashDirection, dashUp, lastFacing;
         bool groundJumpAvailable, clampResidual, glideNeedsRelease;
 
@@ -147,13 +153,13 @@ namespace B612
             DashCooldownRemaining = SupportStableSeconds = TimeSinceTakeoff = coyoteRemaining = DashElapsedSeconds = 0f;
             FlightActive = groundJumpAvailable = clampResidual = false;
             JumpAscentActive = false; jumpSupportBlockRemaining = 0f;
-            glideNeedsRelease = false;
+            glideNeedsRelease = false; riseGuard = false;
             JumpRequestId = DashRequestId = ConsumedJumpRequestId = ConsumedDashRequestId = 0;
             dashDirection = lastFacing = Vector3.ProjectOnPlane(transform.forward, walker ? walker.Up : transform.up).normalized;
         }
         internal void Suspend()
         {
-            CancelInputAndActions();
+            CancelInputAndActions(); riseGuard = false;
             FlightActive = true; TimeSinceTakeoff = SupportStableSeconds = coyoteRemaining = 0f;
             groundJumpAvailable = false;
             JumpAscentActive = false; jumpSupportBlockRemaining = 0f;
@@ -209,12 +215,12 @@ namespace B612
             if (!ground && (!IsEnabled(TraversalFeature.AirJump) || grounded || AirJumpsRemaining <= 0)) return 0;
             if (IsDashing) { EndDash(); ClampResidual(ref tangent); }
             IsGliding = false; jumpPending = 0f; ConsumedJumpRequestId = JumpRequestId;
-            vertical = ground ? walker.jumpSpeed : doubleJumpSpeed;
+            vertical = ground ? walker.jumpSpeed : doubleJumpSpeed; riseGuard = false;
             if (!ground) { AirJumpsRemaining--; AirJumped?.Invoke(); }
             Takeoff();
             return ground ? 1 : 2;
         }
-        internal void TryStartDash(bool grounded, Vector3 up)
+        internal void TryStartDash(bool grounded, Vector3 up, float radialSpeed)
         {
             if (!IsEnabled(TraversalFeature.Dash) || !InputEnabled || !PendingDash || IsDashing || !DashChargeAvailable || DashCooldownRemaining > 0f) return;
             var direction = Vector3.ProjectOnPlane(transform.forward, up);
@@ -224,6 +230,7 @@ namespace B612
             IsDashing = true; IsGliding = false; DashChargeAvailable = false;
             DashCooldownRemaining = Mathf.Max(0f, dashCooldown);
             dashPending = 0f; ConsumedDashRequestId = DashRequestId;
+            riseGuard = true; riseLimit = grounded ? dashMaxRiseSpeed : Mathf.Max(0f, radialSpeed);
         }
         float DashIntegral(float t)
         {
@@ -255,6 +262,23 @@ namespace B612
             GlideSecondsRemaining = Mathf.Max(0f, GlideSecondsRemaining - used);
             IsGliding = GlideSecondsRemaining > .000001f;
             return used;
+        }
+        /// <summary>
+        /// Caps the outward speed of an airborne walker after a dash (vertical is along gravity up when airborne).
+        /// A dash only replaces the tangent speed: rising in the air may continue a jump but never gain from the dash.
+        /// </summary>
+        internal float LimitDashRise(bool grounded, float vertical)
+        {
+            if (!riseGuard) return vertical;
+            if (grounded)
+            {
+                riseLimit = dashMaxRiseSpeed;
+                if (!IsDashing && SupportStableSeconds + .000001f >= supportConfirmSeconds) riseGuard = false;
+                return vertical;
+            }
+            vertical = Mathf.Min(vertical, riseLimit);
+            riseLimit = Mathf.Max(0f, vertical);
+            return vertical;
         }
         internal void EndDash()
         {

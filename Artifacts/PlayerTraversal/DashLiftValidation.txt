@@ -1,0 +1,175 @@
+# Dash lift on generator v20 terrain (2026-11-23)
+lift = rise above the take-off point while airborne; clear = height above the analytic ground
+
+## Before (no rise cap)
+system_02_B R=12.0 jump lift 1.46
+  bankUp     n=48 lift p50 0.00 p90 0.00 max 4.04 >30cm 2 vr 4.7 travel 1.58
+  bankAcross n=48 lift p50 0.00 p90 0.05 max 4.80 >30cm 5 vr 5.3 travel 1.86
+  slopeUp    n=40 lift p50 0.00 p90 1.21 max 4.59 >30cm 6 vr 6.2 travel 2.97
+  ledgeOff   n= 7 lift p50 0.00 p90 0.05 max 0.16 >30cm 0 vr 0.8 travel 1.70
+  plain      n=30 lift p50 0.00 p90 0.00 max 4.36 >30cm 2 vr 5.1 travel 2.98
+    bankUp lift 4.04 vr 4.7 slope 0 at (0.919, -0.148, 0.366)
+    bankUp lift 0.36 vr 1.3 slope 5 at (-0.016, 0.996, 0.089)
+    bankUp lift 0.11 vr 0.6 slope 9 at (-0.447, 0.782, 0.435)
+    bankAcross lift 4.80 vr 5.3 slope 0 at (0.997, -0.007, 0.078)
+    bankAcross lift 2.78 vr 3.9 slope 1 at (0.784, 0.600, -0.158)
+    bankAcross lift 1.45 vr 3.0 slope 1 at (0.992, -0.095, 0.086)
+    slopeUp lift 4.59 vr 5.3 slope 25 at (0.994, 0.087, 0.061)
+    slopeUp lift 3.81 vr 4.5 slope 58 at (-0.438, -0.897, 0.056)
+    slopeUp lift 1.98 vr 3.2 slope 49 at (0.008, -0.107, -0.994)
+    ledgeOff lift 0.16 vr 0.8 slope 62 at (-0.440, -0.893, -0.095)
+    ledgeOff lift 0.05 vr 0.4 slope 62 at (-0.087, -0.893, -0.441)
+    ledgeOff lift 0.00 vr 0.0 slope 68 at (-0.145, -0.908, -0.393)
+    plain lift 4.36 vr 5.1 slope 9 at (-0.524, -0.594, -0.610)
+    plain lift 0.62 vr 2.0 slope 9 at (-0.079, 0.869, -0.489)
+    plain lift 0.00 vr 0.0 slope 3 at (-0.070, -0.996, 0.047)
+system_01_Start R=12.0 jump lift 1.46
+  bankUp     n=48 lift p50 0.00 p90 0.00 max 1.53 >30cm 2 vr 3.2 travel 1.81
+  bankAcross n=48 lift p50 0.00 p90 0.00 max 2.85 >30cm 3 vr 4.3 travel 1.82
+  slopeUp    n=40 lift p50 0.00 p90 0.00 max 0.64 >30cm 3 vr 2.0 travel 3.19
+  ledgeOff   n= 5 lift p50 0.00 p90 1.42 max 1.42 >30cm 1 vr 2.9 travel 3.05
+  plain      n=30 lift p50 0.00 p90 0.00 max 0.00 >30cm 0 vr 0.0 travel 3.34
+    bankUp lift 1.53 vr 3.2 slope 1 at (-0.623, -0.586, 0.519)
+    bankUp lift 1.08 vr 2.3 slope 2 at (-0.253, 0.523, -0.814)
+    bankUp lift 0.12 vr 0.8 slope 3 at (0.152, 0.416, -0.897)
+    bankAcross lift 2.85 vr 4.3 slope 1 at (-0.781, -0.216, 0.586)
+    bankAcross lift 2.67 vr 4.1 slope 1 at (-0.841, -0.533, 0.089)
+    bankAcross lift 0.90 vr 2.1 slope 0 at (-0.729, -0.206, 0.652)
+    slopeUp lift 0.64 vr 2.0 slope 29 at (-0.812, -0.198, 0.550)
+    slopeUp lift 0.49 vr 1.5 slope 40 at (0.812, 0.307, 0.496)
+    slopeUp lift 0.37 vr 1.7 slope 41 at (0.212, -0.836, 0.507)
+    ledgeOff lift 1.42 vr 2.9 slope 51 at (0.683, -0.641, 0.350)
+    ledgeOff lift 0.00 vr 0.0 slope 34 at (-0.880, 0.475, 0.010)
+    ledgeOff lift 0.00 vr 0.0 slope 28 at (-0.914, 0.405, -0.026)
+    plain lift 0.00 vr 0.0 slope 12 at (-0.880, -0.475, 0.002)
+    plain lift 0.00 vr 0.0 slope 10 at (-0.133, -0.485, 0.865)
+    plain lift 0.00 vr 0.0 slope 9 at (0.609, 0.790, -0.072)
+replay: before "result": "pTrue mem 469MB gfx 763MB" | after "result": "pTrue mem 453MB gfx 763MB" | editor private 4486MB
+system_01_D R=23.5 jump lift 1.42
+  bankUp     n=48 lift p50 0.00 p90 0.00 max 0.76 >30cm 1 vr 1.9 travel 1.45
+  bankAcross n=48 lift p50 0.00 p90 0.05 max 2.03 >30cm 5 vr 3.5 travel 1.74
+  slopeUp    n=40 lift p50 0.00 p90 0.00 max 0.00 >30cm 0 vr 0.0 travel 3.25
+  ledgeOff   n= 3 lift p50 0.25 p90 1.35 max 1.35 >30cm 1 vr 2.7 travel 3.25
+  plain      n=30 lift p50 0.00 p90 0.00 max 1.29 >30cm 1 vr 2.7 travel 3.49
+    bankUp lift 0.76 vr 1.9 slope 12 at (-0.653, 0.695, 0.301)
+    bankUp lift 0.02 vr 0.5 slope 0 at (0.373, 0.573, 0.730)
+    bankUp lift 0.00 vr 0.0 slope 2 at (0.330, 0.942, -0.056)
+    bankAcross lift 2.03 vr 3.5 slope 1 at (0.563, 0.819, 0.111)
+    bankAcross lift 1.68 vr 3.1 slope 1 at (-0.080, 0.957, -0.279)
+    bankAcross lift 1.54 vr 3.2 slope 0 at (0.710, 0.596, 0.376)
+    slopeUp lift 0.00 vr 0.0 slope 25 at (0.375, -0.314, 0.872)
+    slopeUp lift 0.00 vr 0.0 slope 21 at (0.429, -0.223, 0.875)
+    slopeUp lift 0.00 vr 0.0 slope 21 at (0.323, -0.400, 0.858)
+    ledgeOff lift 1.35 vr 2.7 slope 27 at (0.953, -0.017, 0.302)
+    ledgeOff lift 0.25 vr 1.3 slope 30 at (0.278, 0.913, 0.298)
+    ledgeOff lift 0.04 vr 0.4 slope 43 at (-0.359, -0.648, -0.672)
+    plain lift 1.29 vr 2.7 slope 5 at (0.961, -0.036, 0.275)
+    plain lift 0.00 vr 0.0 slope 10 at (-0.880, -0.475, 0.002)
+    plain lift 0.00 vr 0.0 slope 5 at (0.105, 0.666, 0.739)
+system_01_C R=9.7 jump lift 1.48
+  bankUp     n=48 lift p50 0.00 p90 0.00 max 3.66 >30cm 2 vr 4.4 travel 2.15
+  bankAcross n=48 lift p50 0.00 p90 2.73 max 5.26 >30cm 12 vr 5.4 travel 1.59
+  slopeUp    n=40 lift p50 0.00 p90 0.00 max 0.73 >30cm 1 vr 1.8 travel 3.13
+  ledgeOff   n=30 lift p50 0.00 p90 1.02 max 2.29 >30cm 7 vr 3.5 travel 2.50
+  plain      n=30 lift p50 0.00 p90 0.00 max 0.06 >30cm 0 vr 0.6 travel 3.79
+    bankUp lift 3.66 vr 4.4 slope 0 at (-0.943, -0.299, 0.149)
+    bankUp lift 0.44 vr 1.3 slope 4 at (0.112, 0.939, -0.325)
+    bankUp lift 0.00 vr 0.0 slope 0 at (-0.960, -0.279, 0.010)
+    bankAcross lift 5.26 vr 5.4 slope 8 at (-0.362, 0.747, -0.558)
+    bankAcross lift 4.54 vr 5.1 slope 0 at (-0.977, 0.003, 0.214)
+    bankAcross lift 3.92 vr 4.6 slope 1 at (-0.507, 0.567, 0.650)
+    slopeUp lift 0.73 vr 1.8 slope 46 at (0.551, -0.791, -0.265)
+    slopeUp lift 0.30 vr 1.2 slope 59 at (0.318, -0.537, -0.781)
+    slopeUp lift 0.13 vr 1.7 slope 36 at (-0.787, -0.587, 0.189)
+    ledgeOff lift 2.29 vr 3.5 slope 45 at (-0.559, -0.820, -0.126)
+    ledgeOff lift 1.73 vr 3.1 slope 52 at (-0.459, -0.841, -0.288)
+    ledgeOff lift 1.35 vr 2.7 slope 52 at (0.998, 0.056, -0.002)
+    plain lift 0.06 vr 0.6 slope 5 at (-0.828, -0.482, 0.286)
+    plain lift 0.00 vr 0.0 slope 8 at (0.898, 0.261, 0.354)
+    plain lift 0.00 vr 0.0 slope 11 at (0.924, -0.324, -0.204)
+
+## After (dashMaxRiseSpeed 0.8)
+system_01_D R=23.5 jump lift 1.42
+  bankUp     n=48 lift p50 0.00 p90 0.00 max 0.19 >30cm 0 | clear max 0.55 >30cm 2 | travel 1.44
+  bankAcross n=48 lift p50 0.00 p90 0.00 max 0.17 >30cm 0 | clear max 0.50 >30cm 1 | travel 2.05
+  slopeUp    n=40 lift p50 0.00 p90 0.00 max 0.00 >30cm 0 | clear max 0.00 >30cm 0 | travel 3.24
+  ledgeOff   n= 3 lift p50 0.12 p90 0.17 max 0.17 >30cm 0 | clear max 0.95 >30cm 3 | travel 2.71
+  plain      n=30 lift p50 0.00 p90 0.00 max 0.05 >30cm 0 | clear max 0.05 >30cm 0 | travel 3.38
+    bankUp lift 0.19 clear 0.46 vr 2.0 slope 12 at (-0.653, 0.695, 0.301)
+    bankUp lift 0.19 clear 0.55 vr 1.6 slope 8 at (-0.619, 0.785, 0.040)
+    bankUp lift 0.02 clear 0.04 vr 0.4 slope 0 at (0.373, 0.573, 0.730)
+    bankAcross lift 0.17 clear 0.19 vr 1.8 slope 1 at (0.746, 0.580, 0.327)
+    bankAcross lift 0.15 clear 0.50 vr 3.5 slope 1 at (0.563, 0.819, 0.111)
+    bankAcross lift 0.12 clear 0.24 vr 3.1 slope 0 at (0.710, 0.596, 0.376)
+    slopeUp lift 0.00 clear 0.00 vr 0.0 slope 25 at (0.375, -0.314, 0.872)
+    slopeUp lift 0.00 clear 0.00 vr 0.0 slope 21 at (0.429, -0.223, 0.875)
+    slopeUp lift 0.00 clear 0.00 vr 0.0 slope 21 at (0.323, -0.400, 0.858)
+    ledgeOff lift 0.17 clear 0.54 vr 2.7 slope 27 at (0.953, -0.017, 0.302)
+    ledgeOff lift 0.12 clear 0.95 vr 0.7 slope 43 at (-0.359, -0.648, -0.672)
+    ledgeOff lift 0.11 clear 0.59 vr 1.2 slope 30 at (0.278, 0.913, 0.298)
+    plain lift 0.05 clear 0.05 vr 2.7 slope 5 at (0.961, -0.036, 0.275)
+    plain lift 0.00 clear 0.00 vr 0.0 slope 10 at (-0.880, -0.475, 0.002)
+    plain lift 0.00 clear 0.00 vr 0.0 slope 5 at (0.105, 0.666, 0.739)
+system_01_C R=9.7 jump lift 1.48
+  bankUp     n=48 lift p50 0.00 p90 0.00 max 0.20 >30cm 0 | clear max 0.34 >30cm 1 | travel 2.19
+  bankAcross n=48 lift p50 0.00 p90 0.00 max 0.22 >30cm 0 | clear max 0.50 >30cm 2 | travel 2.07
+  slopeUp    n=40 lift p50 0.00 p90 0.00 max 0.73 >30cm 1 | clear max 0.15 >30cm 0 | travel 3.13
+  ledgeOff   n=30 lift p50 0.00 p90 0.20 max 0.23 >30cm 0 | clear max 1.70 >30cm 12 | travel 2.19
+  plain      n=30 lift p50 0.00 p90 0.00 max 0.06 >30cm 0 | clear max 0.34 >30cm 1 | travel 3.85
+    bankUp lift 0.20 clear 0.34 vr 0.9 slope 4 at (0.112, 0.939, -0.325)
+    bankUp lift 0.00 clear 0.00 vr 0.0 slope 0 at (-0.960, -0.279, 0.010)
+    bankUp lift 0.00 clear 0.00 vr 0.0 slope 1 at (-0.277, 0.833, 0.479)
+    bankAcross lift 0.22 clear 0.40 vr 1.3 slope 1 at (-0.942, -0.008, 0.334)
+    bankAcross lift 0.18 clear 0.50 vr 4.3 slope 1 at (-0.959, 0.081, 0.271)
+    bankAcross lift 0.05 clear 0.22 vr 0.6 slope 0 at (-0.793, -0.553, 0.256)
+    slopeUp lift 0.73 clear 0.15 vr 1.8 slope 46 at (0.551, -0.791, -0.265)
+    slopeUp lift 0.30 clear 0.15 vr 1.2 slope 59 at (0.318, -0.537, -0.781)
+    slopeUp lift 0.13 clear 0.05 vr 1.7 slope 36 at (-0.787, -0.587, 0.189)
+    ledgeOff lift 0.23 clear 0.63 vr 2.0 slope 31 at (-0.249, 0.439, 0.863)
+    ledgeOff lift 0.22 clear 0.77 vr 1.5 slope 27 at (-0.230, -0.912, -0.339)
+    ledgeOff lift 0.20 clear 1.46 vr 1.1 slope 46 at (0.973, 0.198, -0.122)
+    plain lift 0.06 clear 0.34 vr 0.6 slope 5 at (-0.828, -0.482, 0.286)
+    plain lift 0.00 clear 0.00 vr 0.0 slope 8 at (0.898, 0.261, 0.354)
+    plain lift 0.00 clear 0.00 vr 0.0 slope 11 at (0.924, -0.324, -0.204)
+system_02_B R=12.0 jump lift 1.46
+  bankUp     n=48 lift p50 0.00 p90 0.00 max 0.19 >30cm 0 | clear max 0.34 >30cm 1 | travel 1.57
+  bankAcross n=48 lift p50 0.00 p90 0.00 max 0.23 >30cm 0 | clear max 0.43 >30cm 1 | travel 2.14
+  slopeUp    n=40 lift p50 0.00 p90 0.00 max 0.74 >30cm 2 | clear max 0.43 >30cm 1 | travel 2.84
+  ledgeOff   n= 7 lift p50 0.00 p90 0.03 max 0.15 >30cm 0 | clear max 2.24 >30cm 3 | travel 1.69
+  plain      n=30 lift p50 0.00 p90 0.00 max 0.11 >30cm 0 | clear max 0.43 >30cm 1 | travel 2.82
+    bankUp lift 0.19 clear 0.34 vr 1.1 slope 5 at (-0.016, 0.996, 0.089)
+    bankUp lift 0.08 clear 0.27 vr 0.5 slope 9 at (-0.447, 0.782, 0.435)
+    bankUp lift 0.00 clear 0.00 vr 4.4 slope 0 at (0.919, -0.148, 0.366)
+    bankAcross lift 0.23 clear 0.43 vr 3.7 slope 1 at (0.784, 0.600, -0.158)
+    bankAcross lift 0.15 clear 0.17 vr 2.1 slope 0 at (0.991, -0.091, 0.094)
+    bankAcross lift 0.00 clear 0.00 vr 0.0 slope 0 at (0.810, -0.263, 0.525)
+    slopeUp lift 0.74 clear 0.22 vr 1.4 slope 36 at (-0.106, -0.988, -0.113)
+    slopeUp lift 0.63 clear 0.17 vr 4.4 slope 58 at (-0.320, -0.947, -0.012)
+    slopeUp lift 0.22 clear 0.43 vr 2.4 slope 49 at (-0.599, -0.788, 0.145)
+    ledgeOff lift 0.15 clear 2.24 vr 0.8 slope 62 at (-0.440, -0.893, -0.095)
+    ledgeOff lift 0.03 clear 2.09 vr 0.3 slope 62 at (-0.087, -0.893, -0.441)
+    ledgeOff lift 0.00 clear 0.00 vr 0.0 slope 68 at (-0.145, -0.908, -0.393)
+    plain lift 0.11 clear 0.12 vr 2.0 slope 9 at (-0.079, 0.869, -0.489)
+    plain lift 0.00 clear 0.00 vr 0.0 slope 3 at (-0.070, -0.996, 0.047)
+    plain lift 0.00 clear 0.00 vr 0.0 slope 7 at (0.641, -0.745, 0.184)
+system_01_Start R=12.0 jump lift 1.46
+  bankUp     n=48 lift p50 0.00 p90 0.00 max 0.23 >30cm 0 | clear max 0.48 >30cm 2 | travel 2.03
+  bankAcross n=48 lift p50 0.00 p90 0.00 max 0.04 >30cm 0 | clear max 0.05 >30cm 0 | travel 2.02
+  slopeUp    n=40 lift p50 0.00 p90 0.00 max 0.55 >30cm 1 | clear max 0.14 >30cm 0 | travel 3.14
+  ledgeOff   n= 5 lift p50 0.00 p90 0.16 max 0.16 >30cm 0 | clear max 0.20 >30cm 0 | travel 3.45
+  plain      n=30 lift p50 0.00 p90 0.00 max 0.00 >30cm 0 | clear max 0.00 >30cm 0 | travel 3.48
+    bankUp lift 0.23 clear 0.17 vr 0.9 slope 7 at (0.082, 0.538, -0.839)
+    bankUp lift 0.23 clear 0.43 vr 1.5 slope 17 at (-0.204, 0.493, -0.846)
+    bankUp lift 0.23 clear 0.48 vr 2.0 slope 2 at (-0.253, 0.523, -0.814)
+    bankAcross lift 0.04 clear 0.03 vr 0.5 slope 17 at (-0.368, 0.340, -0.865)
+    bankAcross lift 0.00 clear 0.00 vr 0.0 slope 0 at (-0.500, 0.015, 0.866)
+    bankAcross lift 0.00 clear 0.00 vr 0.0 slope 1 at (-0.986, 0.061, -0.158)
+    slopeUp lift 0.55 clear 0.14 vr 1.4 slope 40 at (0.812, 0.307, 0.496)
+    slopeUp lift 0.11 clear 0.09 vr 2.0 slope 29 at (-0.812, -0.198, 0.550)
+    slopeUp lift 0.00 clear 0.00 vr 0.0 slope 21 at (-0.645, 0.609, 0.462)
+    ledgeOff lift 0.16 clear 0.13 vr 2.8 slope 51 at (0.683, -0.641, 0.350)
+    ledgeOff lift 0.00 clear 0.00 vr 0.0 slope 34 at (-0.880, 0.475, 0.010)
+    ledgeOff lift 0.00 clear 0.00 vr 0.0 slope 28 at (-0.914, 0.405, -0.026)
+    plain lift 0.00 clear 0.00 vr 0.0 slope 12 at (-0.880, -0.475, 0.002)
+    plain lift 0.00 clear 0.00 vr 0.0 slope 10 at (-0.133, -0.485, 0.865)
+    plain lift 0.00 clear 0.00 vr 0.0 slope 9 at (0.609, 0.790, -0.072)

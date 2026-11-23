@@ -484,6 +484,187 @@ public static class NaturalTerrainMeshValidation
         return n == 0 ? new float[3] : new[] { min, sum / n, max };
     }
 
+    // ---------------------------------------------------------------------------------------------------------
+    // Ground dash lift: dash from rest (forward held) toward river banks, up and over slopes and cliffs, and on open
+    // ground, with the real GravityWalker. "lift" is how far the walker rises above the point where it left the ground
+    // (falling off a ledge has lift 0); "clear" is the largest height above the analytic ground while airborne (walking
+    // up a steep face counts in lift but stays near the ground); "vr" is the largest outward radial speed while airborne. Reference: a held
+    // plain jump from rest.
+    public static bool TraceDash = false;
+    /// <summary>Dash with a per-tick trace of every run that lifts more than 0.4 m.</summary>
+    public static object DashTrace(int journey, int chapter, string planetId, float size)
+    {
+        TraceDash = true;
+        try { return Dash(journey, chapter, planetId, size); }
+        finally { TraceDash = false; }
+    }
+    public static object Dash(int journey, int chapter, string planetId, float size)
+    {
+        var settings = Settings();
+        var plan = Prepare(settings, journey, chapter, planetId, size, settings.naturalTerrain.equalAngleMesh, out var world);
+        var flow = UnityEngine.Object.FindFirstObjectByType<StarSystemFlowController>();
+        var player = flow.player.GetComponent<CapsuleCollider>();
+        var scene = SceneManager.CreateScene("Dash probe " + Guid.NewGuid().ToString("N"), new CreateSceneParameters(LocalPhysicsMode.Physics3D));
+        var probe = new GameObject("Dash probe");
+        SceneManager.MoveGameObjectToScene(probe, scene);
+        probe.transform.position = new Vector3(10000, 10000, 10000);
+        try
+        {
+            float radius = plan.radius;
+            var origin = probe.transform.position;
+            var gravity = probe.AddComponent<GravitySource>();
+            gravity.surfaceRadius = radius; gravity.influenceRadius = radius + 10; gravity.terrainPlan = plan;
+            gravity.strength = world.Data.spec.terrain.gravityStrength;
+            var ground = new GameObject("Final terrain collider").AddComponent<MeshCollider>();
+            ground.transform.SetParent(probe.transform, false);
+            ground.cookingOptions = ((MeshCollider)world.ground).cookingOptions;
+            ground.sharedMesh = ((MeshCollider)world.ground).sharedMesh;
+            var actor = new GameObject("Dash actor");
+            actor.transform.SetParent(probe.transform, false);
+            var body = actor.AddComponent<Rigidbody>();
+            var capsule = actor.AddComponent<CapsuleCollider>();
+            capsule.radius = player.radius; capsule.height = player.height; capsule.center = player.center;
+            capsule.direction = player.direction; capsule.sharedMaterial = player.sharedMaterial;
+            actor.transform.localScale = player.transform.lossyScale;
+            var motor = actor.AddComponent<GravityWalker>();
+            JsonUtility.FromJsonOverwrite(JsonUtility.ToJson(player.GetComponent<GravityWalker>()), motor);
+            motor.enabled = false;
+            var ability = actor.AddComponent<PlayerTraversalAbilities>();
+            JsonUtility.FromJsonOverwrite(JsonUtility.ToJson(player.GetComponent<PlayerTraversalAbilities>()), ability);
+            ability.SetUnlocked(TraversalCapability.All);
+            var tick = typeof(GravityWalker).GetMethod("TickTraversal", BindingFlags.NonPublic | BindingFlags.Instance);
+            var queue = typeof(PlayerTraversalAbilities).GetMethod("QueueSimulationInput", BindingFlags.NonPublic | BindingFlags.Instance);
+            var physics = scene.GetPhysicsScene();
+            float H(Vector3 d) => ProceduralPlanetTerrain.Height(plan, d);
+            Vector3 Move(Vector3 d, Vector3 t, float metres) => (d * Mathf.Cos(metres / radius) + t * Mathf.Sin(metres / radius)).normalized;
+            void Step() { tick.Invoke(motor, new object[] { .02f }); physics.Simulate(.02f); motor.transform.SetPositionAndRotation(body.position, body.rotation); }
+
+            // One run: settle at rest facing t, press dash (or jump) and hold forward; lift above the take-off point.
+            float Run(Vector3 start, Vector3 t, bool jump, out float vr, out float travel, out float clear, System.Text.StringBuilder log = null)
+            {
+                vr = 0f; travel = 0f; clear = 0f;
+                t = Vector3.ProjectOnPlane(t, start).normalized;
+                if (!ground.Raycast(new Ray(origin + start * (radius + 20), -start), out var hit, radius + 40)) return float.NaN;
+                body.linearVelocity = Vector3.zero;
+                body.rotation = Quaternion.LookRotation(Vector3.ProjectOnPlane(t, hit.normal), hit.normal);
+                motor.Teleport(hit.point + hit.normal * .04f, hit.normal);
+                motor.Traversal.SetAllowed(TraversalFeature.Dash, true);
+                motor.Traversal.SetAllowed(TraversalFeature.AirJump, false);
+                motor.Traversal.SetAllowed(TraversalFeature.Glide, false);
+                motor.Traversal.SetInputEnabled(true);
+                Physics.SyncTransforms();
+                motor.moveInput = Vector3.zero; motor.jumpHeld = false;
+                for (int i = 0; i < 15; i++) Step();
+                if (!motor.Grounded) return float.NaN;
+                var from = (body.position - origin).normalized;
+                queue.Invoke(motor.Traversal, new object[] { jump, !jump });
+                motor.jumpHeld = jump;
+                float takeoff = float.NaN, lift = 0f;
+                for (int i = 0; i < 100; i++)
+                {
+                    var radial = (body.position - origin).normalized;
+                    motor.moveInput = Vector3.ProjectOnPlane(Quaternion.FromToRotation(start, radial) * t, radial).normalized;
+                    bool dashing = motor.Traversal.IsDashing, guard = motor.Traversal.DashRiseGuardActive;
+                    Step();
+                    float r = Vector3.Distance(body.position, origin);
+                    if (log != null) { var rd = (body.position - origin).normalized; log.Append($"[{i} g{(motor.Grounded ? 1 : 0)} d{(dashing ? 1 : 0)}{(guard ? "G" : "")} h{r - radius - H(rd):F2} r{r - radius:F2} vr{Vector3.Dot(body.linearVelocity, rd):F1} sl{Vector3.Angle(motor.MovementUp, rd):F0}] "); }
+                    if (!motor.Grounded)
+                    {
+                        if (float.IsNaN(takeoff)) takeoff = r;
+                        lift = Mathf.Max(lift, r - takeoff);
+                        clear = Mathf.Max(clear, r - radius - H((body.position - origin).normalized));
+                        vr = Mathf.Max(vr, motor.RadialSpeed);
+                    }
+                    else if (!float.IsNaN(takeoff) && i > 3) break;
+                }
+                travel = Mathf.Acos(Mathf.Clamp(Vector3.Dot(from, (body.position - origin).normalized), -1f, 1f)) * radius;
+                return lift;
+            }
+
+            var random = new System.Random(StarSystemFactory.DeriveSeed(journey, 4242, chapter));
+            Vector3 RandomTangent(Vector3 d) => Quaternion.AngleAxis((float)random.NextDouble() * 360f, d) * Vector3.Cross(d, Mathf.Abs(d.y) < .9f ? Vector3.up : Vector3.right).normalized;
+            var cases = new Dictionary<string, List<(Vector3 start, Vector3 t, float slope)>>
+            {
+                ["bankUp"] = new List<(Vector3, Vector3, float)>(), ["bankAcross"] = new List<(Vector3, Vector3, float)>(),
+                ["slopeUp"] = new List<(Vector3, Vector3, float)>(), ["ledgeOff"] = new List<(Vector3, Vector3, float)>(),
+                ["plain"] = new List<(Vector3, Vector3, float)>()
+            };
+            float SlopeAlong(Vector3 d, Vector3 t) => Mathf.Atan2(H(Move(d, t, .3f)) - H(Move(d, t, -.3f)), .6f) * Mathf.Rad2Deg;
+            var river = plan.river;
+            if (river != null)
+            {
+                for (int s = 0; s < 24; s++)
+                {
+                    int k = Mathf.Clamp(Mathf.RoundToInt((.05f + .9f * s / 23f) * (river.directions.Count - 1)), 1, river.directions.Count - 2);
+                    var c = river.directions[k];
+                    var across = Vector3.Cross(c, river.directions[k + 1] - river.directions[k - 1]).normalized;
+                    float half = TerrainWater.WidthAt(river, k) * .5f;
+                    foreach (float sign in new[] { -1f, 1f })
+                    {
+                        // From the shallow edge of the channel, dash out up the bank.
+                        var inside = Move(c, across * sign, Mathf.Max(0f, half - .5f));
+                        cases["bankUp"].Add((inside, across * sign, SlopeAlong(Move(c, across * sign, half + river.bankWidth * .5f), across * sign)));
+                        // From dry ground beyond the bank, dash toward the river.
+                        var outside = Move(c, across * sign, half + river.bankWidth + 1f);
+                        cases["bankAcross"].Add((outside, -across * sign, SlopeAlong(Move(c, across * sign, half + river.bankWidth * .5f), across * sign)));
+                    }
+                }
+            }
+            // Slopes and cliffs from random points: the steepest uphill of 8 headings.
+            for (int s = 0; s < 4000 && (cases["slopeUp"].Count < 40 || cases["ledgeOff"].Count < 30 || cases["plain"].Count < 30); s++)
+            {
+                var d = new Vector3((float)random.NextDouble() * 2 - 1, (float)random.NextDouble() * 2 - 1, (float)random.NextDouble() * 2 - 1);
+                if (d.sqrMagnitude < .01f || d.sqrMagnitude > 1f) continue;
+                d.Normalize();
+                if (TerrainWater.IsWet(plan, d, .3f, out _)) continue;
+                var t0 = RandomTangent(d);
+                float best = -90f; Vector3 bestT = t0;
+                for (int k = 0; k < 8; k++) { var t = Quaternion.AngleAxis(45f * k, d) * t0; float a = SlopeAlong(Move(d, t, 1f), t); if (a > best) { best = a; bestT = t; } }
+                float here = SlopeAlong(d, bestT);
+                if (best >= 20f && best <= 62f && here < 15f && cases["slopeUp"].Count < 40) cases["slopeUp"].Add((d, bestT, best));
+                else if (best >= 25f && here < 15f && cases["ledgeOff"].Count < 30)
+                {
+                    // Stand on top of that slope and dash back down over its lip.
+                    var top = Move(d, bestT, 2.2f);
+                    if (SlopeAlong(top, bestT) < 12f) cases["ledgeOff"].Add((top, -bestT, best));
+                }
+                else if (best < 12f && cases["plain"].Count < 30) cases["plain"].Add((d, t0, best));
+            }
+
+            var rows = new List<object>();
+            var worst = new List<string>();
+            foreach (var pair in cases)
+            {
+                var lifts = new List<float>(); var clears = new List<float>(); float maxVr = 0f, travel = 0f; int n = 0;
+                var examples = new List<(float lift, string text)>();
+                foreach (var c in pair.Value)
+                {
+                    float lift = Run(c.start, c.t, false, out float vr, out float moved, out float clear);
+                    if (float.IsNaN(lift)) continue;
+                    n++; lifts.Add(lift); clears.Add(clear); maxVr = Mathf.Max(maxVr, vr); travel += moved;
+                     string text = $"{pair.Key} lift {lift:F2} clear {clear:F2} vr {vr:F1} slope {c.slope:F0} at {c.start.ToString("F3")}";
+                    if (TraceDash && lift > .4f) { var log = new System.Text.StringBuilder(" trace "); Run(c.start, c.t, false, out _, out _, out _, log); text += log.ToString(); }
+                    examples.Add((lift, text));
+                }
+                lifts.Sort(); clears.Sort(); examples.Sort((a, b) => b.lift.CompareTo(a.lift));
+                for (int i = 0; i < Mathf.Min(3, examples.Count); i++) worst.Add(examples[i].text);
+                float Q(float q) => lifts.Count == 0 ? 0f : lifts[Mathf.Clamp(Mathf.RoundToInt(q * (lifts.Count - 1)), 0, lifts.Count - 1)];
+                rows.Add(new { name = pair.Key, runs = n, liftMedian = Q(.5f), liftP90 = Q(.9f), liftMax = Q(1f), over30cm = lifts.FindAll(l => l > .3f).Count, clearMax = clears.Count == 0 ? 0f : clears[clears.Count - 1], clearOver30cm = clears.FindAll(l => l > .3f).Count, maxVr, meanTravel = n == 0 ? 0f : travel / n });
+            }
+            // Reference: a held plain jump from rest on open ground.
+            var jumps = new List<float>();
+            foreach (var c in cases["plain"]) { float l = Run(c.start, c.t, true, out _, out _, out _); if (!float.IsNaN(l)) jumps.Add(l); }
+            jumps.Sort();
+            return new { planetId, radius, jumpLiftMedian = jumps.Count == 0 ? 0f : jumps[jumps.Count / 2], cases = rows, worst };
+        }
+        finally
+        {
+            UnityEngine.Object.DestroyImmediate(probe);
+            SceneManager.UnloadSceneAsync(scene);
+            UnityEngine.Object.DestroyImmediate(world.transform.root.gameObject);
+        }
+    }
+
     static PlanetGenerationSettings Settings()
     {
         Check(Application.isPlaying, "Use Play mode");
