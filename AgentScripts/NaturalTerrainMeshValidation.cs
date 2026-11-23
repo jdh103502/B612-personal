@@ -84,7 +84,8 @@ public static class NaturalTerrainMeshValidation
         if (pad == null) return new { present = false, status = plan.spawnPadStatus };
         var ground = world.ground;
         var origin = world.transform.position;
-        float R = plan.radius, flat = 0f, flatSlope = 0f, bandSlope = 0f; int wet = 0, samples = 0;
+        float R = plan.radius, flat = 0f, flatSlope = 0f, bandSlope = 0f, radialSpread = 0f; int wet = 0, samples = 0;
+        var axis = world.transform.TransformDirection(pad.centre);
         var t0 = Vector3.Cross(pad.centre, Mathf.Abs(pad.centre.y) < .9f ? Vector3.up : Vector3.right).normalized;
         for (int k = 0; k <= 24; k++)
             for (int j = 0; j < 36; j++)
@@ -98,8 +99,12 @@ public static class NaturalTerrainMeshValidation
                 if (pad.InCore(d, -.25f))
                 {
                     samples++;
-                    flat = Mathf.Max(flat, Mathf.Abs(Vector3.Distance(hit.point, origin) - R - pad.level));
-                    flatSlope = Mathf.Max(flatSlope, slope);
+                    // Off the clearing's own surface: the plane (v22) or the sphere at the pad level (v21).
+                    float off = pad.planar ? Vector3.Dot(hit.point - origin, axis) - (R + pad.level)
+                        : Vector3.Distance(hit.point, origin) - R - pad.level;
+                    flat = Mathf.Max(flat, Mathf.Abs(off));
+                    radialSpread = Mathf.Max(radialSpread, Mathf.Abs(Vector3.Distance(hit.point, origin) - R - pad.level));
+                    flatSlope = Mathf.Max(flatSlope, Vector3.Angle(hit.normal, pad.planar ? axis : w));
                     if (TerrainWater.IsWet(plan, d, 0f, out _)) wet++;
                 }
                 else if (!pad.InCore(d)) bandSlope = Mathf.Max(bandSlope, slope);
@@ -134,7 +139,7 @@ public static class NaturalTerrainMeshValidation
         }
         plan.spawnPad = keep;
         return new { present = true, status = plan.spawnPadStatus, coreMeters = pad.core, blendMeters = pad.blend, pad.maxCut, pad.maxFill,
-            pad.offsetMeters, buildMs = plan.spawnPadMilliseconds, flatMm = flat * 1000f, flatSlope, bandSlope, padMax, naturalMax, padSteep, naturalSteep, bandSamples, spawnOffset, wet, samples };
+            pad.offsetMeters, pad.planar, buildMs = plan.spawnPadMilliseconds, flatMm = flat * 1000f, radialSpreadMm = radialSpread * 1000f, flatSlope, bandSlope, padMax, naturalMax, padSteep, naturalSteep, bandSamples, spawnOffset, wet, samples };
     }
 
     // Set to a route name to run the logged copy of the verifier loop on that route first.

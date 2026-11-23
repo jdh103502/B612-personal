@@ -129,6 +129,8 @@ namespace B612
         [Range(8f, 35f)] public float spawnPadMaxBlendSlope = 22f;
         [Tooltip("v21: how far from the preferred spawn direction the clearing may move to find gentle, dry ground.")]
         [Range(0f, 40f)] public float spawnPadSearchMeters = 14f;
+        [Tooltip("Generator v22: the clearing is a true plane (flat like the original asteroid's start point) instead of one height that follows the planet's curve. Off reproduces v21.")]
+        public bool spawnPadPlanar = true;
         [Range(8, 64)] public int siteCandidateLimit = 64;
 
         internal NaturalTerrainSettings Snapshot(float radius)
