@@ -43,6 +43,10 @@ namespace B612
             public int canyonSeed;
             public Vector3 canyonOffset;
             public Vector3 peakOffset;
+            // v19: distinct high mountains (direction xyz, height share w) and the long river's valley.
+            public List<Vector4> mountains = new List<Vector4>();
+            public string valleyStatus;
+            [NonSerialized] internal NaturalTerrainValley valley;
             public float ruggedThreshold, ruggedFull;
             // Rendering only: wetness from the flow field, sampled into the ground mesh's second UV channel.
             [NonSerialized] internal NaturalTerrainFlow.Moisture moisture;
@@ -237,6 +241,8 @@ namespace B612
                 Vector3 metres = direction * plan.radius;
                 float broad = Basis(metres / natural.broadScaleMeters + plan.macroOffset, plan.macroSeed, natural.noiseBasis);
                 float medium = Basis(metres / natural.mediumScaleMeters + plan.hillOffset, plan.hillSeed, natural.noiseBasis);
+                if (natural.reliefHeightMeters > 0f && plan.valley != null)
+                    return plan.valley.Apply(metres, Relief(plan, metres, broad, medium) - (plan.erosion == null ? 0f : plan.erosion.Carve(direction)));
                 if (natural.reliefHeightMeters > 0f)
                     return Relief(plan, metres, broad, medium) - (plan.erosion == null ? 0f : plan.erosion.Carve(direction));
                 if (natural.ruggedStrength > 0f && natural.canyonDepthMeters > 0f)
@@ -453,7 +459,60 @@ namespace B612
             float shape = .72f * a + .28f * b + .4f * (ridge - .55f);
             height += .5f * n.reliefHeightMeters * shape;
             if (n.escarpmentHeightMeters > 0f) height += Escarpment(plan, metres);
+            if (plan.mountains.Count > 0) height += Mountains(plan, metres);
             return height;
+        }
+
+        /// <summary>
+        /// v19 mountains: a few tall, clearly separate peaks. Each has concave flanks that rise gently from the base
+        /// and steepen towards a slightly rounded summit, so only the top is too steep to walk; a lobed outline and
+        /// rounded spurs and gullies on the flanks.
+        /// </summary>
+        static float Mountains(Plan plan, Vector3 metres)
+        {
+            var n = plan.natural;
+            float r = n.mountainRadiusMeters, sum = 0f;
+            var d = metres / plan.radius;
+            float cosReach = Mathf.Cos(1.25f * r / plan.radius);
+            for (int k = 0; k < plan.mountains.Count; k++)
+            {
+                var m = plan.mountains[k];
+                var centre = new Vector3(m.x, m.y, m.z);
+                float dot = Vector3.Dot(d, centre);
+                if (dot < cosReach) continue;
+                float arc = Mathf.Acos(Mathf.Clamp(dot, -1f, 1f)) * plan.radius;
+                int seed = plan.peakSeed ^ (0x6d1 + 97 * k);
+                var offset = centre * 13.7f + plan.peakOffset;
+                float edge = r * (1f + .2f * Simplex(metres / (.55f * r) + offset, seed));
+                float t = arc / edge;
+                if (t >= 1f) continue;
+                const float round = .12f;
+                float u = (Mathf.Sqrt(t * t + round * round) - round) / (Mathf.Sqrt(1f + round * round) - round);
+                float f = (1f - u) * (1f - u);
+                float ridge = Simplex(metres / (.4f * r) + offset * 1.7f, seed ^ 0x55);
+                float spur = 1f - Mathf.Sqrt(ridge * ridge + .01f);
+                sum += m.w * n.mountainHeightMeters * (f + .5f * (spur - .55f) * f * (1f - f));
+            }
+            return sum;
+        }
+
+        /// <summary>v19: mountain centres, spread at least 1.7 base radii apart.</summary>
+        static void PlaceMountains(Plan plan)
+        {
+            var n = plan.natural;
+            var random = new System.Random(StarSystemFactory.DeriveSeed(plan.seed, 89, 0));
+            int count = Mathf.Clamp(Mathf.RoundToInt(n.mountainCount * plan.radius / 12f), 1, 6);
+            float cosApart = Mathf.Cos(Mathf.Min(2f, 1.7f * n.mountainRadiusMeters / plan.radius));
+            for (int attempt = 0; attempt < 60 * count && plan.mountains.Count < count; attempt++)
+            {
+                var d = new Vector3((float)random.NextDouble() * 2f - 1f, (float)random.NextDouble() * 2f - 1f, (float)random.NextDouble() * 2f - 1f);
+                float share = .85f + .3f * (float)random.NextDouble();
+                if (d.sqrMagnitude > 1f || d.sqrMagnitude < .01f) continue;
+                d.Normalize();
+                bool apart = true;
+                foreach (var m in plan.mountains) apart &= Vector3.Dot(d, new Vector3(m.x, m.y, m.z)) < cosApart;
+                if (apart) plan.mountains.Add(new Vector4(d.x, d.y, d.z, share));
+            }
         }
 
         /// <summary>
@@ -853,6 +912,14 @@ namespace B612
             plan.roughnessOffset = NoiseOffset(plan.roughnessSeed);
             if (natural.ruggedStrength > 0f) RuggedThreshold(plan);
             var watch = System.Diagnostics.Stopwatch.StartNew();
+            if (natural.reliefHeightMeters > 0f && natural.mountainHeightMeters > 0f && natural.mountainCount > 0) PlaceMountains(plan);
+            // v19: the long river's valley is part of the height field before any flow is routed.
+            if (natural.reliefHeightMeters > 0f && natural.riverCircumferenceShare.x > 0f && natural.generateRiver &&
+                natural.riverMode == NaturalRiverMode.Flow)
+            {
+                plan.valley = NaturalTerrainValley.Build(plan);
+                plan.valleyStatus = plan.valley != null ? plan.valley.status : plan.riverStatus;
+            }
             if (natural.erosionDepthMeters > 0f)
             {
                 // Gullies come from the uneroded drainage; everything below then sees the eroded heights.

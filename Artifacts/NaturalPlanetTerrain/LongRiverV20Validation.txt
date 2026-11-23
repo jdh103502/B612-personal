@@ -1,0 +1,75 @@
+# Generator v20 validation (2026-11-23): v19 long valley rivers and widths, no mountains
+
+== recompile
+== v18 reproduction
+8 of 8 identical
+== relief
+system_02_B R=8.4 river=True conn=0.9009 spread/q=3.26 regions=20 slope%=58.0/27.4/14.59 maxSlope=69.8
+system_02_B R=12.0 river=True conn=0.8551 spread/q=3.21 regions=20 slope%=57.5/28.8/13.71 maxSlope=68.3
+system_02_B R=24.0 river=True conn=0.9802 spread/q=2.64 regions=20 slope%=75.8/20.3/3.94 maxSlope=51.8
+system_01_Start R=12.0 river=True conn=0.8600 spread/q=2.80 regions=20 slope%=58.9/33.2/7.90 maxSlope=62.8
+system_01_D R=23.5 river=True conn=0.9747 spread/q=2.68 regions=20 slope%=77.1/19.2/3.71 maxSlope=69.5
+system_03_E R=21.4 river=True conn=0.9776 spread/q=3.06 regions=20 slope%=78.4/17.2/4.47 maxSlope=56.7
+system_01_C R=9.7 river=True conn=0.8419 spread/q=4.16 regions=20 slope%=54.0/26.2/19.75 maxSlope=75.3
+system_03_D R=9.5 river=True conn=0.9197 spread/q=3.70 regions=20 slope%=46.1/38.3/15.57 maxSlope=60.8
+== compare: valley 36 flow 0 fail 0
+len 0.56 0.65 0.86
+conn min 0.7309 median 0.9252 empty max 7
+== batch walk
+walk system_02_B R=8.4 routes=10 skipped=0 high=2.36 low=-1.61 maxSlope=41.4 hillUp:15.2 hillDown:15.3 basinIn:6.1 basinOut:6.1 river0.35AB:2.6 river0.35BA:2.6 river0.65AB:3.0 river0.65BA:3.0 pondIn:2.8 pondOut:2.9
+walk system_02_B R=12.0 routes=10 skipped=0 high=3.39 low=-2.34 maxSlope=38.5 hillUp:21.6 hillDown:21.7 basinIn:9.0 basinOut:9.0 river0.35AB:3.6 river0.35BA:3.6 river0.65AB:4.1 river0.65BA:4.1 pondIn:3.9 pondOut:3.9
+walk system_02_B R=24.0 routes=10 skipped=0 high=3.60 low=-2.92 maxSlope=46.7 hillUp:20.8 hillDown:20.8 basinIn:15.9 basinOut:15.9 river0.35AB:3.9 river0.35BA:3.9 river0.65AB:4.4 river0.65BA:4.4 pondIn:4.4 pondOut:4.4
+walk system_01_Start R=12.0 routes=10 skipped=0 high=1.55 low=-2.02 maxSlope=39.8 hillUp:16.8 hillDown:16.8 basinIn:14.6 basinOut:14.6 river0.35AB:3.5 river0.35BA:3.5 river0.65AB:3.9 river0.65BA:3.9 pondIn:4.1 pondOut:4.2
+walk system_01_D R=23.5 routes=10 skipped=0 high=2.85 low=-2.88 maxSlope=40.0 hillUp:15.2 hillDown:15.2 basinIn:10.5 basinOut:10.5 river0.35AB:3.9 river0.35BA:3.9 river0.65AB:4.3 river0.65BA:4.3 pondIn:4.3 pondOut:4.4
+walk system_03_E R=21.4 routes=10 skipped=0 high=3.48 low=-2.88 maxSlope=36.7 hillUp:34.3 hillDown:34.3 basinIn:16.3 basinOut:16.3 river0.35AB:3.8 river0.35BA:3.8 river0.65AB:4.3 river0.65BA:4.3 pondIn:4.3 pondOut:4.3
+walk system_01_C R=9.7 routes=10 skipped=0 high=3.18 low=-2.25 maxSlope=40.8 hillUp:12.8 hillDown:12.9 basinIn:5.6 basinOut:5.6 river0.35AB:3.0 river0.35BA:3.0 river0.65AB:3.3 river0.65BA:3.3 pondIn:3.2 pondOut:3.2
+walk system_03_D R=9.5 routes=10 skipped=0 high=2.10 low=-2.22 maxSlope=45.6 hillUp:8.4 hillDown:8.5 basinIn:7.2 basinOut:7.2 river0.35AB:2.8 river0.35BA:2.8 river0.65AB:3.1 river0.65BA:3.1 pondIn:3.1 pondOut:3.1
+== done
+
+## Compare (36 planets)
+j=612101 system_01_Start R=12.0 river=True conn=0.8600 cand=2397 empty=3 err=14mm cliff=16mm/307 depth=0.27/0.29/0.30 | Valley river into lake: 45.6m (0.60 of the circumference), width 1.4-4.2m, pond radius 6.2m (3920 cells).
+j=612101 system_01_B R=10.9 river=True conn=0.8675 cand=2515 empty=1 err=13mm cliff=39mm/668 depth=0.24/0.26/0.26 | Valley river into lake: 46.9m (0.69 of the circumference), width 1.2-3.9m, pond radius 5.4m (3920 cells).
+j=612101 system_01_C R=15.1 river=True conn=0.8570 cand=5364 empty=7 err=10mm cliff=23mm/436 depth=0.27/0.29/0.30 | Valley river into lake: 61.8m (0.65 of the circumference), width 1.4-4.3m, pond radius 6.1m (6480 cells).
+j=612101 system_01_D R=23.5 river=True conn=0.9746 cand=10111 empty=2 err=17mm cliff=14mm/255 depth=0.27/0.29/0.30 | Valley river into lake: 83.4m (0.56 of the circumference), width 1.4-4.4m, pond radius 6.0m (15680 cells).
+j=612101 system_01_E R=15.1 river=True conn=0.9081 cand=5508 empty=4 err=12mm cliff=17mm/318 depth=0.27/0.29/0.30 | Valley river into lake: 71.4m (0.75 of the circumference), width 1.4-4.3m, pond radius 6.4m (6480 cells).
+j=612101 system_01_Destination R=13.7 river=True conn=0.9128 cand=5542 empty=3 err=15mm cliff=25mm/408 depth=0.27/0.29/0.29 | Valley river into lake: 56.1m (0.65 of the circumference), width 1.4-4.3m, pond radius 6.2m (5120 cells).
+j=612101 system_02_Start R=12.0 river=True conn=0.8991 cand=2481 empty=0 err=29mm cliff=40mm/543 depth=0.27/0.29/0.38 | Valley river into lake: 47.4m (0.63 of the circumference), width 1.4-4.2m, pond radius 6.0m (3920 cells).
+j=612101 system_02_B R=19.5 river=True conn=0.9668 cand=10089 empty=2 err=16mm cliff=13mm/185 depth=0.27/0.29/0.30 | Valley river into lake: 81.0m (0.66 of the circumference), width 1.4-4.3m, pond radius 6.2m (10580 cells).
+j=612101 system_02_C R=8.9 river=True conn=0.7309 cand=2347 empty=3 err=33mm cliff=29mm/863 depth=0.20/0.22/0.26 | Valley river into lake: 48.0m (0.86 of the circumference), width 1.0-3.2m, pond radius 4.5m (3920 cells).
+j=612101 system_02_D R=22.1 river=True conn=0.9385 cand=10137 empty=1 err=26mm cliff=24mm/383 depth=0.27/0.29/0.31 | Valley river into lake: 91.2m (0.66 of the circumference), width 1.4-4.4m, pond radius 6.1m (13520 cells).
+j=612101 system_02_E R=15.3 river=True conn=0.9244 cand=5638 empty=2 err=15mm cliff=26mm/518 depth=0.27/0.29/0.30 | Valley river into lake: 59.1m (0.62 of the circumference), width 1.4-4.3m, pond radius 6.0m (6480 cells).
+j=612101 system_02_Destination R=22.9 river=True conn=0.9577 cand=10170 empty=1 err=18mm cliff=18mm/355 depth=0.27/0.29/0.30 | Valley river into lake: 84.9m (0.59 of the circumference), width 1.4-4.4m, pond radius 6.0m (14580 cells).
+j=612101 system_03_Start R=12.0 river=True conn=0.9638 cand=2495 empty=1 err=17mm cliff=24mm/372 depth=0.27/0.29/0.32 | Valley river into lake: 60.0m (0.80 of the circumference), width 1.4-4.3m, pond radius 5.9m (3920 cells).
+j=612101 system_03_B R=21.1 river=True conn=0.9530 cand=10069 empty=1 err=17mm cliff=33mm/260 depth=0.27/0.29/0.29 | Valley river into lake: 75.9m (0.57 of the circumference), width 1.4-4.3m, pond radius 6.0m (12500 cells).
+j=612101 system_03_C R=8.7 river=True conn=0.9282 cand=2473 empty=1 err=20mm cliff=63mm/610 depth=0.20/0.21/0.25 | Valley river into lake: 33.4m (0.61 of the circumference), width 1.0-3.1m, pond radius 4.5m (3920 cells).
+j=612101 system_03_D R=23.3 river=True conn=0.9420 cand=10144 empty=1 err=14mm cliff=12mm/278 depth=0.27/0.29/0.30 | Valley river into lake: 88.8m (0.61 of the circumference), width 1.4-4.4m, pond radius 6.0m (14580 cells).
+j=612101 system_03_E R=21.4 river=True conn=0.9776 cand=10134 empty=2 err=18mm cliff=7mm/148 depth=0.27/0.29/0.29 | Valley river into lake: 81.9m (0.61 of the circumference), width 1.4-4.3m, pond radius 6.1m (12500 cells).
+j=612101 system_03_Destination R=18.0 river=True conn=0.9629 cand=5705 empty=1 err=13mm cliff=29mm/322 depth=0.27/0.29/0.29 | Valley river into lake: 75.3m (0.67 of the circumference), width 1.4-4.3m, pond radius 6.1m (8820 cells).
+j=77 system_01_Start R=12.0 river=True conn=0.7863 cand=2394 empty=2 err=14mm cliff=37mm/471 depth=0.27/0.29/0.30 | Valley river into lake: 46.8m (0.62 of the circumference), width 1.4-4.2m, pond radius 5.9m (3920 cells).
+j=77 system_01_B R=12.2 river=True conn=0.9152 cand=5439 empty=6 err=11mm cliff=20mm/459 depth=0.27/0.29/0.29 | Valley river into lake: 48.6m (0.63 of the circumference), width 1.4-4.2m, pond radius 6.3m (4500 cells).
+j=77 system_01_C R=9.7 river=True conn=0.8419 cand=2484 empty=1 err=15mm cliff=25mm/779 depth=0.22/0.23/0.25 | Valley river into lake: 37.8m (0.62 of the circumference), width 1.1-3.4m, pond radius 5.1m (3920 cells).
+j=77 system_01_D R=18.9 river=True conn=0.9240 cand=9976 empty=2 err=12mm cliff=7mm/321 depth=0.27/0.29/0.30 | Valley river into lake: 81.0m (0.68 of the circumference), width 1.4-4.4m, pond radius 6.0m (9680 cells).
+j=77 system_01_E R=10.6 river=True conn=0.8874 cand=2474 empty=2 err=16mm cliff=39mm/659 depth=0.24/0.26/0.31 | Valley river into lake: 46.8m (0.70 of the circumference), width 1.2-3.8m, pond radius 5.3m (3920 cells).
+j=77 system_01_Destination R=13.5 river=True conn=0.9290 cand=5552 empty=3 err=9mm cliff=19mm/464 depth=0.27/0.29/0.30 | Valley river into lake: 52.2m (0.61 of the circumference), width 1.4-4.3m, pond radius 6.0m (5120 cells).
+j=77 system_02_Start R=12.0 river=True conn=0.9318 cand=2477 empty=1 err=11mm cliff=52mm/337 depth=0.27/0.29/0.29 | Valley river into lake: 50.4m (0.67 of the circumference), width 1.4-4.3m, pond radius 6.1m (3920 cells).
+j=77 system_02_B R=15.5 river=True conn=0.9083 cand=5635 empty=2 err=16mm cliff=30mm/526 depth=0.27/0.29/0.30 | Valley river into lake: 60.9m (0.62 of the circumference), width 1.4-4.3m, pond radius 6.2m (6480 cells).
+j=77 system_02_C R=21.1 river=True conn=0.9618 cand=10135 empty=2 err=18mm cliff=27mm/265 depth=0.27/0.29/0.29 | Valley river into lake: 91.5m (0.69 of the circumference), width 1.4-4.4m, pond radius 6.0m (12500 cells).
+j=77 system_02_D R=17.3 river=True conn=0.9205 cand=5669 empty=1 err=9mm cliff=19mm/496 depth=0.27/0.29/0.30 | Valley river into lake: 66.9m (0.62 of the circumference), width 1.4-4.3m, pond radius 6.1m (8820 cells).
+j=77 system_02_E R=18.7 river=True conn=0.9206 cand=10034 empty=4 err=15mm cliff=16mm/354 depth=0.27/0.29/0.29 | Valley river into lake: 69.3m (0.59 of the circumference), width 1.4-4.3m, pond radius 6.2m (9680 cells).
+j=77 system_02_Destination R=23.8 river=True conn=0.9637 cand=10204 empty=0 err=8mm cliff=19mm/212 depth=0.27/0.29/0.30 | Valley river into lake: 90.0m (0.60 of the circumference), width 1.4-4.4m, pond radius 6.0m (15680 cells).
+j=77 system_03_Start R=12.0 river=True conn=0.9063 cand=2511 empty=0 err=16mm cliff=42mm/432 depth=0.27/0.29/0.29 | Valley river into lake: 61.2m (0.81 of the circumference), width 1.4-4.3m, pond radius 6.4m (3920 cells).
+j=77 system_03_B R=11.4 river=True conn=0.9476 cand=2486 empty=1 err=21mm cliff=13mm/362 depth=0.26/0.28/0.32 | Valley river into lake: 50.1m (0.70 of the circumference), width 1.3-4.0m, pond radius 5.9m (3920 cells).
+j=77 system_03_C R=9.2 river=True conn=0.9252 cand=2479 empty=2 err=24mm cliff=41mm/504 depth=0.21/0.22/0.23 | Valley river into lake: 41.9m (0.72 of the circumference), width 1.0-3.3m, pond radius 4.9m (3920 cells).
+j=77 system_03_D R=9.5 river=True conn=0.9197 cand=2496 empty=1 err=22mm cliff=44mm/555 depth=0.21/0.23/0.25 | Valley river into lake: 39.0m (0.66 of the circumference), width 1.1-3.4m, pond radius 4.9m (3920 cells).
+j=77 system_03_E R=23.9 river=True conn=0.9726 cand=10184 empty=0 err=13mm cliff=10mm/171 depth=0.27/0.29/0.30 | Valley river into lake: 98.1m (0.65 of the circumference), width 1.4-4.4m, pond radius 6.0m (15680 cells).
+j=77 system_03_Destination R=10.2 river=True conn=0.9537 cand=2496 empty=2 err=22mm cliff=12mm/360 depth=0.23/0.25/0.25 | Valley river into lake: 48.6m (0.76 of the circumference), width 1.2-3.7m, pond radius 5.4m (3920 cells).
+
+## Captures
+v18-system_02_B-lake.png
+v18-system_02_B-valley.png
+v18-system_02_B-whole-back.png
+v18-system_02_B-whole-river.png
+v20-system_02_B-lake.png
+v20-system_02_B-valley.png
+v20-system_02_B-whole-back.png
+v20-system_02_B-whole-river.png

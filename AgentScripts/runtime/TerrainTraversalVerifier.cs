@@ -88,7 +88,7 @@ namespace B612
         {
             seconds=0;
             motor.Traversal.SetAllowed(TraversalFeature.Dash,false);motor.Traversal.SetAllowed(TraversalFeature.AirJump,false);motor.Traversal.SetAllowed(TraversalFeature.Glide,false);
-            if(!ground.Raycast(new Ray(origin+route[0]*(radius+6),-route[0]),out var hit,radius+12))return false;
+            if(!ground.Raycast(new Ray(origin+route[0]*(radius+20),-route[0]),out var hit,radius+40))return false;
             body.rotation=Quaternion.LookRotation(Vector3.ProjectOnPlane(route[1]-route[0],hit.normal),hit.normal);motor.Teleport(hit.point+hit.normal*.04f,hit.normal);motor.Traversal.SetInputEnabled(true);Physics.SyncTransforms();
             for(int i=0;i<12;i++){motor.TickTraversal(.02f);physics.Simulate(.02f);motor.transform.SetPositionAndRotation(body.position,body.rotation);}
             if(!motor.Grounded)return false;
@@ -102,7 +102,7 @@ namespace B612
                 motor.moveInput=Vector3.ProjectOnPlane(route[next]-radial,radial).normalized;
                 motor.TickTraversal(.02f);physics.Simulate(.02f);motor.transform.SetPositionAndRotation(body.position,body.rotation);
                 maximumSlope=Mathf.Max(maximumSlope,Vector3.Angle(motor.MovementUp,radial));
-                airTicks=motor.Grounded?0:airTicks+1;if(airTicks>4 ||Vector3.Distance(body.position,origin)<radius-3)return false;
+                airTicks=motor.Grounded?0:airTicks+1;if(airTicks>4 ||Vector3.Distance(body.position,origin)<radius-8)return false;
             }
             return false;
         }
@@ -111,7 +111,7 @@ namespace B612
             seconds=0;
             var start=feature.Direction(TraversalTestCourseGeometry.Start(feature.kind),plan.radius);
             var goal=feature.Direction(TraversalTestCourseGeometry.Goal(feature.kind),plan.radius);
-            if(!ground.Raycast(new Ray(origin+start*(plan.radius+6),-start),out var hit,plan.radius+12))return false;
+            if(!ground.Raycast(new Ray(origin+start*(plan.radius+20),-start),out var hit,plan.radius+40))return false;
             body.rotation=Quaternion.LookRotation(Vector3.ProjectOnPlane(goal-start,hit.normal),hit.normal);motor.Teleport(hit.point+hit.normal*.04f,hit.normal);
             motor.Traversal.SetAllowed(TraversalFeature.Dash,powered&&feature.kind==0);motor.Traversal.SetAllowed(TraversalFeature.AirJump,powered&&feature.kind==1);motor.Traversal.SetAllowed(TraversalFeature.Glide,powered&&feature.kind==2);motor.Traversal.SetInputEnabled(true);
             for(int i=0;i<12;i++){motor.TickTraversal(.02f);physics.Simulate(.02f);motor.transform.SetPositionAndRotation(body.position,body.rotation);}

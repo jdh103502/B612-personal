@@ -80,6 +80,11 @@ MonoBehaviour:
     escarpmentHeightMeters: 2
     escarpmentScaleMeters: 30
     escarpmentWidthMeters: 2
+    mountainHeightMeters: 0
+    mountainRadiusMeters: 11
+    mountainCount: 0
+    riverCircumferenceShare: {x: 0.52, y: 0.7}
+    riverLakeRadiusMeters: 7
     canyonDepthMeters: 0
     canyonWidthMeters: 4.4
     canyonWallMeters: 0.4
@@ -95,8 +100,8 @@ MonoBehaviour:
     erosionWidthMeters: 1
     generateRiver: 1
     riverLengthMeters: {x: 15, y: 40}
-    riverWidthMeters: 0.9
-    riverMouthWidthMeters: 3
+    riverWidthMeters: 1.35
+    riverMouthWidthMeters: 4.5
     equalAngleMesh: 1
     riverDepthMeters: {x: 0.28, y: 0.38}
     riverDepthPerWidth: 0.2
@@ -108,7 +113,7 @@ MonoBehaviour:
     riverMode: 1
     flowSpacingMeters: 0.6
     pondMaxDepthMeters: 0.25
-    pondMaxRadiusMeters: 3.5
+    pondMaxRadiusMeters: 8
     analysisSpacingMeters: 0.6
     maxAnalysisNodes: 30000
     minConnectedAreaRatio: 0.6

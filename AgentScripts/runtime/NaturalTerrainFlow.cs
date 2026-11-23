@@ -111,6 +111,47 @@ namespace B612
                 return c == 0 ? a.CompareTo(b) : c;
             });
 
+            // v19: the river of the shaped valley comes first; the usual candidates are the fallback.
+            string valleyReason = null;
+            if (plan.valley != null)
+            {
+                var valley = plan.valley;
+                int pit = 0;
+                float best = float.NegativeInfinity;
+                for (int i = 0; i < count; i++)
+                {
+                    float dot = Vector3.Dot(direction[i], valley.lakeCentre);
+                    if (dot > best) { best = dot; pit = i; }
+                }
+                while (receiver[pit] >= 0) pit = receiver[pit];
+                var pond = FillPond(cells, direction, height, pit, radius, settings, out float pondLevel, out float pondBowl);
+                float rim = pond == null ? 0f : Rim(plan, direction, pond, pit, pondLevel, spacing);
+                if (pond == null) valleyReason = "empty lake";
+                else if (rim <= 0f) valleyReason = "open lake rim";
+                else
+                {
+                    var designed = new Candidate
+                    {
+                        path = new List<Vector3>(valley.route), pondDirection = direction[pit], pondLevel = pondLevel,
+                        pondRadius = rim, pondBowl = pondBowl, minLength = valley.minRiverLength, valley = true,
+                        lakeCentre = valley.lakeCentre, lakeRadius = valley.lakeRadius
+                    };
+                    valleyReason = Fit(plan, designed, out var valleyRiver);
+                    if (valleyReason == "deep cut") valleyReason += $" at {designed.cutAt:F1} of {valley.length:F1}m";
+                    if (valleyReason == null)
+                    {
+                        plan.river = valleyRiver;
+                        plan.riverPlanMilliseconds = (float)watch.Elapsed.TotalMilliseconds;
+                        float widest = valleyRiver.width;
+                        foreach (float w in valleyRiver.widths) widest = Mathf.Max(widest, w);
+                        plan.riverStatus = $"Valley river into lake: {valleyRiver.lengths[valleyRiver.lengths.Count - 1]:F1}m " +
+                            $"({valleyRiver.lengths[valleyRiver.lengths.Count - 1] / (2f * Mathf.PI * radius):F2} of the circumference), " +
+                            $"width {valleyRiver.width:F1}-{widest:F1}m, pond radius {valleyRiver.pondRadius:F1}m ({count} cells).";
+                        return true;
+                    }
+                }
+            }
+
             var random = new System.Random(plan.riverSeed);
             var candidates = new List<Candidate>();
             int shallowPonds = 0, shortStems = 0, openRims = 0, flooded = 0;
@@ -231,13 +272,15 @@ namespace B612
                 float widest = river.width;
                 foreach (float w in river.widths) widest = Mathf.Max(widest, w);
                 plan.riverStatus = $"Flow river into pond: {river.lengths[river.lengths.Count - 1]:F1}m, width {river.width:F1}-{widest:F1}m, " +
-                    $"pond radius {river.pondRadius:F1}m ({count} cells, {pits.Count} basins, {candidates.Count} candidates, {rejected} unfit).";
+                    $"pond radius {river.pondRadius:F1}m ({count} cells, {pits.Count} basins, {candidates.Count} candidates, {rejected} unfit)." +
+                    (valleyReason != null ? $" Valley river unfit: {valleyReason}." : "");
                 return true;
             }
             var unfit = new List<string>();
             foreach (var pair in reasons) unfit.Add(pair.Key + " " + pair.Value);
             plan.riverStatus = $"No flow river: {count} cells, {pits.Count} basins, {shallowPonds} empty ponds, " +
-                $"{openRims} open rims, {shortStems} short stems, {rejected} unfit channels ({string.Join(", ", unfit)}).";
+                $"{openRims} open rims, {shortStems} short stems, {rejected} unfit channels ({string.Join(", ", unfit)})." +
+                (valleyReason != null ? $" Valley river unfit: {valleyReason}." : "");
             return false;
         }
 
@@ -454,6 +497,11 @@ namespace B612
             // v14: shortest acceptable fitted river, and where a failed fit hit a gorge too deep (metres from the source).
             public float minLength;
             public float cutAt = -1f;
+            // v19: the shaped valley's river. Where it enters the lake obliquely one bank reaches the lake bowl first;
+            // a bank inside the lake (or below its surface) is lake, not a low bank the river must stay under.
+            public bool valley;
+            public Vector3 lakeCentre;
+            public float lakeRadius;
         }
 
         static void Near(List<PlanetSurfaceGrid.SurfaceCell> cells, int index, List<int> result)
@@ -631,7 +679,10 @@ namespace B612
                 {
                     var bank = (direction * plan.radius + side * (sign * (width * .55f +
                         settings.bankTransitionMeters * bankReach))).normalized;
-                    return Ground(bank);
+                    if (!candidate.valley) return Ground(bank);
+                    float ground = Ground(bank);
+                    return ground < candidate.pondLevel + 2f * margin ||
+                        Arc(bank, candidate.lakeCentre, plan.radius) < candidate.lakeRadius ? float.PositiveInfinity : ground;
                 }
             }
             int last = result.directions.Count - 1;
@@ -689,6 +740,7 @@ namespace B612
             float widest = result.width;
             foreach (float w in result.widths) widest = Mathf.Max(widest, w);
             result.bound += widest * .5f + result.bankWidth;
+            TerrainWater.BuildIndex(result);
             river = result;
             return null;
         }
